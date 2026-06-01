@@ -1,0 +1,71 @@
+<table class="filtercontainericontent" id="filtercontainericontent">
+    <tr class="filter">
+        <th colspan="4">
+            <button class="save" id="filter" type="submit">Фильтровать</button>
+            <script>
+                jQuery(document).ready(function () {
+                    var action = "/chat/search";
+                    console.log("Action:", action);
+
+                    $("#filter").click(function(e) {
+                        e.preventDefault();
+
+                        var formData = {
+                            term: $("#term").val(),
+                            maxFoundCount: $("#maxFoundCount").val(),
+                            minDiffDaysCount: $("#minDiffDaysCount").val(),
+                            excludeStatusFlag: $("#excludeStatusFlag").is(":checked"),
+                            excludeBotFlag: $("#excludeBotFlag").is(":checked"),
+                            excludeGroupFlag: $("#excludeGroupFlag").is(":checked")
+                        };
+
+                        console.log("Отправляемые данные:", formData);
+
+                        $.ajax({
+                            url: action,
+                            type: "GET",
+                            data: formData,
+                            success: function(response) {
+                                console.log("Ответ от сервера:", response);
+                                jQuery(".icontent").remove();
+                                jQuery(".econtent").html(response);
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Ошибка:", error);
+                            }
+                        });
+                    });
+                });
+            </script>
+        </th>
+    <tr>
+    <tr class="filter" id="filterparams">
+        <td class="colid"></td>
+        <td class="col">
+            <input type="text" id="term" th:field="*{filter.term}" name="term"
+                   class="1col active form-control"/>
+
+            <input type="checkbox" id="excludeStatusFlag" th:field="*{filter.excludeStatusFlag}"
+                   name="excludeGroupFlag" class="1col active form-control"/>
+            Не показывать статус > 0
+        </td>
+        <td class="col limit">
+            <spann>Максимум результат</spann>
+            <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount"
+                   class="1col active form-control"/>
+        </td>
+        <td class="col">
+            <spann>Не писали больше чем (в днях)</spann>
+            <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}"
+                   name="minDiffDaysCount" class="1col active form-control"/>
+        </td>
+        <td class="col">
+            <input type="checkbox" id="excludeBotFlag" th:field="*{filter.excludeBotFlag}"
+                   name="excludeBotFlag" class="1col active form-control"/>
+            Не показывать ботов
+            <input type="checkbox" id="excludeGroupFlag" th:field="*{filter.excludeGroupFlag}"
+                   name="excludeGroupFlag" class="1col active form-control"/>
+            Не показывать группы и каналы
+        </td>
+    </tr>
+</table>

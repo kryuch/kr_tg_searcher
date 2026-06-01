@@ -1,0 +1,72 @@
+<div class="onepage">
+    <table>
+        <tr>
+            <td>
+                <div class="econtent" th:insert="chat/messages.html :: div"></div>
+            </td>
+            <td class="vacancycontainer" id="vacancyContainer" th:insert="chat/vacancies.html :: div">
+            </td>
+        </tr>
+        <tr>
+            <td class="settingbuttons" rowspan="2">
+                <input type="text" id="term" name="term" class="1col active form-control"/>
+                <input type="text" id="text" name="text" class="1col active form-control"/>
+                <a class="btn-save" th:attr="data-chat-id=${id}" href="#">Разобрать</a>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.btn-save');
+            if (!btn) return;
+
+            e.preventDefault();
+
+            var chatId = btn.getAttribute('data-chat-id');
+            if (!chatId) {
+                console.error('chatId не найден');
+                return;
+            }
+
+            // Получаем значение поля term
+            var termInput = document.getElementById('term');
+            var termValue = termInput ? termInput.value : '';
+
+            var textInput = document.getElementById('text');
+            var textValue = textInput ? textInput.value : '';
+
+            if (!termValue.trim()) {
+                console.warn('Поле term пустое');
+                // Можно показать предупреждение пользователю
+                // alert('Пожалуйста, заполните поле');
+                // return; // если поле обязательно — раскомментировать
+            }
+
+            var container = document.getElementById('vacancyContainer');
+            if (!container) {
+                console.error('vacancyContainer не найден');
+                return;
+            }
+
+            container.innerHTML = '<div style="padding: 10px; text-align: center;">Загрузка...</div>';
+
+            // Отправляем POST-запрос с данными в теле
+            fetch('/chat/status/' + chatId + '/vacancies/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'term=' + encodeURIComponent(termValue) + '&text=' + encodeURIComponent(textValue)
+            })
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    container.innerHTML = '<div style="padding: 10px; color: red;">Ошибка загрузки</div>';
+                });
+        });
+    </script>
+</div>

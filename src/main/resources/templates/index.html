@@ -1,0 +1,241 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>TG Bot | Irlix</title>
+    <link rel="icon" href="https://img.icons8.com/?size=360&amp;id=81438&amp;format=png" alt="Галочка" loading="lazy"
+          width="180"
+          height="180" style="width: 180px; height: 180px;" lazy="loaded" type="image/png">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link th:href="@{/css/bootstrap.css}" rel="stylesheet"/>
+    <link th:href="@{/css/colorbox.css}" rel="stylesheet"/>
+    <link th:href="@{/css/main.css}" rel="stylesheet"/>
+    <link th:href="@{/css/jquery.multiselect.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
+<body class="adminka">
+<header>
+    <div class="header-top">
+        <svg width="106" height="46" viewBox="0 0 106 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M30.1454 40.347V45.5883H29.5107V40.347H30.1454Z" fill="white"></path>
+            <path d="M31.2755 40.9101V40.347H35.2064V40.9101H33.5583V45.5883H32.9236V40.9101H31.2755Z"
+                  fill="white"></path>
+            <path d="M42.7186 41.9849H42.0839C42.0464 41.8024 41.9807 41.642 41.8868 41.5038C41.7947 41.3656 41.6821 41.2496 41.549 41.1557C41.4177 41.0602 41.2718 40.9885 41.1114 40.9408C40.951 40.893 40.7838 40.8691 40.6098 40.8691C40.2925 40.8691 40.005 40.9493 39.7474 41.1097C39.4915 41.2701 39.2876 41.5064 39.1357 41.8186C38.9856 42.1308 38.9105 42.5138 38.9105 42.9677C38.9105 43.4215 38.9856 43.8045 39.1357 44.1167C39.2876 44.4289 39.4915 44.6652 39.7474 44.8256C40.005 44.986 40.2925 45.0662 40.6098 45.0662C40.7838 45.0662 40.951 45.0423 41.1114 44.9945C41.2718 44.9468 41.4177 44.8759 41.549 44.7821C41.6821 44.6866 41.7947 44.5697 41.8868 44.4315C41.9807 44.2916 42.0464 44.1312 42.0839 43.9504H42.7186C42.6708 44.2182 42.5838 44.4579 42.4575 44.6695C42.3313 44.8811 42.1743 45.0611 41.9867 45.2095C41.799 45.3562 41.5883 45.468 41.3545 45.5447C41.1225 45.6215 40.8743 45.6599 40.6098 45.6599C40.1628 45.6599 39.7653 45.5507 39.4172 45.3323C39.0692 45.114 38.7954 44.8034 38.5957 44.4008C38.3961 43.9981 38.2963 43.5204 38.2963 42.9677C38.2963 42.4149 38.3961 41.9372 38.5957 41.5345C38.7954 41.1319 39.0692 40.8213 39.4172 40.603C39.7653 40.3846 40.1628 40.2754 40.6098 40.2754C40.8743 40.2754 41.1225 40.3138 41.3545 40.3906C41.5883 40.4673 41.799 40.5799 41.9867 40.7284C42.1743 40.8751 42.3313 41.0542 42.4575 41.2658C42.5838 41.4756 42.6708 41.7154 42.7186 41.9849Z"
+                  fill="white"></path>
+            <path d="M48.3106 42.9677C48.3106 43.5204 48.2108 43.9981 48.0112 44.4008C47.8115 44.8034 47.5377 45.114 47.1897 45.3323C46.8416 45.5507 46.4441 45.6599 45.9971 45.6599C45.5501 45.6599 45.1525 45.5507 44.8045 45.3323C44.4564 45.114 44.1826 44.8034 43.983 44.4008C43.7834 43.9981 43.6836 43.5204 43.6836 42.9677C43.6836 42.4149 43.7834 41.9372 43.983 41.5345C44.1826 41.1319 44.4564 40.8213 44.8045 40.603C45.1525 40.3846 45.5501 40.2754 45.9971 40.2754C46.4441 40.2754 46.8416 40.3846 47.1897 40.603C47.5377 40.8213 47.8115 41.1319 48.0112 41.5345C48.2108 41.9372 48.3106 42.4149 48.3106 42.9677ZM47.6964 42.9677C47.6964 42.5138 47.6204 42.1308 47.4686 41.8186C47.3185 41.5064 47.1146 41.2701 46.857 41.1097C46.601 40.9493 46.3144 40.8691 45.9971 40.8691C45.6797 40.8691 45.3923 40.9493 45.1346 41.1097C44.8787 41.2701 44.6748 41.5064 44.523 41.8186C44.3728 42.1308 44.2978 42.5138 44.2978 42.9677C44.2978 43.4215 44.3728 43.8045 44.523 44.1167C44.6748 44.4289 44.8787 44.6652 45.1346 44.8256C45.3923 44.986 45.6797 45.0662 45.9971 45.0662C46.3144 45.0662 46.601 44.986 46.857 44.8256C47.1146 44.6652 47.3185 44.4289 47.4686 44.1167C47.6204 43.8045 47.6964 43.4215 47.6964 42.9677Z"
+                  fill="white"></path>
+            <path d="M49.5219 40.347H50.2794L52.0606 44.6977H52.122L53.9032 40.347H54.6607V45.5883H54.067V41.6062H54.0158L52.3779 45.5883H51.8047L50.1668 41.6062H50.1156V45.5883H49.5219V40.347Z"
+                  fill="white"></path>
+            <path d="M56.0774 45.5883V40.347H57.8484C58.2595 40.347 58.5956 40.4213 58.8567 40.5697C59.1194 40.7164 59.3139 40.9152 59.4402 41.166C59.5664 41.4168 59.6296 41.6966 59.6296 42.0054C59.6296 42.3142 59.5664 42.5949 59.4402 42.8474C59.3156 43.0999 59.1228 43.3012 58.8618 43.4513C58.6008 43.5998 58.2664 43.674 57.8586 43.674H56.5892V43.111H57.8381C58.1196 43.111 58.3457 43.0623 58.5163 42.9651C58.6869 42.8678 58.8106 42.7365 58.8874 42.571C58.9659 42.4038 59.0051 42.2153 59.0051 42.0054C59.0051 41.7955 58.9659 41.6079 58.8874 41.4424C58.8106 41.2769 58.6861 41.1472 58.5138 41.0534C58.3414 40.9578 58.1128 40.9101 57.8279 40.9101H56.7121V45.5883H56.0774Z"
+                  fill="white"></path>
+            <path d="M60.4762 45.5883H59.8108L61.7353 40.347H62.3905L64.315 45.5883H63.6496L62.0834 41.1762H62.0424L60.4762 45.5883ZM60.7219 43.5409H63.4039V44.1039H60.7219V43.5409Z"
+                  fill="white"></path>
+            <path d="M69.4316 40.347V45.5883H68.8174L65.9613 41.4731H65.9102V45.5883H65.2755V40.347H65.8897L68.756 44.4725H68.8071V40.347H69.4316Z"
+                  fill="white"></path>
+            <path d="M70.3953 40.347H71.1221L72.5757 42.7936H72.6371L74.0908 40.347H74.8176L72.9238 43.4283V45.5883H72.2891V43.4283L70.3953 40.347Z"
+                  fill="white"></path>
+            <path class="ii-logo-partical ii-logo-partical--white" d="M0 7.14062H6.28139V35.7192H0V7.14062Z"
+                  fill="white"></path>
+            <path class="ii-logo-partical ii-logo-partical--white"
+                  d="M11.4893 7.14062H24.4713C30.7527 7.14062 34.7312 11.0187 34.7312 16.7344C34.7312 23.2645 29.7061 25.1021 29.7061 25.1021L35.781 35.7162H28.8691L23.6343 26.3267H17.7706V35.7162H11.4893V7.14062ZM24.257 20.6125C26.5599 20.6125 28.2354 18.9792 28.2354 16.7344C28.2354 14.4896 26.5599 12.8563 24.257 12.8563H17.7706V20.6125H24.257Z"
+                  fill="white"></path>
+            <path class="ii-logo-partical ii-logo-partical--white"
+                  d="M40.9795 7.13867H47.2609V29.9985H60.8703V35.7142H40.9795V7.13867Z" fill="white"></path>
+            <path class="ii-logo-partical ii-logo-partical--white" d="M66.085 7.14062H72.3664V35.7192H66.085V7.14062Z"
+                  fill="white"></path>
+            <path class="ii-logo-partical ii-logo-partical--green ii-logo-partical--hover-white"
+                  d="M105.999 42.8597H98.7292L89.6704 27.5655L84.8439 35.715H77.5742L86.0372 21.4288L77.5742 7.14258H84.8439L89.6704 15.2921L93.3069 21.4288L105.999 42.8597Z"
+                  fill="#008E8C"></path>
+            <path class="ii-logo-partical ii-logo-partical--green ii-logo-partical--hover-white"
+                  d="M105.999 0L95.1214 18.3702L91.4834 12.2335L98.7295 0H105.999Z" fill="#47D7AC"></path>
+        </svg>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="logout">Выход</button>
+        </form>
+    </div>
+    <div class="header-bottom">
+        <nav class="header-bottom-menu">
+            <ul class="top-menu">
+                <li>
+                    <a id="js__chat" class="menuitem" th:href="@{/chat/}">Чаты</a>
+                </li>
+                <li>
+                    <a id="js__upload" class="menuitem" th:href="@{/upload/}">Загрузка</a>
+                </li>
+                <li>
+                    <a id="js__settings" class="menuitem" th:href="@{/settings/}">Настройки</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+<div class="layout">
+    <div class="conteiner">
+        <div class="content">
+            <div class="filtercontainer" th:if="${filter != null}">
+                <div class="filtercontainerecontent" th:insert="chat/filter.html :: table"></div>
+            </div>
+            <div class="econtent" th:insert="__${page}__.html :: div"></div>
+            <img class="loading" th:src="@{/css/images/loading.gif}"/>
+            <div class="navigator" th:if="${pageNumbers != null}">
+                <ul>
+                    <li th:if="${items.totalPages > 0}" class="pagination"
+                        th:each="pageNumber : ${pageNumbers}"
+                        th:class="${pageNumber==items.number + 1} ? current : uncurrent">
+                        <a th:href="@{/__${page}__(size=${items.size}, page=${pageNumber})}"
+                           th:text=${pageNumber}>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<script>
+    const url = window.location.href;
+    const urlSplit = url.split("/");
+    const pageName = urlSplit[urlSplit.length - 2];
+    document.querySelector(`#js__${pageName}`).classList.add('page-active');
+
+    var pageLink = location.protocol + '//' + location.host + location.pathname;
+    var sort = (new URLSearchParams(window.location.search)).get("sort");
+    var dir = (new URLSearchParams(window.location.search)).get("dir");
+
+    jQuery.each(jQuery("table.list tr#header th"), function (k, v) {
+        if (jQuery(v).attr("id") !== undefined) {
+            var id = jQuery(v).attr("id");
+            if (sort == id) {
+                jQuery(v).addClass("sortcol");
+                jQuery(v).addClass(dir);
+            } else {
+                jQuery(v).removeClass("sortcol");
+                jQuery(v).removeClass("desc");
+                jQuery(v).removeClass("asc");
+            }
+
+            ndir = "desc";
+            if (jQuery(v).hasClass("desc")) {
+                ndir = "asc";
+            }
+            jQuery(v).html(
+                "<a href='" + pageLink + "?sort=" + id + "&dir=" + ndir + "'>"
+                + jQuery(v).html() + "<span class='arrow'></span></a>"
+            );
+        }
+    })
+
+    jQuery.ajax({
+        url: jQuery("#js__info").attr("href"),
+        success: function (data) {
+            jQuery("#js__logout").html(data);
+        }
+    })
+    jQuery("#js__logout").removeAttr("href");
+    jQuery("#js__logout").css("pointer-events", "none");
+
+    jQuery('ul.top-menu li #js__logs').hover(
+        function () {
+            $(this).parent().find('ul').stop().slideDown();
+        },
+        function () {
+            $(this).parent().find('ul').stop().slideUp();
+        }
+    );
+
+    jQuery('ul.top-menu li .logsmenu').hover(
+        function () {
+            $(this).stop().slideDown();
+        },
+        function () {
+            $(this).stop().slideUp();
+        }
+    );
+    jQuery(document).ready(function() {
+        jQuery(".btn-send, .btn-remove, .btn-restore").on("click", function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            console.log(jQuery(this).attr("href"));
+            jQuery.ajax({
+                url: jQuery(this).attr("href"),
+                method: "POST",
+                success: function () {
+                    location.reload();
+                }
+            });
+        });
+    });
+    jQuery(document).ready(function () {
+        jQuery('select[name="filter"]').change(function () {
+            var selectedSort = $(this).val();
+            var sortValue = '';
+
+
+        });
+    });
+</script>
+
+<script>
+    // Функция открытия превью
+    window.openChatPreview = function(chatId, chatName) {
+        var url = '/chat/' + chatId + '/messages';
+        if (typeof Fancybox !== 'undefined') {
+            Fancybox.show([{ src: url, type: 'ajax', preload: false }]);
+        } else if (typeof jQuery !== 'undefined' && jQuery.fancybox) {
+            jQuery.fancybox.open({ href: url, type: 'ajax', width: 600, height: 500 });
+        } else {
+            window.open(url, '_blank');
+        }
+    };
+
+    // Делегирование событий (работает для всех элементов, даже добавленных после загрузки)
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('click', '.chat-preview-link', function(e) {
+            e.preventDefault();
+            var chatId = $(this).data('chat-id');
+            var chatName = $(this).data('chat-name');
+            openChatPreview(chatId, chatName);
+        });
+
+        jQuery(document).on('click', '.chat-avatar', function() {
+            var chatId = $(this).data('chat-id');
+            var chatName = $(this).data('chat-name');
+            openChatPreview(chatId, chatName);
+        });
+
+        jQuery(document).on('mouseenter', '.chat-avatar', function() {
+            var chatId = $(this).data('chat-id');
+            var chatName = $(this).data('chat-name');
+            openChatPreview(chatId, chatName);
+        });
+    }
+</script>
+<script>
+    function applyFilter() {
+        var formData = {
+            term: document.getElementById('term')?.value || '',
+            maxFoundCount: document.getElementById('maxFoundCount')?.value || '',
+            minDiffDaysCount: document.getElementById('minDiffDaysCount')?.value || '',
+            excludeStatusFlag: document.getElementById('excludeStatusFlag')?.checked || false,
+            excludeBotFlag: document.getElementById('excludeBotFlag')?.checked || false,
+            excludeGroupFlag: document.getElementById('excludeGroupFlag')?.checked || false
+        };
+
+        var params = new URLSearchParams();
+        for (var key in formData) {
+            if (formData[key] !== '' && formData[key] !== false) {
+                params.append(key, formData[key]);
+            }
+        }
+
+        fetch('/chat/search?' + params.toString())
+            .then(response => response.text())
+            .then(html => {
+                document.querySelector('.econtent').innerHTML = html;
+            })
+            .catch(err => console.error('Ошибка фильтрации:', err));
+    }
+</script>

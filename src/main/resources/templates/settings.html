@@ -1,0 +1,36 @@
+<div class="icontent">
+    <form action="#" th:action="@{/settings/save}" th:object="${items}"
+          class="edit-form form-horizontal" method="post">
+        <table class="list">
+            <thead>
+            <tr id="header">
+                <th class="table-alias">Параметр</th>
+                <th id="rate" class="table-description"> Значение</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:if="${items.settings.empty}">
+                <td colspan="2"> Тут пусто</td>
+            </tr>
+
+            <th:block th:each="item, iter : *{settings}">
+                <tr id="setting">
+                    <td id="code">
+                        <input th:field="*{settings[__${iter.index}__].code}" readonly="readonly"/>
+                    </td>
+                    <td id="value">
+                        <input th:field="*{settings[__${iter.index}__].value}" />
+                    </td>
+                </tr>
+            </th:block>
+            <tr>
+                <td></td>
+                <td>
+                    <button class="save" type="submit">Сохранить</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+</div>

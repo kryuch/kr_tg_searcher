@@ -1,0 +1,88 @@
+<div class="icontent">
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th></th>
+            <th id="title" class="table-alias">Заголовок</th>
+            <th id="technology" class="table-description">Аватар</th>
+            <th class="table-setting"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${items.empty}">
+            <td colspan="3">Тут пусто</td>
+        </tr>
+
+        <th:block th:each="item, iter : ${items}">
+            <tr th:attr="data-chat-id=${item.id}, data-chat-name=${item.name}" th:class="${'chatstatus' + (item.status != null ? item.status : 0)}">
+                <td><span th:text="${iter.index+1}">Id</span></td>
+                <td>
+                    <a th:href="@{/chat/{id}(id=${item.id})}"
+                       class="chat-preview-link"
+                       th:data-chat-id="${item.id}"
+                       th:data-chat-name="${item.name}"
+                       th:text="${item.name}">
+                        Заголовок
+                    </a>
+                </td>
+                <td>
+                    <div class="chat-avatar"
+                         th:data-chat-id="${item.id}"
+                         th:data-chat-name="${item.name}"
+                         style="cursor: pointer; display: inline-block;">
+                        <img th:if="${item.avatar != null}"
+                             th:src="'data:image/jpeg;base64,' + ${item.avatar}"
+                             style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <div th:unless="${item.avatar != null}"
+                             style="width:40px; height:40px; border-radius:50%; background:#2b5278; display:inline-flex; align-items:center; justify-content:center;">
+                            📷
+                        </div>
+                    </div>
+                </td>
+                <td class="settingbuttons">
+                    <a href="#" class="btn-status" data-status="1">Статус 1</a>
+                    <a href="#" class="btn-status" data-status="2">Статус 2</a>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+    <script>
+        document.querySelectorAll('.btn-status').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var row = this.closest('tr');
+                var chatId = row.getAttribute('data-chat-id');
+                var chatName = row.getAttribute('data-chat-name');
+                var status = this.getAttribute('data-status');
+
+                if (!chatId || !chatName) {
+                    console.error('Не найдены data-chat-id или data-chat-name');
+                    return;
+                }
+
+                var originalText = this.innerText;
+                this.innerText = '...';
+
+                fetch('/chat/status/update?chatId=' + chatId + '&name=' + encodeURIComponent(chatName) + '&status=' + status, {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(success => {
+                        if (success) {
+                            row.className = 'chatstatus' + status;
+                        } else {
+                            alert('Ошибка при сохранении статуса');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка:', error);
+                        alert('Ошибка при сохранении статуса');
+                    })
+                    .finally(function() {
+                        this.innerText = originalText;
+                    });
+            });
+        });
+    </script>
+</div>

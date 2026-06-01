@@ -1,0 +1,51 @@
+<div class="vacancies-table-container">
+    <table class="list">
+        <tbody>
+        <th:block th:each="item, iter : ${vacancies}">
+            <tr th:class="${'vacancy' + (item.status)}">
+                <td><span th:text="${item.title}">Title</span></td>
+                <td><span th:text="${item.dateTime}">Datetime</span></td>
+                <td>
+                    <table border="1">
+                        <tr th:each="owner : ${item.owners}">
+                            <td th:text="${owner.value}"></td>
+                            <td th:text="${owner.type}"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr th:class="${'vacancy' + (item.status)}">
+                <td colspan="3" class="description">
+                    <span th:id="'short-' + ${iter.index}" class="description-short" th:text="${#strings.abbreviate(item.text, 100)}"></span>
+                    <span th:id="'full-' + ${iter.index}" class="description-full" style="display:none;" th:text="${item.text}"></span>
+                    <a href="#" th:attr="data-short='short-' + ${iter.index}, data-full='full-' + ${iter.index}" class="description-toggle">Развернуть</a>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" class="settingbuttons">
+                    <!-- кнопки действий -->
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+    <script>
+        document.querySelectorAll('.description-toggle').forEach(function(btn) {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                var shortSpan = document.getElementById(this.getAttribute('data-short'));
+                var fullSpan = document.getElementById(this.getAttribute('data-full'));
+                if (fullSpan.style.display === 'none') {
+                    shortSpan.style.display = 'none';
+                    fullSpan.style.display = 'inline';
+                    this.innerText = 'Свернуть';
+                } else {
+                    shortSpan.style.display = 'inline';
+                    fullSpan.style.display = 'none';
+                    this.innerText = 'Развернуть';
+                }
+            };
+        });
+    </script>
+</div>

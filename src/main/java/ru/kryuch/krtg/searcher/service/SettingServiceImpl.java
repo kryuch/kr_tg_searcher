@@ -1,0 +1,56 @@
+package ru.kryuch.krtg.searcher.service;
+
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Streamable;
+import org.springframework.stereotype.Service;
+import ru.kryuch.krtg.searcher.dto.Setting;
+import ru.kryuch.krtg.searcher.dto.SettingsWrapper;
+import ru.kryuch.krtg.searcher.entity.SettingEntity;
+import ru.kryuch.krtg.searcher.mapper.SettingEntityMapper;
+import ru.kryuch.krtg.searcher.repository.SettingRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class SettingServiceImpl implements SettingService {
+
+    private final SettingRepository settingRepository;
+
+    private final SettingEntityMapper settingEntityMapper;
+
+
+    @Override
+    public List<Setting> getAll() {
+        return settingEntityMapper.fromEntityList(Streamable.of(settingRepository.findAll()).toList());
+    }
+
+    @Override
+    public SettingsWrapper getWrapper() {
+        return new SettingsWrapper(getAll());
+    }
+
+    @Override
+    public void save(SettingsWrapper wrapper) {
+        wrapper.getSettings().stream().forEach(item -> {
+            Optional<SettingEntity> optionalSettingEntity =
+                    settingRepository.findByCode(item.getCode()).stream().findFirst();
+            if (optionalSettingEntity.isPresent()) {
+                optionalSettingEntity.get().setValue(item.getValue());
+                settingRepository.save(optionalSettingEntity.get());
+            }
+        });
+    }
+
+    @Override
+    public Setting getByCode(String code) {
+        return settingEntityMapper.fromEntity(
+                settingRepository.findByCode(code).stream().findFirst().orElse(null)
+        );
+    }
+
+}
