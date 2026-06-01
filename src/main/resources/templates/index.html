@@ -64,6 +64,9 @@
                     <a id="js__upload" class="menuitem" th:href="@{/upload/}">Загрузка</a>
                 </li>
                 <li>
+                    <a id="js__synchr" class="menuitem" th:href="@{/synchr/}">Синхронизация</a>
+                </li>
+                <li>
                     <a id="js__settings" class="menuitem" th:href="@{/settings/}">Настройки</a>
                 </li>
             </ul>
@@ -72,6 +75,8 @@
 </header>
 <div class="layout">
     <div class="conteiner">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
         <div class="content">
             <div class="filtercontainer" th:if="${filter != null}">
                 <div class="filtercontainerecontent" th:insert="chat/filter.html :: table"></div>

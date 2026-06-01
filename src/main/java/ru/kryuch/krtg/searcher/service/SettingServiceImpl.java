@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.Setting;
 import ru.kryuch.krtg.searcher.dto.SettingsWrapper;
 import ru.kryuch.krtg.searcher.entity.SettingEntity;
-import ru.kryuch.krtg.searcher.mapper.SettingEntityMapper;
+import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 
 import java.util.List;
@@ -21,12 +21,12 @@ public class SettingServiceImpl implements SettingService {
 
     private final SettingRepository settingRepository;
 
-    private final SettingEntityMapper settingEntityMapper;
+    private final SettingMapper settingMapper;
 
 
     @Override
     public List<Setting> getAll() {
-        return settingEntityMapper.fromEntityList(Streamable.of(settingRepository.findAll()).toList());
+        return settingMapper.fromEntityList(Streamable.of(settingRepository.findAll()).toList());
     }
 
     @Override
@@ -48,7 +48,7 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public Setting getByCode(String code) {
-        return settingEntityMapper.fromEntity(
+        return settingMapper.fromEntity(
                 settingRepository.findByCode(code).stream().findFirst().orElse(null)
         );
     }

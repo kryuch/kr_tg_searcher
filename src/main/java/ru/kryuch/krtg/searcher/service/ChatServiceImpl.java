@@ -17,6 +17,7 @@ import ru.kryuch.krtg.searcher.dto.VacancyInfo;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
 import ru.kryuch.krtg.searcher.helper.TgHelper;
+import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 
 import java.time.LocalDateTime;
@@ -37,19 +38,23 @@ import java.util.stream.Collectors;
 public class ChatServiceImpl implements ChatService {
 
     private final ChatRepository chatRepository;
+    private final SettingService settingService;
     private final TgHelper tgHelper;
     private final RestTemplate restTemplate;
     private final String pythonHost;
+    private final ChatMapper chatMapper;
     private final int pythonPort;
 
     public ChatServiceImpl(
-            ChatRepository chatRepository, TgHelper tgHelper, RestTemplate restTemplate,
+            ChatRepository chatRepository, SettingService settingService, TgHelper tgHelper, RestTemplate restTemplate,
             @Value("${telegram.python.host:localhost}") String pythonHost,
-            @Value("${telegram.python.port:8081}") int pythonPort) {
+            ChatMapper chatMapper, @Value("${telegram.python.port:8081}") int pythonPort) {
         this.chatRepository = chatRepository;
+        this.settingService = settingService;
         this.tgHelper = tgHelper;
         this.restTemplate = restTemplate;
         this.pythonHost = pythonHost;
+        this.chatMapper = chatMapper;
         this.pythonPort = pythonPort;
     }
 
@@ -60,10 +65,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public Boolean synchr() {
         try {
-            String url = getBaseUrl() + "/api/chats/all";
-            log.info("Запрос всех чатов: {}", url);
-
-            Arrays.stream(restTemplate.getForObject(url, ChatInfo[].class))
+            tgHelper.getAll()
                     .forEach(
                             item -> {
                                 if (!chatRepository.existsById(item.getId())) {
@@ -96,9 +98,12 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<ChatInfo> createNewContacts(String text) {
-        String message = "Добрый день. Скажите, пожалуйста, у вас есть вакансии по Java-разработке";
-        List <String> s = tgHelper.sendMessage(message, contacts(text), true);
-        return null;
+        String message = settingService.getByCode("first_message").getValue();
+        List<ChatInfo> chats = tgHelper.sendMessage(message, contacts(text), true);
+        chats.stream().forEach(item -> {
+            chatRepository.save(chatMapper.fromEntity(item));
+        });
+        return chats;
     }
 
     private Set<String> contacts(String text) {

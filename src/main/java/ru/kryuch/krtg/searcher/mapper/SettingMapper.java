@@ -12,7 +12,7 @@ import java.util.List;
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
-public abstract class SettingEntityMapper{
+public abstract class SettingMapper {
 
     public abstract List<Setting> fromEntityList(Collection<SettingEntity> entity);
 

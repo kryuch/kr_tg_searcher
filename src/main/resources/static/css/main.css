@@ -980,3 +980,7 @@ tr.filter td.col .ms-options-wrap {
     border: 1px solid #2b2b2b;
     border-radius: 8px;
 }
+
+#settings intput {
+    width: 1100px !important;
+}
