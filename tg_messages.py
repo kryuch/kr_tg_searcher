@@ -6,9 +6,9 @@ async def get_chat_preview(client, chat_id, limit=10):
         async for msg in client.iter_messages(chat_id, limit=limit):
             if msg.date:
                 messages.append({
-                    'text': msg.text if msg.text else '',  # убрано [:200]
-                    'date_str': msg.date.strftime('%Y-%m-%d %H:%M:%S'),
-                    'is_me': msg.sender_id == me.id
+                    'value': msg.text if msg.text else '',
+                    'dateTime': msg.date.isoformat().replace('+00:00', ''),
+                    'ownerFlag': msg.sender_id == me.id
                 })
     except Exception as e:
         print(f"Ошибка получения сообщений: {e}")

@@ -1,11 +1,10 @@
 <table class="filtercontainericontent" id="filtercontainericontent">
     <tr class="filter">
-        <th colspan="4">
+        <th colSpan="5">
             <button class="save" id="filter" type="submit">Фильтровать</button>
             <script>
-                jQuery(document).ready(function () {
+                $(document).ready(function() {
                     var action = "/chat/search";
-                    console.log("Action:", action);
 
                     $("#filter").click(function(e) {
                         e.preventDefault();
@@ -15,8 +14,9 @@
                             maxFoundCount: $("#maxFoundCount").val(),
                             minDiffDaysCount: $("#minDiffDaysCount").val(),
                             excludeStatusFlag: $("#excludeStatusFlag").is(":checked"),
-                            excludeBotFlag: $("#excludeBotFlag").is(":checked"),
-                            excludeGroupFlag: $("#excludeGroupFlag").is(":checked")
+                            botType: $("#botType").val(),
+                            groupType: $("#groupType").val(),
+                            messagesCount: $("#messagesCount").val()
                         };
 
                         console.log("Отправляемые данные:", formData);
@@ -27,8 +27,8 @@
                             data: formData,
                             success: function(response) {
                                 console.log("Ответ от сервера:", response);
-                                jQuery(".icontent").remove();
-                                jQuery(".econtent").html(response);
+                                $(".icontent").remove();
+                                $(".econtent").html(response);
                             },
                             error: function(xhr, status, error) {
                                 console.error("Ошибка:", error);
@@ -38,34 +38,166 @@
                 });
             </script>
         </th>
-    <tr>
+    </tr>
     <tr class="filter" id="filterparams">
         <td class="colid"></td>
         <td class="col">
-            <input type="text" id="term" th:field="*{filter.term}" name="term"
-                   class="1col active form-control"/>
+            <label>Поиск:</label>
+            <input type="text" id="term" th:field="*{filter.term}" name="term" class="1col active form-control"/>
 
-            <input type="checkbox" id="excludeStatusFlag" th:field="*{filter.excludeStatusFlag}"
-                   name="excludeGroupFlag" class="1col active form-control"/>
-            Не показывать статус > 0
+            <div style="margin-top: 10px;">
+                <input type="checkbox" id="excludeStatusFlag" th:field="*{filter.excludeStatusFlag}" name="excludeStatusFlag" class="1col active form-control"/>
+                <label for="excludeStatusFlag">Не показывать статус > 0</label>
+            </div>
         </td>
         <td class="col limit">
-            <spann>Максимум результат</spann>
-            <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount"
-                   class="1col active form-control"/>
+            <label>Максимум результатов:</label>
+            <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount" class="1col active form-control"/>
         </td>
         <td class="col">
-            <spann>Не писали больше чем (в днях)</spann>
-            <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}"
-                   name="minDiffDaysCount" class="1col active form-control"/>
+            <label>Не писали больше чем (в днях):</label>
+            <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}" name="minDiffDaysCount" class="1col active form-control"/>
         </td>
         <td class="col">
-            <input type="checkbox" id="excludeBotFlag" th:field="*{filter.excludeBotFlag}"
-                   name="excludeBotFlag" class="1col active form-control"/>
-            Не показывать ботов
-            <input type="checkbox" id="excludeGroupFlag" th:field="*{filter.excludeGroupFlag}"
-                   name="excludeGroupFlag" class="1col active form-control"/>
-            Не показывать группы и каналы
+            <label>Тип чатов (боты):</label>
+            <select id="botType" th:field="*{filter.botType}" class="form-control">
+                <option th:value="PERSONAL">Только личные</option>
+                <option th:value="NOT_PERSONAL">Только боты</option>
+                <option th:value="ALL">Все чаты</option>
+            </select>
+
+            <div style="margin-top: 10px;">
+                <label>Тип чатов (группы/каналы):</label>
+                <select id="groupType" th:field="*{filter.groupType}" class="form-control">
+                    <option th:value="PERSONAL">Только личные</option>
+                    <option th:value="NOT_PERSONAL">Только группы и каналы</option>
+                    <option th:value="ALL">Все чаты</option>
+                </select>
+            </div>
+        </td>
+    </tr>
+    <tr class="message">
+        <td colspan="2">
+            <a href="javascript:void(0)" id="checkAll">Выделить все</a>
+            <a href="javascript:void(0)" id="uncheckAll">Снять выделение</a>
+            <script>
+                $("#checkAll").click(function(e) {
+                    e.preventDefault();
+                    $('.icontent table.list input[type="checkbox"]').prop('checked', true);
+                });
+
+                $("#uncheckAll").click(function(e) {
+                    e.preventDefault();
+                    $('.icontent table.list input[type="checkbox"]').prop('checked', false);
+                });
+            </script>
+        </td>
+        <td colSpan="2">
+            <span>Сообщение</span>
+            <input type="text" name="message" id="message">
+
+            <button class="save" id="sendMessage" type="submit">Послать сообщение</button>
+            <button class="save" id="export" type="submit">Экспортировать</button>
+
+            <script>
+                $("#sendMessage").click(function(e) {
+                    e.preventDefault();
+
+                    var selectedChats = [];
+                    $('input[name="check[]"]:checked').each(function() {
+                        var chatId = $(this).data('chat-id');
+                        if (chatId) {
+                            selectedChats.push(parseInt(chatId));
+                        }
+                    });
+
+                    var message = $("#message").val().trim();
+
+                    if (selectedChats.length === 0) {
+                        alert('Выберите хотя бы один чат');
+                        return;
+                    }
+
+                    if (!message) {
+                        alert('Введите текст сообщения');
+                        return;
+                    }
+
+                    var $btn = $(this);
+                    var originalText = $btn.text();
+                    $btn.text('Отправка...').prop('disabled', true);
+
+                    $.ajax({
+                        url: '/chat/send',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            chatIds: selectedChats,
+                            message: message
+                        }),
+                        success: function(result) {
+                            if (result.success) {
+                                alert('Сообщение отправлено в ' + result.count + ' чатов');
+                                $("#message").val('');
+                                $('input[name="check[]"]:checked').prop('checked', false);
+                            } else {
+                                alert('Ошибка: ' + (result.error || 'Не удалось отправить сообщения'));
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Ошибка:', error);
+                            alert('Ошибка при отправке сообщений');
+                        },
+                        complete: function() {
+                            $btn.text(originalText).prop('disabled', false);
+                        }
+                    });
+                });
+                $("#export").click(function(e) {
+                    e.preventDefault();
+
+                    var selectedChats = [];
+                    $('input[name="check[]"]:checked').each(function() {
+                        var chatId = $(this).data('chat-id');
+                        if (chatId) {
+                            selectedChats.push(parseInt(chatId));
+                        }
+                    });
+
+                    if (selectedChats.length === 0) {
+                        alert('Выберите хотя бы один чат');
+                        return;
+                    }
+
+                    var $btn = $(this);
+                    var originalText = $btn.text();
+                    $btn.text('Экспорт...').prop('disabled', true);
+
+                    // Создаём форму для скачивания файла
+                    var form = $('<form>', {
+                        action: '/chat/export',
+                        method: 'POST'
+                    });
+
+                    $.each(selectedChats, function(i, chatId) {
+                        $('<input>', {
+                            type: 'hidden',
+                            name: 'chatIds',
+                            value: chatId
+                        }).appendTo(form);
+                    });
+
+                    $('body').append(form);
+                    form.submit();
+                    form.remove();
+
+                    $btn.text(originalText).prop('disabled', false);
+                });
+            </script>
+        </td>
+        <td>
+            <label>Добавить сообщения</label>
+            <input type="text" id="messagesCount" th:field="*{filter.messagesCount}" name="messagesCount" class="1col active form-control"/>
         </td>
     </tr>
 </table>

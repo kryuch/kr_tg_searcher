@@ -14,4 +14,6 @@ public interface SettingService {
     void save(SettingsWrapper wrapper);
 
     Setting getByCode(String code);
+
+    String getValueByCode(String code);
 }

@@ -2,6 +2,9 @@ telegram:
   python:
     server:
       url: http://localhost:8081
+    timeout:
+      connect: 50000
+      read: 600000
 
 server:
   port: 8080
@@ -10,6 +13,11 @@ spring:
     console:
       enabled: true
       path: /h2-console
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Europe/Moscow
+    serialization:
+      write-dates-as-timestamps: false
   datasource:
     url: jdbc:h2:file:./data/chats_db
     driver-class-name: org.h2.Driver

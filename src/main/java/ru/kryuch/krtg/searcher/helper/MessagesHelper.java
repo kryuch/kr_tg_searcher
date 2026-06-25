@@ -10,11 +10,13 @@ import java.util.regex.Matcher;
 public class MessagesHelper {
 
     private static final Pattern TITLE_PATTERN = Pattern.compile(
-            "(?i)(?:#вакансия\\s*)?(?:\\*\\*)?([А-Яа-я\\s\\-\\/]+(?:разработчик|инженер|devops|developer|admin|аналитик|менеджер|дизайнер|программист))",
+            "(?i)(?:#вакансия\\s*)?(?:\\*\\*)?([А-Яа-я\\s\\-\\/]+(?:разработчик|инженер|devops|developer|admin|аналитик|менеджер|дизайнер|программиスト))",
             Pattern.MULTILINE
     );
 
-    private static final Pattern TG_USERNAME_PATTERN = Pattern.compile("@(\\w+)");
+    private static final Pattern TG_USERNAME_PATTERN = Pattern.compile(
+            "@(?!gmail\\.com|mail\\.ru|yandex\\.ru|inbox\\.ru|list\\.ru|bk\\.ru|rambler\\.ru)(\\w+)"
+    );
     private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("\\+?[\\d\\s\\-()]{10,}");
 
@@ -26,10 +28,18 @@ public class MessagesHelper {
             "(?i)(офис|office|в офисе|не удалённо)"
     );
 
+    // Список известных каналов и ботов, которые не являются личными контактами
+    private static final Set<String> IGNORED_USERNAMES = new HashSet<>(Arrays.asList(
+            "proglib_jobs", "job_javadevs", "freeIT_job", "easy_java_job",
+            "Java_Job", "IT_Job", "devops_jobs", "python_jobs"
+    ));
+
     public static VacancyInfo createVacancyInfo(String text, LocalDateTime dateTime) {
         if (text == null || text.isEmpty()) {
             return null;
         }
+
+        if (text.toLowerCase().contains("#cv") || text.toLowerCase().contains("#резюме")) return null;
 
         text = cleanText(text);
         String title = extractTitle(text);
@@ -51,7 +61,8 @@ public class MessagesHelper {
                 "Бесплатный постинг вакансий",
                 "–––",
                 "Забирай 📚 Базу Знаний",
-                "🔜 А избранные IT-вакансии"
+                "🔜 А избранные IT-вакансии",
+                "IT Job Hub"
         };
 
         for (String marker : noiseMarkers) {
@@ -77,44 +88,75 @@ public class MessagesHelper {
         return firstLine.length() > 100 ? firstLine.substring(0, 100) : firstLine;
     }
 
+    private static boolean isValidTgContact(String username) {
+        if (username == null || username.isEmpty()) return false;
+        // Исключаем известные каналы
+        if (IGNORED_USERNAMES.contains(username)) {
+            return false;
+        }
+        // Исключаем слишком короткие username
+        if (username.length() < 4) {
+            return false;
+        }
+        return true;
+    }
+
     private static List<VacancyOwnerInfo> extractOwners(String text) {
         Map<String, VacancyOwnerInfo> ownersMap = new LinkedHashMap<>();
+        Set<String> emails = new HashSet<>();
 
-        // Markdown ссылки на Telegram
+        // 1. Сначала ищем email и сохраняем их
+        Matcher emailMatcher = EMAIL_PATTERN.matcher(text);
+        while (emailMatcher.find()) {
+            String email = emailMatcher.group();
+            emails.add(email);
+            ownersMap.put(email, createOwnerInfo(2, email));
+        }
+
+        // 2. Markdown ссылки на Telegram
         Pattern markdownLinkPattern = Pattern.compile("\\[([^\\]]+)\\]\\((?:https?://)?t\\.me/(\\w+)\\)");
         Matcher markdownMatcher = markdownLinkPattern.matcher(text);
         while (markdownMatcher.find()) {
-            String value = "@" + markdownMatcher.group(2);
-            ownersMap.put(value, createOwnerInfo(3, value));
+            String username = markdownMatcher.group(2);
+            if (isValidTgContact(username)) {
+                String value = "@" + username;
+                ownersMap.putIfAbsent(value, createOwnerInfo(3, value));
+            }
         }
 
-        // Прямые ссылки на t.me
+        // 3. Прямые ссылки на t.me
         Pattern directTgPattern = Pattern.compile("(?:https?://)?t\\.me/(\\w+)");
         Matcher directTgMatcher = directTgPattern.matcher(text);
         while (directTgMatcher.find()) {
-            String value = "@" + directTgMatcher.group(1);
-            ownersMap.put(value, createOwnerInfo(3, value));
+            String username = directTgMatcher.group(1);
+            if (isValidTgContact(username)) {
+                String value = "@" + username;
+                ownersMap.putIfAbsent(value, createOwnerInfo(3, value));
+            }
         }
 
-        // Telegram username
+        // 4. Telegram username (исключаем те, что являются частью email)
         Matcher tgMatcher = TG_USERNAME_PATTERN.matcher(text);
         while (tgMatcher.find()) {
-            String value = "@" + tgMatcher.group(1);
-            ownersMap.put(value, createOwnerInfo(3, value));
+            String username = tgMatcher.group(1);
+            String fullUsername = "@" + username;
+
+            if (!isValidTgContact(username)) {
+                continue;
+            }
+
+            boolean isPartOfEmail = emails.stream().anyMatch(email -> email.contains(username));
+
+            if (!isPartOfEmail && !ownersMap.containsKey(fullUsername)) {
+                ownersMap.put(fullUsername, createOwnerInfo(3, fullUsername));
+            }
         }
 
-        // Email
-        Matcher emailMatcher = EMAIL_PATTERN.matcher(text);
-        while (emailMatcher.find()) {
-            String value = emailMatcher.group();
-            ownersMap.put(value, createOwnerInfo(2, value));
-        }
-
-        // Телефон
+        // 5. Телефон
         Matcher phoneMatcher = PHONE_PATTERN.matcher(text);
         while (phoneMatcher.find()) {
             String value = phoneMatcher.group().trim();
-            ownersMap.put(value, createOwnerInfo(1, value));
+            ownersMap.putIfAbsent(value, createOwnerInfo(1, value));
         }
 
         return new ArrayList<>(ownersMap.values());

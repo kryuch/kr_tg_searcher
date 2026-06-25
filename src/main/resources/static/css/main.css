@@ -819,6 +819,7 @@ table {
     display: block;
     text-align: center;
     max-width: 130px;
+    font-size: small;
 }
 .btn-remove {
     background: #d14a4a;
@@ -829,6 +830,7 @@ table {
     display: block;
     text-align: center;
     max-width: 130px;
+    font-size: small;
 }
 .btn-restore {
     background: #24c1a5b5;
@@ -839,6 +841,7 @@ table {
     display: block;
     text-align: center;
     max-width: 130px;
+    font-size: small;
 }
 
 .content {
@@ -981,6 +984,55 @@ tr.filter td.col .ms-options-wrap {
     border-radius: 8px;
 }
 
-#settings intput {
+#setting #value input {
     width: 1100px !important;
+}
+
+#directionForm textarea[name=text]
+{
+    width: 512px;
+    height: 128px;
+    background-color: #cde8ed;
+}
+
+.onepage .sendmessage input[type=text] {
+    width: 95%;
+}
+
+.vacancies-table-container #header #title {
+    width: 25%;
+}
+
+.vacancies-table-container #header .table-description {
+    width: 25%;
+}
+
+.filtercontainericontent .filter {
+    background-color: lightgray;
+}
+
+.description-short {
+    font-size: small;
+}
+
+.description-long {
+    font-size: small;
+    display: none;
+}
+
+.dt {
+    font-size: small;
+}
+
+.messageflag_true {
+    color: brown;
+}
+
+.chat-messages .message {
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.chattitle {
+    font-size: small;
 }

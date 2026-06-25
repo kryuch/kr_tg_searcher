@@ -20,6 +20,8 @@ public class ChatEntity implements Serializable {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    private String username;
+
     private String name;
 
     private Integer status;

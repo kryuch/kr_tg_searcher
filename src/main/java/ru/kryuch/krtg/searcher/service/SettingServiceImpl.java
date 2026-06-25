@@ -11,6 +11,7 @@ import ru.kryuch.krtg.searcher.entity.SettingEntity;
 import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,6 +52,12 @@ public class SettingServiceImpl implements SettingService {
         return settingMapper.fromEntity(
                 settingRepository.findByCode(code).stream().findFirst().orElse(null)
         );
+    }
+
+    @Override
+    public String getValueByCode(String code) {
+        Optional <SettingEntity> setting = settingRepository.findByCode(code).stream().findFirst();
+        return (setting.isPresent()) ? setting.get().getValue() : null;
     }
 
 }

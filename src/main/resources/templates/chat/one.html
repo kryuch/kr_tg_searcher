@@ -1,6 +1,22 @@
 <div class="onepage">
     <table>
         <tr>
+            <td class="sendmessage">
+                <input type="text" id="message" name="message" th:value="${message}">
+                <input type="hidden" id="back" name="back" th:value="${id}">
+                <input type="submit" id="sendMessageBtn"/>
+            </td>
+            <td>
+                <span>Новые ТГ</span>
+                <table border="1">
+                    <tr th:each="row, rowStat : ${#numbers.sequence(0, data.newTg.size() - 1, 2)}">
+                        <td th:text="${data.newTg[row]}"></td>
+                        <td th:if="${row + 1 < data.newTg.size()}" th:text="${data.newTg[row + 1]}"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
             <td>
                 <div class="econtent" th:insert="chat/messages.html :: div"></div>
             </td>
@@ -15,7 +31,56 @@
             </td>
         </tr>
     </table>
+    <script>
+        document.getElementById('sendMessageBtn').addEventListener('click', function() {
+            var message = document.getElementById('message').value.trim();
+            var back = document.getElementById('back').value;
 
+            if (!message) {
+                alert('Введите текст сообщения');
+                return;
+            }
+
+            if (!back) {
+                alert('ID чата не найден');
+                return;
+            }
+
+            var btn = this;
+            var originalText = btn.innerText;
+            btn.innerText = 'Отправка...';
+            btn.disabled = true;
+
+            fetch('/chat/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    back: parseInt(back),
+                    chatIds: [],
+                    message: message
+                })
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Сообщение отправлено');
+                        location.reload();
+                    } else {
+                        alert('Ошибка: ' + (result.error || 'Не удалось отправить сообщение'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Ошибка при отправке сообщения');
+                })
+                .finally(function() {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+        });
+    </script>
     <script>
         document.addEventListener('click', function (e) {
             var btn = e.target.closest('.btn-save');

@@ -9,9 +9,9 @@
     <link th:href="@{/css/bootstrap.css}" rel="stylesheet"/>
     <link th:href="@{/css/colorbox.css}" rel="stylesheet"/>
     <link th:href="@{/css/main.css}" rel="stylesheet"/>
-    <link th:href="@{/css/jquery.multiselect.css}" rel="stylesheet"/>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/chat.js}"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css"/>
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <body class="adminka">
@@ -65,6 +65,9 @@
                 </li>
                 <li>
                     <a id="js__synchr" class="menuitem" th:href="@{/synchr/}">Синхронизация</a>
+                </li>
+                <li>
+                    <a id="js__ignore" class="menuitem" th:href="@{/ignore/}">Игнорирование</a>
                 </li>
                 <li>
                     <a id="js__settings" class="menuitem" th:href="@{/settings/}">Настройки</a>
@@ -196,8 +199,12 @@
         }
     };
 
-    // Делегирование событий (работает для всех элементов, даже добавленных после загрузки)
+    // Таймеры для задержки
+    var previewTimeout = null;
+
+    // Делегирование событий
     if (typeof jQuery !== 'undefined') {
+        // Клик по ссылке — мгновенно
         jQuery(document).on('click', '.chat-preview-link', function(e) {
             e.preventDefault();
             var chatId = $(this).data('chat-id');
@@ -205,16 +212,35 @@
             openChatPreview(chatId, chatName);
         });
 
+        // Клик по аватару — мгновенно
         jQuery(document).on('click', '.chat-avatar', function() {
             var chatId = $(this).data('chat-id');
             var chatName = $(this).data('chat-name');
             openChatPreview(chatId, chatName);
         });
 
+        // Наведение на аватар — с задержкой 2 секунды
         jQuery(document).on('mouseenter', '.chat-avatar', function() {
-            var chatId = $(this).data('chat-id');
-            var chatName = $(this).data('chat-name');
-            openChatPreview(chatId, chatName);
+            var $this = $(this);
+            var chatId = $this.data('chat-id');
+            var chatName = $this.data('chat-name');
+
+            if (previewTimeout) {
+                clearTimeout(previewTimeout);
+            }
+
+            previewTimeout = setTimeout(function() {
+                openChatPreview(chatId, chatName);
+                previewTimeout = null;
+            }, 2000);
+        });
+
+        // Уход мыши с аватара — отменяем таймер
+        jQuery(document).on('mouseleave', '.chat-avatar', function() {
+            if (previewTimeout) {
+                clearTimeout(previewTimeout);
+                previewTimeout = null;
+            }
         });
     }
 </script>

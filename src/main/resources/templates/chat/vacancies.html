@@ -1,10 +1,19 @@
 <div class="vacancies-table-container">
     <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="title" class="table-alias"></th>
+            <th class="table-description"></th>
+            <th></th>
+        </tr>
+        </thead>
         <tbody>
-        <th:block th:each="item, iter : ${vacancies}">
+        <th:block th:each="item, iter : ${data.vacancies}">
             <tr th:class="${'vacancy' + (item.status)}">
                 <td><span th:text="${item.title}">Title</span></td>
-                <td><span th:text="${item.dateTime}">Datetime</span></td>
+                <td>
+                    <span class="dt" th:text="${#temporals.format(item.dateTime, 'dd.MM HH:mm')}">Datetime</span>
+                </td>
                 <td>
                     <table border="1">
                         <tr th:each="owner : ${item.owners}">

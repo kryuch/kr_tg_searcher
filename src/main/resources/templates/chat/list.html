@@ -14,9 +14,10 @@
         </tr>
 
         <th:block th:each="item, iter : ${items}">
-            <tr th:attr="data-chat-id=${item.id}, data-chat-name=${item.name}" th:class="${'chatstatus' + (item.status != null ? item.status : 0)}">
-                <td><span th:text="${iter.index+1}">Id</span></td>
-                <td>
+            <tr th:attr="data-chat-id=${item.id}, data-chat-name=${item.name}"
+                th:class="${'chatstatus' + (item.status != null ? item.status : 0)}">
+                <td><input type="checkbox" name="check[]" th:attr="data-chat-id=${item.id}"/></td>
+                <td class="chattitle">
                     <a th:href="@{/chat/{id}(id=${item.id})}"
                        class="chat-preview-link"
                        th:data-chat-id="${item.id}"
@@ -24,32 +25,55 @@
                        th:text="${item.name}">
                         Заголовок
                     </a>
+                    <br>
+                    <span th:text="${item.id}">Id</span>
+                    <span th:text="${item.username}">Username</span>
                 </td>
                 <td>
-                    <div class="chat-avatar"
-                         th:data-chat-id="${item.id}"
-                         th:data-chat-name="${item.name}"
-                         style="cursor: pointer; display: inline-block;">
-                        <img th:if="${item.avatar != null}"
-                             th:src="'data:image/jpeg;base64,' + ${item.avatar}"
-                             style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                        <div th:unless="${item.avatar != null}"
-                             style="width:40px; height:40px; border-radius:50%; background:#2b5278; display:inline-flex; align-items:center; justify-content:center;">
-                            📷
-                        </div>
-                    </div>
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="chat-avatar"
+                                     th:data-chat-id="${item.id}"
+                                     th:data-chat-name="${item.name}"
+                                     style="cursor: pointer; display: inline-block;">
+                                    <img th:if="${item.avatar != null}"
+                                         th:src="'data:image/jpeg;base64,' + ${item.avatar}"
+                                         style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                    <div th:unless="${item.avatar != null}"
+                                         style="width:40px; height:40px; border-radius:50%; background:#2b5278; display:inline-flex; align-items:center; justify-content:center;">
+                                        📷
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="chat-messages">
+                                    <th:block th:each="message, miter : ${item.messages}">
+          <span th:class="${message.ownerFlag} ? 'messageflag_true message' : 'messageflag_false message'">
+            <span th:id="'short-' + ${miter.index}" class="description-short"
+                  th:text="${#strings.abbreviate(message.value, 32)}" onclick="showMessage(this, true)"></span>
+            <span th:id="'short-' + ${miter.index}" class="description-long" onclick="showMessage(this, false)"
+                  th:text="${message.value}"></span>
+            <span class="dt" th:text="${#temporals.format(message.dateTime, 'dd.MM')}"></span>
+        </span>
+                                    </th:block>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
                 <td class="settingbuttons">
-                    <a href="#" class="btn-status" data-status="1">Статус 1</a>
-                    <a href="#" class="btn-status" data-status="2">Статус 2</a>
+                    <a href="#" class="btn-restore btn-status" data-status="1">Отказ</a>
+                    <a href="#" class="btn-send btn-status" data-status="2">-</a>
+                    <a href="#" class="btn-remove btn-status" data-status="3">Не HR</a>
                 </td>
             </tr>
         </th:block>
         </tbody>
     </table>
     <script>
-        document.querySelectorAll('.btn-status').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
+        document.querySelectorAll('.btn-status').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 var row = this.closest('tr');
                 var chatId = row.getAttribute('data-chat-id');
@@ -79,7 +103,7 @@
                         console.error('Ошибка:', error);
                         alert('Ошибка при сохранении статуса');
                     })
-                    .finally(function() {
+                    .finally(function () {
                         this.innerText = originalText;
                     });
             });

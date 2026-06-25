@@ -12,7 +12,7 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10000);      // 10 секунд на подключение
-        factory.setReadTimeout(120000);        // 120 секунд (2 минуты) на чтение
+        factory.setReadTimeout(1200000);        // 120 секунд (2 минуты) на чтение
         return new RestTemplate(factory);
     }
 }

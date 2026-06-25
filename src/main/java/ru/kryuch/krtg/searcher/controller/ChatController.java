@@ -1,27 +1,56 @@
 package ru.kryuch.krtg.searcher.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.kryuch.krtg.searcher.dto.MessagesHistory;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
+import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
+import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
+import ru.kryuch.krtg.searcher.service.SettingService;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/chat")
 public class ChatController {
+    private final ChatExportService chatExportService;
+
     private final ChatService chatService;
+    private final SettingService settingService;
+
+    @Data
+    public static class SendMessageRequest {
+        private List<Long> chatIds;
+        private String message;
+        private Long back;
+    }
 
     @GetMapping("/")
     public String list(Model model) {
-        model.addAttribute("items", chatService.all());
+        if (model.containsAttribute("successMessage")) {
+            model.addAttribute("successMessage", model.getAttribute("successMessage"));
+        }
+        model.addAttribute("items", new ArrayList());
         model.addAttribute("filter", new SearchParams());
         model.addAttribute("page", "chat/list");
         return "index";
@@ -41,13 +70,59 @@ public class ChatController {
 
     @GetMapping("/{chatId}")
     public String chat(@PathVariable("chatId") Long chatId, Model model) {
-        MessagesHistory messagesHistory = chatService.messages(chatId, 100);
-        model.addAttribute("messages", messagesHistory);
-        model.addAttribute("vacancies", chatService.vacancies(messagesHistory));
+        //MessagesHistory messagesHistory = chatService.messages(chatId, 100);
+        VacanciesContainer vacanciesContainer = chatService.createVacanciesContainer(chatId, 100);
+        model.addAttribute("messages", vacanciesContainer.getMessagesHistory());
+        model.addAttribute("data", vacanciesContainer);
         model.addAttribute("id", chatId);
+        model.addAttribute("message", settingService.getValueByCode("first_message"));
         model.addAttribute("page", "chat/one");
         return "index";
     }
 
+    @PostMapping("/send")
+    public String sendMessage(@RequestBody SendMessageRequest request,
+                              RedirectAttributes redirectAttributes) {
 
+        List<ChatInfo> chats = new ArrayList<>();
+        if (Objects.nonNull(request.getBack())) {
+            VacanciesContainer vacanciesContainer =
+                    chatService.createVacanciesContainer(request.getBack(), 100);
+
+            chats = chatService.sendMessage(request.getMessage(), vacanciesContainer.getNewTg());
+        } else {
+            chats =
+                    chatService.sendMessage(request.getMessage(), request.getChatIds());
+        }
+
+        String successMessage = "Сообщение отправлено в " +
+                chats.stream()
+                        .map(ChatInfo::getName)
+                        .collect(Collectors.joining(", "));
+
+        redirectAttributes.addFlashAttribute("successMessage", successMessage);
+        return (Objects.nonNull(request.getBack())) ? "redirect:/chat/" + request.getBack() : "redirect:/chat/";
+    }
+
+    @PostMapping("/export")
+    public void exportChats(@RequestParam("chatIds") List<Long> chatIds, HttpServletResponse response) throws IOException {
+        try {
+            response.setContentType("text/plain");
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=\"exported_chats.txt\"");
+
+            PrintWriter writer = response.getWriter();
+            writer.write(chatExportService.export(chatIds));
+            writer.flush();
+
+        } catch (Exception e) {
+            log.error("Ошибка при экспорте чатов", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try {
+                response.getWriter().write("Ошибка при экспорте: " + e.getMessage());
+            } catch (IOException ex) {
+                log.error("Ошибка записи ошибки", ex);
+            }
+        }
+    }
 }

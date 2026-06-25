@@ -1,0 +1,30 @@
+<div class="icontent">
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="telegramId" class="table-alias"> Идентификатор</th>
+            <th id="username" class="table-alias"> Логин</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${items.empty}">
+            <td colspan="3"> Тут пусто</td>
+        </tr>
+
+        <th:block th:each="ignoreItem, iStat : ${items}">
+            <tr>
+                <td><span th:text="${ignoreItem.id}"> Идентификатор </span></td>
+                <td><span th:text="${ignoreItem.username}"> Логин </span></td>
+                <td class="settingbuttons">
+                    <a class="btn-save" th:href="@{/ignore/edit/{id}(id=${ignoreItem.id})}">Изменить</a>
+                    <a class="btn-save" th:href="@{/ignore/{id}(id=${ignoreItem.id})}">Просмотр</a>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+
+    <a class="save" type="submit" th:href="@{/ignore/add}">Добавить</a>
+</div>
