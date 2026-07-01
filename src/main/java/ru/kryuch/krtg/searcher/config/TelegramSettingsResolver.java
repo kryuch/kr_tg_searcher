@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.kryuch.krtg.searcher.service.SettingService;
+import ru.kryuch.krtg.searcher.service.VacancyService;
 
 @Slf4j
 @Component

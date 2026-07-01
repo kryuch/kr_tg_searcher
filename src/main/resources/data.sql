@@ -7,6 +7,7 @@ MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (5, 'ignore
 MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (6, 'python', 'http://localhost:8081');
 MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (7, 'send_delay', '10');
 MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (8, 'text_in_vacancy', 'Java');
+MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (9, 'tg_folder', 'HR');
 
 
 

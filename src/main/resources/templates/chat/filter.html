@@ -104,10 +104,11 @@
                     e.preventDefault();
 
                     var selectedChats = [];
+
                     $('input[name="check[]"]:checked').each(function() {
                         var chatId = $(this).data('chat-id');
                         if (chatId) {
-                            selectedChats.push(parseInt(chatId));
+                            selectedChats.push(chatId);
                         }
                     });
 
@@ -123,35 +124,27 @@
                         return;
                     }
 
-                    var $btn = $(this);
-                    var originalText = $btn.text();
-                    $btn.text('Отправка...').prop('disabled', true);
-
-                    $.ajax({
-                        url: '/chat/send',
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            chatIds: selectedChats,
-                            message: message
-                        }),
-                        success: function(result) {
-                            if (result.success) {
-                                alert('Сообщение отправлено в ' + result.count + ' чатов');
-                                $("#message").val('');
-                                $('input[name="check[]"]:checked').prop('checked', false);
-                            } else {
-                                alert('Ошибка: ' + (result.error || 'Не удалось отправить сообщения'));
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Ошибка:', error);
-                            alert('Ошибка при отправке сообщений');
-                        },
-                        complete: function() {
-                            $btn.text(originalText).prop('disabled', false);
-                        }
+                    var form = $('<form>', {
+                        action: '/chat/send',
+                        method: 'POST'
                     });
+
+                    selectedChats.forEach(function(chatId) {
+                        $('<input>', {
+                            type: 'hidden',
+                            name: 'chatIds',
+                            value: chatId
+                        }).appendTo(form);
+                    });
+
+                    $('<input>', {
+                        type: 'hidden',
+                        name: 'message',
+                        value: message
+                    }).appendTo(form);
+
+                    $('body').append(form);
+                    form.submit();
                 });
                 $("#export").click(function(e) {
                     e.preventDefault();

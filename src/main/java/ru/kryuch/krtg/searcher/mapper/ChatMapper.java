@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
+import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 import ru.kryuch.krtg.searcher.util.SendResult;
 
 import java.util.Collection;
@@ -16,8 +17,10 @@ import java.util.List;
 )
 public abstract class ChatMapper {
 
+    @Mapping(target = "status", source = "status.type")
     public abstract ChatEntity toEntity(ChatInfo info);
 
+    @Mapping(target = "status", expression = "java(ChatStatus.getChatStatus(entity.getStatus()))")
     public abstract ChatInfo fromEntity(ChatEntity entity);
 
     public abstract List<ChatEntity> toEntityList(Collection<ChatInfo> info);
@@ -28,9 +31,9 @@ public abstract class ChatMapper {
     @Mapping(target = "comment", source = "error")
     public abstract ChatInfo fromSendResult(SendResult result);
 
-    protected Integer getSendStatus(SendResult result) {
-        if (result.getStatus().equals("skipped")) return 11;
-        if (result.getStatus().equals("error")) return 12;
-        return 13;
+    protected SendMessageStatus getSendStatus(SendResult result) {
+        if (result.getStatus().equals("skipped")) return SendMessageStatus.SKIP;
+        if (result.getStatus().equals("error")) return SendMessageStatus.ERROR;
+        return SendMessageStatus.SUCCESS;
     }
 }

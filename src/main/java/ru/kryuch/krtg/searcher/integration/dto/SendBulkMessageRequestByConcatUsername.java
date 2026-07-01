@@ -7,9 +7,9 @@ import java.util.Set;
 
 @Data
 @Builder
-public class SendBulkMessageRequest {
+public class SendBulkMessageRequestByConcatUsername {
 
-    private Set<Long> chatIds;
+    private Set<String> contactUsernames;
     private String messageText;
     private Integer delaySeconds;
     private Boolean onlyNewChats;

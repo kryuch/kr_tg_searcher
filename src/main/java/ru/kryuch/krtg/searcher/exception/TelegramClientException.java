@@ -9,4 +9,8 @@ public class TelegramClientException extends RuntimeException {
     public TelegramClientException(String message) {
         super(message);
     }
+
+    public TelegramClientException(String message, Exception e) {
+        super(message, e);
+    }
 }

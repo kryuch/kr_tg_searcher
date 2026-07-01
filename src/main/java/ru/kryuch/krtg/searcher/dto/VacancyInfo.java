@@ -2,6 +2,7 @@ package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +27,7 @@ public class VacancyInfo {
     // статус (1 - удаленная, 2 - орфис, 3 - гибрид или неясно (не удалось однозначно отпарсить)
     Integer remoteStatus;
 
-    Integer status = 0;
+    VacancyTgOwnerStatus status;
 
     public String getTg() {
         Optional <VacancyOwnerInfo> vacancyOwnerInfo =

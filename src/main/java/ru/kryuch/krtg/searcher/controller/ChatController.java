@@ -19,6 +19,8 @@ import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.SettingService;
+import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
+import ru.kryuch.krtg.searcher.service.VacancyService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -37,6 +39,7 @@ public class ChatController {
 
     private final ChatService chatService;
     private final SettingService settingService;
+    private final TelegramMessagingService telegramMessagingService;
 
     @Data
     public static class SendMessageRequest {
@@ -81,18 +84,28 @@ public class ChatController {
     }
 
     @PostMapping("/send")
-    public String sendMessage(@RequestBody SendMessageRequest request,
-                              RedirectAttributes redirectAttributes) {
+    public String sendMessage(
+            SendMessageRequest request,
+            RedirectAttributes redirectAttributes) {
 
-        List<ChatInfo> chats = new ArrayList<>();
+        List<ChatInfo> chats;
+
         if (Objects.nonNull(request.getBack())) {
+
             VacanciesContainer vacanciesContainer =
                     chatService.createVacanciesContainer(request.getBack(), 100);
 
-            chats = chatService.sendMessage(request.getMessage(), vacanciesContainer.getNewTg());
+            chats = telegramMessagingService.registerAndSend(
+                    request.getMessage(),
+                    vacanciesContainer.getNewTg()
+            );
+
         } else {
-            chats =
-                    chatService.sendMessage(request.getMessage(), request.getChatIds());
+
+            chats = telegramMessagingService.sendToChats(
+                    request.getMessage(),
+                    request.getChatIds()
+            );
         }
 
         String successMessage = "Сообщение отправлено в " +
@@ -100,8 +113,14 @@ public class ChatController {
                         .map(ChatInfo::getName)
                         .collect(Collectors.joining(", "));
 
-        redirectAttributes.addFlashAttribute("successMessage", successMessage);
-        return (Objects.nonNull(request.getBack())) ? "redirect:/chat/" + request.getBack() : "redirect:/chat/";
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                successMessage
+        );
+
+        return request.getBack() != null
+                ? "redirect:/chat/" + request.getBack()
+                : "redirect:/chat/";
     }
 
     @PostMapping("/export")

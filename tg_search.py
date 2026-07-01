@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 from telethon.errors import ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
+from tg_utils import get_chat_folders
 
 async def search_chats(client, params):
     """
@@ -70,10 +71,14 @@ async def search_chats(client, params):
                         if phone:
                             username = phone
 
+                    chat_folders = await get_chat_folders(client, d.id)
+                    print(f"🔵Папки {username}: {chat_folders}")
+
                     chat_info = {
                         'id': d.id,
                         'name': d.name,
-                        'username': username
+                        'username': username,
+                        'folders': chat_folders,
                     }
 
                     # Добавляем последние сообщения, если messages_count > 0
