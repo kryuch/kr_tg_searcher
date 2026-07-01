@@ -17,7 +17,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
         semaphore = SEMAPHORE
 
     try:
-        # Преобразуем в int с проверкой
         try:
             if isinstance(chat_id, str):
                 chat_id = int(chat_id)
@@ -33,7 +32,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
         async with semaphore:
             entity = await client.get_entity(chat_id)
 
-            # Определяем имя в зависимости от типа
             if isinstance(entity, (Chat, Channel)):
                 name = entity.title
             elif isinstance(entity, User):
@@ -61,7 +59,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
         wait_time = e.seconds
         logger.warning(f"FloodWait для чата {chat_id}: {wait_time} сек")
         await asyncio.sleep(wait_time)
-        # Повторяем запрос после ожидания
         return await get_single_chat_info(client, chat_id, semaphore)
 
     except (ValueError, UserIdInvalidError):
@@ -98,13 +95,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
 async def get_chats_info(client, chat_ids, max_concurrent=5):
     """
     Получает информацию о чатах по их ID параллельно.
-
-    Параметры:
-    - chat_ids: список ID чатов (числа или строки)
-    - max_concurrent: максимальное количество параллельных запросов
-
-    Возвращает:
-    - список словарей с полями: id, username, name, success, error
     """
     if not chat_ids:
         return []
@@ -118,3 +108,32 @@ async def get_chats_info(client, chat_ids, max_concurrent=5):
 
     results = await asyncio.gather(*tasks)
     return results
+
+
+async def get_chat_folders(client, chat_id):
+    """
+    Получает список папок (групп), в которых находится чат.
+    """
+    folders = []
+    try:
+        # Получаем все диалоги
+        dialogs = await client.get_dialogs()
+        for dialog in dialogs:
+            if dialog.id == chat_id:
+                print(f"🔍 Найден диалог: {dialog.id}, folder_id: {dialog.folder_id}")
+                if dialog.folder_id is not None:
+                    try:
+                        folder = await client.get_folder(dialog.folder_id)
+                        print(f"🔍 Папка найдена: {folder.id} - {folder.title}")
+                        folders.append({
+                            'id': folder.id,
+                            'title': folder.title
+                        })
+                    except Exception as e:
+                        logger.warning(f"Не удалось получить папку {dialog.folder_id}: {e}")
+                break
+    except Exception as e:
+        logger.error(f"Ошибка получения папок для чата {chat_id}: {e}")
+
+    print(f"🔵Папки для {chat_id}: {folders}")
+    return folders

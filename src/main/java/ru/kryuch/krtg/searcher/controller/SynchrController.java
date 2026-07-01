@@ -7,15 +7,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
+import ru.kryuch.krtg.searcher.service.ChatSynchronizationService;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/synchr")
 public class SynchrController {
 
-    private final ChatService chatService;
+    private final ChatService chatServiceImpl;
+    private final ChatSynchronizationService chatSynchronizationService;
 
     @GetMapping("/")
     public String index(Model model) {
@@ -29,7 +30,7 @@ public class SynchrController {
 
     @PostMapping(value = "/action")
     public String action(RedirectAttributes redirectAttributes) {
-        Boolean synchr = chatService.synchr();
+        Boolean synchr = chatSynchronizationService.synchr();
         redirectAttributes.addFlashAttribute("successMessage", "Синхронизация выполнена");
         return "redirect:/synchr/";
     }

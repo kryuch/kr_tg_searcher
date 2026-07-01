@@ -52,7 +52,7 @@
           <span th:class="${message.ownerFlag} ? 'messageflag_true message' : 'messageflag_false message'">
             <span th:id="'short-' + ${miter.index}" class="description-short"
                   th:text="${#strings.abbreviate(message.value, 32)}" onclick="showMessage(this, true)"></span>
-            <span th:id="'short-' + ${miter.index}" class="description-long" onclick="showMessage(this, false)"
+            <span th:id="'long-' + ${miter.index}" class="description-long" onclick="showMessage(this, false)"
                   th:text="${message.value}"></span>
             <span class="dt" th:text="${#temporals.format(message.dateTime, 'dd.MM')}"></span>
         </span>
@@ -88,10 +88,21 @@
                 var originalText = this.innerText;
                 this.innerText = '...';
 
-                fetch('/chat/status/update?chatId=' + chatId + '&name=' + encodeURIComponent(chatName) + '&status=' + status, {
+                const params = new URLSearchParams({
+                    chatId: chatId,
+                    name: chatName,
+                    status: status
+                });
+
+                fetch('/chat/status/update?' + params.toString(), {
                     method: 'POST'
                 })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("HTTP " + response.status);
+                        }
+                        return response.json();
+                    })
                     .then(success => {
                         if (success) {
                             row.className = 'chatstatus' + status;
@@ -103,8 +114,8 @@
                         console.error('Ошибка:', error);
                         alert('Ошибка при сохранении статуса');
                     })
-                    .finally(function () {
-                        this.innerText = originalText;
+                    .finally(() => {
+                        btn.innerText = originalText;
                     });
             });
         });

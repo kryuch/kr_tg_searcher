@@ -1,6 +1,8 @@
 package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Data;
+import ru.kryuch.krtg.searcher.type.ChatStatus;
+import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.util.List;
 
@@ -11,10 +13,11 @@ public class ChatInfo {
     String avatar;
     Long id;
     Boolean actual = true;
-    Integer status = 0;
+    ChatStatus status = ChatStatus.SIMPLE;
+    List<FolderInfo> folders;
 
 
-    Integer sendStatus;
+    SendMessageStatus sendStatus;
     String comment;
 
     List<Message> messages;
