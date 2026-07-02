@@ -39,4 +39,8 @@ public class IgnoreService {
     public void add(IgnoreInfo ignoreInfo) {
         ignoreRepository.save(ignoreMapper.toEntity(ignoreInfo));
     }
+
+    public void remove(Long ignoreId) {
+        ignoreRepository.deleteById(ignoreId);
+    }
 }

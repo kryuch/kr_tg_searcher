@@ -17,8 +17,7 @@
                 <td><span th:text="${ignoreItem.id}"> Идентификатор </span></td>
                 <td><span th:text="${ignoreItem.username}"> Логин </span></td>
                 <td class="settingbuttons">
-                    <a class="btn-save" th:href="@{/ignore/edit/{id}(id=${ignoreItem.id})}">Изменить</a>
-                    <a class="btn-save" th:href="@{/ignore/{id}(id=${ignoreItem.id})}">Просмотр</a>
+                    <a class="btn-save" th:href="@{/ignore/{id}/remove(id=${ignoreItem.id})}">Удалить</a>
                 </td>
             </tr>
         </th:block>

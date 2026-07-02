@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class FolderInfo {
 
-    Long id;
-    Long title;
+    Integer id;
+    String title;
 }

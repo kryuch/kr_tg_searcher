@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.kryuch.krtg.searcher.dto.IgnoreInfo;
 import ru.kryuch.krtg.searcher.service.IgnoreService;
@@ -31,6 +32,14 @@ public class IgnoreController {
         model.addAttribute("ignore", new IgnoreInfo());
         model.addAttribute("page", "ignore/add");
         return "index";
+    }
+
+    @GetMapping("/{ignoreId}/remove")
+    public String remove(@PathVariable("ignoreId") Long ignoreId, Model model) {
+        model.addAttribute("ignore", new IgnoreInfo());
+        ignoreService.remove(ignoreId);
+        return "redirect:/ignore" +
+                "/list";
     }
 
     @RequestMapping(value = "/add")
