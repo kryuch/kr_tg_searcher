@@ -12,9 +12,5 @@ import java.util.List;
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
-public abstract class SettingMapper {
-
-    public abstract List<Setting> fromEntityList(Collection<SettingEntity> entity);
-
-    public abstract  Setting fromEntity(SettingEntity entity);
+public abstract class SettingMapper implements TMapper <SettingEntity, Setting> {
 }

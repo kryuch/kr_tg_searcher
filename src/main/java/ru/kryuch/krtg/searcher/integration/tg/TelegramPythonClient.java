@@ -7,6 +7,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.kryuch.krtg.searcher.config.TelegramSettingsResolver;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
+import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.exception.TelegramClientException;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
@@ -26,6 +27,22 @@ public class TelegramPythonClient {
 
     private final RestTemplate restTemplate;
     private final TelegramSettingsResolver settings;
+
+    public List<FolderInfo> findAllFolders() {
+
+        FolderInfo[] response = execute(
+                () -> restTemplate.getForObject(
+                        buildUri("/api/folders"),
+                        FolderInfo[].class
+                ),
+                "Failed to get folders"
+        );
+
+        return response == null
+                ? List.of() :
+                List.of(response);
+    }
+
 
     public List<ChatInfo> findAllChats() {
 

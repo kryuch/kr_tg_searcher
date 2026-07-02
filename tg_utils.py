@@ -2,12 +2,12 @@ import asyncio
 import logging
 from telethon.errors import FloodWaitError, ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
 from telethon.tl.types import User, Chat, Channel
+from telethon.tl.functions.messages import GetDialogFiltersRequest
 
 logger = logging.getLogger(__name__)
 
 # Ограничиваем количество одновременных запросов к Telegram
 SEMAPHORE = asyncio.Semaphore(5)
-
 
 async def get_single_chat_info(client, chat_id, semaphore=None):
     """
@@ -91,7 +91,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
             'error': 'UNKNOWN_ERROR'
         }
 
-
 async def get_chats_info(client, chat_ids, max_concurrent=5):
     """
     Получает информацию о чатах по их ID параллельно.
@@ -109,31 +108,66 @@ async def get_chats_info(client, chat_ids, max_concurrent=5):
     results = await asyncio.gather(*tasks)
     return results
 
+async def get_all_folders(client):
+    """
+    Получает список всех папок пользователя.
+
+    Возвращает:
+    - список словарей с полями: id, title
+    """
+    folders = []
+    try:
+        result = await client(GetDialogFiltersRequest())
+
+        # Получаем список фильтров/папок
+        filters = result.filters if hasattr(result, 'filters') else list(result)
+
+        for f in filters:
+            # Пропускаем пустую/дефолтную папку
+            if getattr(f, 'id', None) is None:
+                continue
+
+            # Получаем название
+            title = getattr(f, 'title', None)
+            if title and hasattr(title, 'text'):
+                title = title.text
+
+            folder_id = getattr(f, 'id', None) or getattr(f, 'folder_id', None)
+
+            if folder_id is not None and title:
+                folders.append({
+                    'id': folder_id,
+                    'title': title
+                })
+    except Exception as e:
+        print(f"❌ Ошибка получения папок: {e}")
+
+    return folders
 
 async def get_chat_folders(client, chat_id):
     """
-    Получает список папок (групп), в которых находится чат.
+    Получает список папок, в которых находится чат.
     """
     folders = []
     try:
         # Получаем все диалоги
         dialogs = await client.get_dialogs()
-        for dialog in dialogs:
-            if dialog.id == chat_id:
-                print(f"🔍 Найден диалог: {dialog.id}, folder_id: {dialog.folder_id}")
-                if dialog.folder_id is not None:
-                    try:
-                        folder = await client.get_folder(dialog.folder_id)
-                        print(f"🔍 Папка найдена: {folder.id} - {folder.title}")
-                        folders.append({
-                            'id': folder.id,
-                            'title': folder.title
-                        })
-                    except Exception as e:
-                        logger.warning(f"Не удалось получить папку {dialog.folder_id}: {e}")
-                break
-    except Exception as e:
-        logger.error(f"Ошибка получения папок для чата {chat_id}: {e}")
 
-    print(f"🔵Папки для {chat_id}: {folders}")
+        # Собираем все folder_id, где есть чат
+        folder_ids = set()
+        for dialog in dialogs:
+            if dialog.id == chat_id and dialog.folder_id is not None:
+                folder_ids.add(dialog.folder_id)
+                print(f"🔍 Найден folder_id: {dialog.folder_id} для чата {chat_id}")
+
+        # Получаем названия папок
+        if folder_ids:
+            all_folders = await get_all_folders(client)
+            for folder in all_folders:
+                if folder['id'] in folder_ids:
+                    folders.append(folder)
+                    print(f"✅ Папка: {folder['title']} (ID: {folder['id']}")
+    except Exception as e:
+        print(f"❌ Ошибка получения папок для чата {chat_id}: {e}")
+
     return folders
