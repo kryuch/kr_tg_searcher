@@ -52,13 +52,16 @@
                         </div>
                     </div>
                 </td>
-                <td>
-                    <span th:text="${item.folderTitles}">Folders</span>
+                <td th:class="${'foldertitle_' + (item.hasTargetFolder)}">
+                    <span class="folderspan" th:text="${item.folderTitles}">Folders</span>
                 </td>
                 <td class="settingbuttons">
                     <a href="#" class="btn-restore btn-status" data-status="1">Отказ</a>
-                    <a href="#" class="btn-send btn-status" data-status="2">-</a>
+                    <a href="#" class="btn-send btn-status" data-status="2">--</a>
                     <a href="#" class="btn-remove btn-status" data-status="3">Не HR</a>
+
+                    <a href="#" class="btn-add btn-folder" data-status="1">В папку</a>
+                    <a href="#" class="btn-remove btn-folder" data-status="0">Из папки</a>
                 </td>
             </tr>
             <tr class="chatpremessages">
@@ -79,7 +82,77 @@
         </th:block>
         </tbody>
     </table>
+
+    <script th:inline="javascript">
+        var targetFolder = /*[[${targetFolder}]]*/ 'Target';
+    </script>
+
     <script>
+        document.querySelectorAll('.btn-folder').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var row = this.closest('tr');
+                var chatId = row.getAttribute('data-chat-id');
+                var chatName = row.getAttribute('data-chat-name');
+                var status = this.getAttribute('data-status');
+
+                if (!chatId || !chatName) {
+                    console.error('Не найдены data-chat-id или data-chat-name');
+                    return;
+                }
+
+                var originalText = this.innerText;
+                this.innerText = '...';
+
+                const params = new URLSearchParams({
+                    chatId: chatId,
+                    name: chatName,
+                    status: status
+                });
+
+                fetch('/chat/status/folder?' + params.toString(), {
+                    method: 'POST'
+                })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error("HTTP " + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(function(success) {
+                        if (success) {
+                            var span = row.querySelector('.folderspan');
+                            var td = span.parentElement;
+
+                            // Используем переменную targetFolder из глобальной области
+                            if (status == 1) {
+                                td.className = 'foldertitle_true';
+                                // Добавляем, если ещё нет
+                                if (!span.textContent.includes(targetFolder)) {
+                                    span.textContent = span.textContent
+                                        ? span.textContent + ', ' + targetFolder
+                                        : targetFolder;
+                                }
+                            } else {
+                                td.className = 'foldertitle_false';
+                                // Удаляем targetFolder
+                                var folders = span.textContent.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s && s !== targetFolder; });
+                                span.textContent = folders.join(', ');
+                            }
+                        } else {
+                            alert('Ошибка при сохранении статуса папки');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Ошибка:', error);
+                        alert('Ошибка при сохранении статуса папки');
+                    })
+                    .finally(function() {
+                        btn.innerText = originalText;
+                    });
+            });
+        });
+
         document.querySelectorAll('.btn-status').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -105,24 +178,24 @@
                 fetch('/chat/status/update?' + params.toString(), {
                     method: 'POST'
                 })
-                    .then(response => {
+                    .then(function(response) {
                         if (!response.ok) {
                             throw new Error("HTTP " + response.status);
                         }
                         return response.json();
                     })
-                    .then(success => {
+                    .then(function(success) {
                         if (success) {
                             row.className = 'chatstatus' + status;
                         } else {
                             alert('Ошибка при сохранении статуса');
                         }
                     })
-                    .catch(error => {
+                    .catch(function(error) {
                         console.error('Ошибка:', error);
                         alert('Ошибка при сохранении статуса');
                     })
-                    .finally(() => {
+                    .finally(function() {
                         btn.innerText = originalText;
                     });
             });

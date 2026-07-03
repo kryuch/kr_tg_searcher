@@ -16,6 +16,7 @@ public class ChatInfo {
     Boolean actual = true;
     ChatStatus status = ChatStatus.SIMPLE;
     List<FolderInfo> folders;
+    Boolean hasTargetFolder;
 
 
     SendMessageStatus sendStatus;

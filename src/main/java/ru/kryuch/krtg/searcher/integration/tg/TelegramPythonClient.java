@@ -13,11 +13,13 @@ import ru.kryuch.krtg.searcher.exception.TelegramClientException;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByConcatUsername;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByContactId;
+import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
 import ru.kryuch.krtg.searcher.util.PythonMessagesResponse;
 import ru.kryuch.krtg.searcher.util.SendResponse;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -161,5 +163,46 @@ public class TelegramPythonClient {
                 .toUri();
     }
 
+    public Map<String, Object> updateFolder(UpdateFolderRequest request) {
 
+        Map<String, Object> response = execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/folders/update"),
+                        request,
+                        Map.class
+                ),
+                "Failed to get chats info"
+        );
+
+        return response;/* == null
+                ? List.of()
+                : List.of(response);
+
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUri(buildUri("/api/folders/update"));
+
+        return execute(
+                () -> restTemplate.getForObject(
+                        builder.build().toUri(),
+                        PythonMessagesResponse.class
+                ),
+                String.format(
+                        "Failed to get chat preview %s",
+                        chatId
+                )
+        );
+
+
+
+        String url = getBaseUrl() + "/api/folders/update";
+
+        Map<String, Object> request = Map.of(
+                "folder_id", folderId,
+                "chat_ids", chatIds,
+                "add_to_folder", addToFolder
+        );
+
+        return restTemplate.postForObject(url, request, Map.class);*/
+    }
 }

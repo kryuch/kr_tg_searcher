@@ -1,13 +1,206 @@
 import asyncio
 import logging
 from telethon.errors import FloodWaitError, ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
-from telethon.tl.types import User, Chat, Channel
-from telethon.tl.functions.messages import GetDialogFiltersRequest
+from telethon.tl.types import User, Chat, Channel, InputPeerUser, InputPeerChat, InputPeerChannel
+from telethon.tl.functions.messages import GetDialogFiltersRequest, UpdateDialogFilterRequest
+from telethon.errors import FloodWaitError
+from telethon.tl.functions.messages import (
+    GetDialogFiltersRequest,
+    UpdateDialogFilterRequest,
+)
+from telethon.tl.types import DialogFilter
 
 logger = logging.getLogger(__name__)
 
 # Ограничиваем количество одновременных запросов к Telegram
 SEMAPHORE = asyncio.Semaphore(5)
+
+
+def _peer_id(peer):
+    """Возвращает ID чата из InputPeer*."""
+    return (
+        getattr(peer, "user_id", None)
+        or getattr(peer, "channel_id", None)
+        or getattr(peer, "chat_id", None)
+    )
+
+
+def _peers_equal(p1, p2):
+    """Сравнивает два Peer объекта"""
+    return _peer_id(p1) == _peer_id(p2)
+
+def clone_filter(filter_obj, include_peers):
+    return DialogFilter(
+        id=filter_obj.id,
+        title=filter_obj.title,
+        pinned_peers=filter_obj.pinned_peers,
+        include_peers=include_peers,
+        exclude_peers=filter_obj.exclude_peers,
+        contacts=filter_obj.contacts,
+        non_contacts=filter_obj.non_contacts,
+        groups=filter_obj.groups,
+        broadcasts=filter_obj.broadcasts,
+        bots=filter_obj.bots,
+        exclude_muted=filter_obj.exclude_muted,
+        exclude_read=filter_obj.exclude_read,
+        exclude_archived=filter_obj.exclude_archived,
+        emoticon=filter_obj.emoticon,
+        color=getattr(filter_obj, "color", None),
+        title_noanimate=getattr(filter_obj, "title_noanimate", False),
+    )
+
+
+async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
+    """
+    Добавляет или удаляет список чатов из пользовательской папки Telegram.
+    """
+
+    try:
+        filters = await client(GetDialogFiltersRequest())
+        filters = filters.filters if hasattr(filters, "filters") else list(filters)
+
+        folder = next(
+            (f for f in filters if getattr(f, "id", None) == folder_id),
+            None
+        )
+
+        if folder is None:
+            return {
+                "success": False,
+                "error": f"Folder {folder_id} not found"
+            }
+
+        include_peers = list(folder.include_peers)
+
+        current_ids = {_peer_id(peer) for peer in include_peers}
+
+        results = []
+
+        for chat_id in chat_ids:
+
+            try:
+                peer = await client.get_input_entity(chat_id)
+
+                if add_to_folder:
+                    if chat_id not in current_ids:
+                        include_peers.append(peer)
+                        current_ids.add(chat_id)
+
+                else:
+                    include_peers = [
+                        p for p in include_peers
+                        if _peer_id(p) != chat_id
+                    ]
+                    current_ids.discard(chat_id)
+
+                results.append({
+                    "chat_id": chat_id,
+                    "status": "success"
+                })
+
+            except FloodWaitError as e:
+                await asyncio.sleep(e.seconds)
+
+                results.append({
+                    "chat_id": chat_id,
+                    "status": "error",
+                    "error": f"FloodWait {e.seconds}"
+                })
+
+            except Exception as e:
+                logger.exception("Cannot process chat %s", chat_id)
+
+                results.append({
+                    "chat_id": chat_id,
+                    "status": "error",
+                    "error": str(e)
+                })
+
+        await client(
+            UpdateDialogFilterRequest(
+                id=folder.id,
+                filter=clone_filter(folder, include_peers)
+            )
+        )
+
+        return {
+            "success": True,
+            "folder_id": folder_id,
+            "operation": "add" if add_to_folder else "remove",
+            "results": results
+        }
+
+    except Exception:
+        logger.exception("Cannot update folder %s", folder_id)
+
+        return {
+            "success": False,
+            "error": "UPDATE_FAILED"
+        }
+
+
+async def get_all_folders(client):
+    """
+    Возвращает список пользовательских папок Telegram.
+    """
+    try:
+        result = await client(GetDialogFiltersRequest())
+        filters = result.filters if hasattr(result, "filters") else list(result)
+
+        folders = []
+        for dialog_filter in filters:
+            folder_id = getattr(dialog_filter, "id", None)
+            if folder_id is None:
+                continue
+
+            title = getattr(dialog_filter, "title", None)
+            if hasattr(title, "text"):
+                title = title.text
+
+            chat_ids = [
+                peer_id
+                for peer in getattr(dialog_filter, "include_peers", [])
+                if (peer_id := _peer_id(peer)) is not None
+            ]
+
+            folders.append({
+                "id": folder_id,
+                "title": title,
+                "chatIds": chat_ids
+            })
+
+        return folders
+
+    except Exception:
+        logger.exception("Ошибка получения списка папок")
+        return []
+
+
+async def get_chat_folders(client, chat_id):
+    """
+    Получает список папок, в которых находится чат.
+    """
+    folders = []
+    try:
+        dialogs = await client.get_dialogs()
+
+        folder_ids = set()
+        for dialog in dialogs:
+            if dialog.id == chat_id and dialog.folder_id is not None:
+                folder_ids.add(dialog.folder_id)
+                print(f"🔍 Найден folder_id: {dialog.folder_id} для чата {chat_id}")
+
+        if folder_ids:
+            all_folders = await get_all_folders(client)
+            for folder in all_folders:
+                if folder['id'] in folder_ids:
+                    folders.append(folder)
+                    print(f"✅ Папка: {folder['title']} (ID: {folder['id']})")
+    except Exception as e:
+        print(f"❌ Ошибка получения папок для чата {chat_id}: {e}")
+
+    return folders
+
 
 async def get_single_chat_info(client, chat_id, semaphore=None):
     """
@@ -91,6 +284,7 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
             'error': 'UNKNOWN_ERROR'
         }
 
+
 async def get_chats_info(client, chat_ids, max_concurrent=5):
     """
     Получает информацию о чатах по их ID параллельно.
@@ -107,85 +301,3 @@ async def get_chats_info(client, chat_ids, max_concurrent=5):
 
     results = await asyncio.gather(*tasks)
     return results
-
-def _peer_id(peer):
-    """Возвращает ID чата из InputPeer*."""
-    return (
-        getattr(peer, "user_id", None)
-        or getattr(peer, "channel_id", None)
-        or getattr(peer, "chat_id", None)
-    )
-
-async def get_all_folders(client):
-    """
-    Возвращает список пользовательских папок Telegram.
-
-    Возвращает:
-    [
-        {
-            "id": 1,
-            "title": "HR",
-            "chat_ids": [123, 456, ...]
-        }
-    ]
-    """
-    try:
-        result = await client(GetDialogFiltersRequest())
-        filters = result.filters if hasattr(result, "filters") else list(result)
-
-        folders = []
-
-        for dialog_filter in filters:
-            folder_id = getattr(dialog_filter, "id", None)
-            if folder_id is None:
-                continue
-
-            title = getattr(dialog_filter, "title", None)
-            if hasattr(title, "text"):
-                title = title.text
-
-            chat_ids = [
-                peer_id
-                for peer in getattr(dialog_filter, "include_peers", [])
-                if (peer_id := _peer_id(peer)) is not None
-            ]
-
-            folders.append({
-                "id": folder_id,
-                "title": title,
-                "chatIds": chat_ids
-            })
-
-        return folders
-
-    except Exception:
-        logger.exception("Ошибка получения списка папок")
-        return []
-
-async def get_chat_folders(client, chat_id):
-    """
-    Получает список папок, в которых находится чат.
-    """
-    folders = []
-    try:
-        # Получаем все диалоги
-        dialogs = await client.get_dialogs()
-
-        # Собираем все folder_id, где есть чат
-        folder_ids = set()
-        for dialog in dialogs:
-            if dialog.id == chat_id and dialog.folder_id is not None:
-                folder_ids.add(dialog.folder_id)
-                print(f"🔍 Найден folder_id: {dialog.folder_id} для чата {chat_id}")
-
-        # Получаем названия папок
-        if folder_ids:
-            all_folders = await get_all_folders(client)
-            for folder in all_folders:
-                if folder['id'] in folder_ids:
-                    folders.append(folder)
-                    print(f"✅ Папка: {folder['title']} (ID: {folder['id']}")
-    except Exception as e:
-        print(f"❌ Ошибка получения папок для чата {chat_id}: {e}")
-
-    return folders

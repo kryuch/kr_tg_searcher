@@ -843,6 +843,17 @@ table {
     max-width: 130px;
     font-size: small;
 }
+.btn-add {
+    background: #6b9215;
+    border-radius: 5px;
+    padding: 5px;
+    box-sizing: border-box;
+    color: #FFF;
+    display: block;
+    text-align: center;
+    max-width: 130px;
+    font-size: small;
+}
 
 .content {
     margin: 0!important;
@@ -1039,4 +1050,14 @@ tr.filter td.col .ms-options-wrap {
 
 table.onlychatheaders .chatpremessages {
     display: none;
+}
+
+.foldertitle_true {
+    font-style: oblique;
+    color: #d14a4a;
+}
+
+button.massaction {
+    float: left;
+    margin-left: 8px;
 }

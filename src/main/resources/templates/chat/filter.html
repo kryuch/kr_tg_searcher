@@ -1,6 +1,41 @@
 <table class="filtercontainericontent" id="filtercontainericontent">
-    <tr class="filter">
-        <th colSpan="7">
+    <tr class="filter" id="filterparams">
+        <td class="colid"></td>
+        <td class="col">
+            <label>Поиск:</label>
+            <input type="text" id="term" th:field="*{filter.term}" name="term" class="1col active form-control"/>
+
+            <div style="margin-top: 10px;">
+                <input type="checkbox" id="excludeStatusFlag" th:field="*{filter.excludeStatusFlag}" name="excludeStatusFlag" class="1col active form-control"/>
+                <label for="excludeStatusFlag">Не показывать статус > 0</label>
+            </div>
+        </td>
+        <td class="col limit">
+            <label>Максимум результатов:</label>
+            <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount" class="1col active form-control"/>
+        </td>
+        <td class="col">
+            <label>Не писали больше чем (в днях):</label>
+            <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}" name="minDiffDaysCount" class="1col active form-control"/>
+        </td>
+        <td class="col">
+            <label>Тип чатов (боты):</label>
+            <select id="botType" th:field="*{filter.botType}" class="form-control">
+                <option th:value="PERSONAL">Только личные</option>
+                <option th:value="NOT_PERSONAL">Только боты</option>
+                <option th:value="ALL">Все чаты</option>
+            </select>
+
+            <div style="margin-top: 10px;">
+                <label>Тип чатов (группы/каналы):</label>
+                <select id="groupType" th:field="*{filter.groupType}" class="form-control">
+                    <option th:value="PERSONAL">Только личные</option>
+                    <option th:value="NOT_PERSONAL">Только группы и каналы</option>
+                    <option th:value="ALL">Все чаты</option>
+                </select>
+            </div>
+        </td>
+        <td colspan="2">
             <button class="save" id="filter" type="submit">Фильтровать</button>
             <script>
                 $(document).ready(function() {
@@ -47,46 +82,7 @@
                     });
                 });
             </script>
-        </th>
-    </tr>
-    <tr class="filter" id="filterparams">
-        <td class="colid"></td>
-        <td class="col">
-            <label>Поиск:</label>
-            <input type="text" id="term" th:field="*{filter.term}" name="term" class="1col active form-control"/>
-
-            <div style="margin-top: 10px;">
-                <input type="checkbox" id="excludeStatusFlag" th:field="*{filter.excludeStatusFlag}" name="excludeStatusFlag" class="1col active form-control"/>
-                <label for="excludeStatusFlag">Не показывать статус > 0</label>
-            </div>
         </td>
-        <td class="col limit">
-            <label>Максимум результатов:</label>
-            <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount" class="1col active form-control"/>
-        </td>
-        <td class="col">
-            <label>Не писали больше чем (в днях):</label>
-            <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}" name="minDiffDaysCount" class="1col active form-control"/>
-        </td>
-        <td class="col">
-            <label>Тип чатов (боты):</label>
-            <select id="botType" th:field="*{filter.botType}" class="form-control">
-                <option th:value="PERSONAL">Только личные</option>
-                <option th:value="NOT_PERSONAL">Только боты</option>
-                <option th:value="ALL">Все чаты</option>
-            </select>
-
-            <div style="margin-top: 10px;">
-                <label>Тип чатов (группы/каналы):</label>
-                <select id="groupType" th:field="*{filter.groupType}" class="form-control">
-                    <option th:value="PERSONAL">Только личные</option>
-                    <option th:value="NOT_PERSONAL">Только группы и каналы</option>
-                    <option th:value="ALL">Все чаты</option>
-                </select>
-            </div>
-        </td>
-        <td></td>
-        <td></td>
     </tr>
     <tr class="message">
         <td colspan="2">
@@ -108,10 +104,78 @@
             <span>Сообщение</span>
             <input type="text" name="message" id="message">
 
-            <button class="save" id="sendMessage" type="submit">Послать сообщение</button>
-            <button class="save" id="export" type="submit">Экспортировать</button>
+            <button class="save massaction" id="sendMessage" type="submit">Послать сообщение</button>
+            <button class="save massaction" id="export" type="submit">Экспортировать</button>
+            <button class="save massaction" id="toFolder" type="submit">В папку</button>
+            <button class="save massaction" id="fromFolder" type="submit">Из папки</button>
 
             <script>
+                $("#toFolder").click(function(e) {
+                    e.preventDefault();
+
+                    var selectedChats = [];
+
+                    $('input[name="check[]"]:checked').each(function() {
+                        var chatId = $(this).data('chat-id');
+                        if (chatId) {
+                            selectedChats.push(chatId);
+                        }
+                    });
+
+                    if (selectedChats.length === 0) {
+                        alert('Выберите хотя бы один чат');
+                        return;
+                    }
+
+                    var form = $('<form>', {
+                        action: '/chat/toFolder',
+                        method: 'POST'
+                    });
+
+                    selectedChats.forEach(function(chatId) {
+                        $('<input>', {
+                            type: 'hidden',
+                            name: 'chatIds',
+                            value: chatId
+                        }).appendTo(form);
+                    });
+
+                    $('body').append(form);
+                    form.submit();
+                });
+                $("#fromFolder").click(function(e) {
+                    e.preventDefault();
+
+                    var selectedChats = [];
+
+                    $('input[name="check[]"]:checked').each(function() {
+                        var chatId = $(this).data('chat-id');
+                        if (chatId) {
+                            selectedChats.push(chatId);
+                        }
+                    });
+
+                    if (selectedChats.length === 0) {
+                        alert('Выберите хотя бы один чат');
+                        return;
+                    }
+
+                    var form = $('<form>', {
+                        action: '/chat/fromFolder',
+                        method: 'POST'
+                    });
+
+                    selectedChats.forEach(function(chatId) {
+                        $('<input>', {
+                            type: 'hidden',
+                            name: 'chatIds',
+                            value: chatId
+                        }).appendTo(form);
+                    });
+
+                    $('body').append(form);
+                    form.submit();
+                });
                 $("#sendMessage").click(function(e) {
                     e.preventDefault();
 
