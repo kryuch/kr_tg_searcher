@@ -1,11 +1,14 @@
 package ru.kryuch.krtg.searcher.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import jakarta.persistence.*;
+
 import java.io.Serializable;
 
 @Entity
@@ -25,4 +28,8 @@ public class ChatEntity implements Serializable {
     private String name;
 
     private Integer status;
+
+    public ChatEntity(Long id) {
+        this.id = id;
+    }
 }

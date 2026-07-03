@@ -925,7 +925,7 @@ table {
     width: 454px;
     border: 1px solid #bdbdbd;
 }
-.technology{
+.folders{
     border: 1px solid #bdbdbd;
 }
 
@@ -1035,4 +1035,8 @@ tr.filter td.col .ms-options-wrap {
 
 .chattitle {
     font-size: small;
+}
+
+table.onlychatheaders .chatpremessages {
+    display: none;
 }

@@ -108,41 +108,59 @@ async def get_chats_info(client, chat_ids, max_concurrent=5):
     results = await asyncio.gather(*tasks)
     return results
 
+def _peer_id(peer):
+    """Возвращает ID чата из InputPeer*."""
+    return (
+        getattr(peer, "user_id", None)
+        or getattr(peer, "channel_id", None)
+        or getattr(peer, "chat_id", None)
+    )
+
 async def get_all_folders(client):
     """
-    Получает список всех папок пользователя.
+    Возвращает список пользовательских папок Telegram.
 
     Возвращает:
-    - список словарей с полями: id, title
+    [
+        {
+            "id": 1,
+            "title": "HR",
+            "chat_ids": [123, 456, ...]
+        }
+    ]
     """
-    folders = []
     try:
         result = await client(GetDialogFiltersRequest())
+        filters = result.filters if hasattr(result, "filters") else list(result)
 
-        # Получаем список фильтров/папок
-        filters = result.filters if hasattr(result, 'filters') else list(result)
+        folders = []
 
-        for f in filters:
-            # Пропускаем пустую/дефолтную папку
-            if getattr(f, 'id', None) is None:
+        for dialog_filter in filters:
+            folder_id = getattr(dialog_filter, "id", None)
+            if folder_id is None:
                 continue
 
-            # Получаем название
-            title = getattr(f, 'title', None)
-            if title and hasattr(title, 'text'):
+            title = getattr(dialog_filter, "title", None)
+            if hasattr(title, "text"):
                 title = title.text
 
-            folder_id = getattr(f, 'id', None) or getattr(f, 'folder_id', None)
+            chat_ids = [
+                peer_id
+                for peer in getattr(dialog_filter, "include_peers", [])
+                if (peer_id := _peer_id(peer)) is not None
+            ]
 
-            if folder_id is not None and title:
-                folders.append({
-                    'id': folder_id,
-                    'title': title
-                })
-    except Exception as e:
-        print(f"❌ Ошибка получения папок: {e}")
+            folders.append({
+                "id": folder_id,
+                "title": title,
+                "chatIds": chat_ids
+            })
 
-    return folders
+        return folders
+
+    except Exception:
+        logger.exception("Ошибка получения списка папок")
+        return []
 
 async def get_chat_folders(client, chat_id):
     """

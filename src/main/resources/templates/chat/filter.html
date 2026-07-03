@@ -1,6 +1,6 @@
 <table class="filtercontainericontent" id="filtercontainericontent">
     <tr class="filter">
-        <th colSpan="5">
+        <th colSpan="7">
             <button class="save" id="filter" type="submit">Фильтровать</button>
             <script>
                 $(document).ready(function() {
@@ -29,6 +29,16 @@
                                 console.log("Ответ от сервера:", response);
                                 $(".icontent").remove();
                                 $(".econtent").html(response);
+
+                                var titleOnlyFlag = jQuery("table.list").hasClass("onlychatheaders");
+                                var messagesCount = Number($("#messagesCount").val());
+
+                                if (messagesCount > 0 && titleOnlyFlag) {
+                                    jQuery("table.list").removeClass("onlychatheaders")
+                                }
+                                if (messagesCount == 0 && !titleOnlyFlag) {
+                                    jQuery("table.list").addClass("onlychatheaders")
+                                }
                             },
                             error: function(xhr, status, error) {
                                 console.error("Ошибка:", error);
@@ -75,6 +85,8 @@
                 </select>
             </div>
         </td>
+        <td></td>
+        <td></td>
     </tr>
     <tr class="message">
         <td colspan="2">
@@ -192,5 +204,7 @@
             <label>Добавить сообщения</label>
             <input type="text" id="messagesCount" th:field="*{filter.messagesCount}" name="messagesCount" class="1col active form-control"/>
         </td>
+        <td></td>
+        <td></td>
     </tr>
 </table>
