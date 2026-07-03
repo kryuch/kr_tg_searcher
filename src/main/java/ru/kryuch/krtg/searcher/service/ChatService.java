@@ -16,6 +16,8 @@ import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
+import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
+import ru.kryuch.krtg.searcher.repository.FolderRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 
 import java.util.Collections;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 public class ChatService {
 
     private final ChatRepository chatRepository;
-
+    private final FolderChatService folderChatService;
     private final TelegramMessagingGateway telegramMessagingGateway;
     private final ChatMapper chatMapper;
 
@@ -61,9 +63,12 @@ public class ChatService {
                         if (chatEntity.isPresent()) {
                             item.setStatus(ChatStatus.getChatStatus(chatEntity.get().getStatus()));
                         }
+                        item.setFolders(folderChatService.getFoldersByChatId(item.getId()));
+
                         return item;
                     }).toList();
             log.info("Найдено чатов: {}", result != null ? result.size() : 0);
+
             return result;
         } catch (Exception e) {
             log.error("Ошибка при поиске чатов: {}", e.getMessage(), e);
