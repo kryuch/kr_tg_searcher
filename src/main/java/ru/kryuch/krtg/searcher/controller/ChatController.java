@@ -18,6 +18,7 @@ import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
+import ru.kryuch.krtg.searcher.service.FolderChatService;
 import ru.kryuch.krtg.searcher.service.SettingService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
 import ru.kryuch.krtg.searcher.service.VacancyService;
@@ -36,8 +37,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/chat")
 public class ChatController {
     private final ChatExportService chatExportService;
-
     private final ChatService chatService;
+    private final FolderChatService folderChatService;
     private final SettingService settingService;
     private final TelegramMessagingService telegramMessagingService;
 
@@ -62,6 +63,7 @@ public class ChatController {
     @GetMapping("/search")
     public String search(SearchParams searchParams, Model model) {
         model.addAttribute("items", chatService.search(searchParams));
+        model.addAttribute("targetFolder", settingService.getValueByCode("folder"));
         return "chat/list";
     }
 
@@ -121,6 +123,38 @@ public class ChatController {
         return request.getBack() != null
                 ? "redirect:/chat/" + request.getBack()
                 : "redirect:/chat/";
+    }
+
+    @PostMapping("/toFolder")
+    public String toFolder(
+            SendMessageRequest request,
+            RedirectAttributes redirectAttributes) {
+
+        folderChatService.addLinksToTarget(request.getChatIds(), true);
+        String successMessage = "Чаты добавлены в папку";
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                successMessage
+        );
+
+        return "redirect:/chat/";
+    }
+
+    @PostMapping("/fromFolder")
+    public String fromFolder(
+            SendMessageRequest request,
+            RedirectAttributes redirectAttributes) {
+
+        folderChatService.addLinksToTarget(request.getChatIds(), false);
+        String successMessage = "Чаты добавлены в папку";
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                successMessage
+        );
+
+        return "redirect:/chat/";
     }
 
     @PostMapping("/export")

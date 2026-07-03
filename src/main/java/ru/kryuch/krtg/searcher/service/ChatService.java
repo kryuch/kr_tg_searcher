@@ -36,8 +36,11 @@ public class ChatService {
     private final FolderChatService folderChatService;
     private final TelegramMessagingGateway telegramMessagingGateway;
     private final ChatMapper chatMapper;
-
     private final VacancyService vacancyService;
+    private final SettingService settingService;
+
+
+    private final String TARGET_FOLDER_TITLE = "folder";
 
     public List<ChatInfo> all() {
         try {
@@ -57,6 +60,7 @@ public class ChatService {
                 searchParams.setExcludeChatIds(chatRepository.findIdsByStatusGreaterThan(0));
             }
 
+            String targetFolderTitle = settingService.getValueByCode(TARGET_FOLDER_TITLE);
             List<ChatInfo> result = telegramMessagingGateway.searchChats(searchParams).stream()
                     .map(item -> {
                         Optional<ChatEntity> chatEntity = chatRepository.findById(item.getId());
@@ -64,7 +68,11 @@ public class ChatService {
                             item.setStatus(ChatStatus.getChatStatus(chatEntity.get().getStatus()));
                         }
                         item.setFolders(folderChatService.getFoldersByChatId(item.getId()));
-
+                        item.setHasTargetFolder(
+                            item.getFolders().stream()
+                                    .filter(folder -> folder.getTitle().equals(targetFolderTitle))
+                                    .findFirst().isPresent()
+                                );
                         return item;
                     }).toList();
             log.info("Найдено чатов: {}", result != null ? result.size() : 0);

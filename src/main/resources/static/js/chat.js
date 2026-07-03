@@ -13,3 +13,4 @@ function showMessage(element, flag) {
         longElement.hide();
     }
 }
+
