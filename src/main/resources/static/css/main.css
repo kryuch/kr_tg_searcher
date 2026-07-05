@@ -1061,3 +1061,11 @@ button.massaction {
     float: left;
     margin-left: 8px;
 }
+
+button.save#filter {
+    margin-left: 8px;
+}
+
+.filterchatblock {
+    margin-left: 8px;
+}

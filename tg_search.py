@@ -1,7 +1,6 @@
 import asyncio
 from datetime import datetime
 from telethon.errors import ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
-from tg_utils import get_chat_folders
 
 async def search_chats(client, params):
     """
@@ -9,6 +8,7 @@ async def search_chats(client, params):
 
     params: {
         'term': str,                 # ключевое слово
+        'lastMessage': str,          # текст последнего сообщения (если пусто - не фильтровать)
         'maxFoundCount': int,        # максимальное количество чатов
         'minDiffDaysCount': int,     # минимальное количество дней без сообщений
         'botType': str,              # PERSONAL, NOT_PERSONAL, ALL
@@ -18,6 +18,7 @@ async def search_chats(client, params):
     }
     """
     term = params.get('term', 'Java')
+    last_message = params.get('lastMessage', '').strip()
     max_found_count = params.get('maxFoundCount', 10)
     min_diff_days_count = params.get('minDiffDaysCount', 7)
     bot_type = params.get('botType', 'PERSONAL')
@@ -52,18 +53,48 @@ async def search_chats(client, params):
         elif group_type == 'NOT_PERSONAL' and not is_group:
             continue
 
-        # Фильтр по давности
-        if min_diff_days_count and min_diff_days_count > 0 and d.message and d.message.date:
-            last_date = d.message.date.replace(tzinfo=None)
-            now = datetime.now()
-            days_ago = (now - last_date).days
-            if days_ago < min_diff_days_count:
+        # Фильтр по давности (максимально защищённый)
+        if min_diff_days_count and min_diff_days_count > 0:
+            try:
+                # Проверяем, есть ли сообщение и дата
+                if d.message is None or d.message.date is None:
+                    # Нет сообщений — пропускаем чат
+                    continue
+
+                last_date = d.message.date.replace(tzinfo=None)
+                now = datetime.now()
+                days_ago = (now - last_date).days
+
+                # Убеждаемся, что days_ago не None и сравниваем
+                if days_ago is not None and days_ago < min_diff_days_count:
+                    continue
+            except Exception as e:
+                print(f"Ошибка фильтра давности для {d.name}: {e}")
                 continue
 
         # Поиск по ключевому слову
         try:
             async for m in client.iter_messages(d.id, search=term, limit=1):
                 if m.text and term.lower() in m.text.lower():
+
+                    # Проверяем последнее сообщение (если задан lastMessage)
+                    if last_message:
+                        found_in_chat = False
+                        try:
+                            last_msg = None
+                            async for msg in client.iter_messages(d.id, limit=1):
+                                last_msg = msg
+                                break
+
+                            if last_msg and last_msg.text and last_message.lower() in last_msg.text.lower():
+                                found_in_chat = True
+                        except Exception as e:
+                            print(f"Ошибка при проверке lastMessage для {d.name}: {e}")
+                            continue
+
+                        if not found_in_chat:
+                            continue
+
                     # Получаем username или телефон
                     username = getattr(d.entity, 'username', None)
                     if not username:
@@ -71,14 +102,10 @@ async def search_chats(client, params):
                         if phone:
                             username = phone
 
-                    chat_folders = await get_chat_folders(client, d.id)
-                    print(f"🔵Папки {username}: {chat_folders}")
-
                     chat_info = {
                         'id': d.id,
                         'name': d.name,
-                        'username': username,
-                        'folders': chat_folders,
+                        'username': username
                     }
 
                     # Добавляем последние сообщения, если messages_count > 0
