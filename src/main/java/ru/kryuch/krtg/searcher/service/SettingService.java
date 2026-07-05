@@ -53,4 +53,11 @@ public class SettingService {
         return (setting.isPresent()) ? setting.get().getValue() : null;
     }
 
+    public void setValueByCode(String code, String value) {
+        Optional <SettingEntity> setting = settingRepository.findByCode(code).stream().findFirst();
+        if (setting.isPresent()) {
+            setting.get().setValue(value);
+        }
+    }
+
 }

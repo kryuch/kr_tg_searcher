@@ -52,7 +52,7 @@ public class ChatService {
         }
     }
 
-    public List<ChatInfo> search(SearchParams searchParams) {
+    public List<ChatInfo> search(SearchParams searchParams, boolean withFolderFlag) {
         try {
             log.info("Поиск чатов");
 
@@ -67,12 +67,14 @@ public class ChatService {
                         if (chatEntity.isPresent()) {
                             item.setStatus(ChatStatus.getChatStatus(chatEntity.get().getStatus()));
                         }
-                        item.setFolders(folderChatService.getFoldersByChatId(item.getId()));
-                        item.setHasTargetFolder(
-                            item.getFolders().stream()
-                                    .filter(folder -> folder.getTitle().equals(targetFolderTitle))
-                                    .findFirst().isPresent()
-                                );
+                        if (withFolderFlag) {
+                            item.setFolders(folderChatService.getFoldersByChatId(item.getId()));
+                            item.setHasTargetFolder(
+                                    item.getFolders().stream()
+                                            .filter(folder -> folder.getTitle().equals(targetFolderTitle))
+                                            .findFirst().isPresent()
+                            );
+                        }
                         return item;
                     }).toList();
             log.info("Найдено чатов: {}", result != null ? result.size() : 0);

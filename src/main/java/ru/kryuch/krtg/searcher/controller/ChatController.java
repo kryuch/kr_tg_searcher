@@ -62,7 +62,7 @@ public class ChatController {
 
     @GetMapping("/search")
     public String search(SearchParams searchParams, Model model) {
-        model.addAttribute("items", chatService.search(searchParams));
+        model.addAttribute("items", chatService.search(searchParams, true));
         model.addAttribute("targetFolder", settingService.getValueByCode("folder"));
         return "chat/list";
     }
