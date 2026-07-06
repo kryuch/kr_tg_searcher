@@ -18,8 +18,6 @@ public class ChatSynchronizationService {
 
     public boolean synchr() {
         try {
-            folderService.synchronize(true);
-
             telegramMessagingGateway.findAllChats()
                     .forEach(
                             item -> {
@@ -30,6 +28,8 @@ public class ChatSynchronizationService {
                                 }
                             }
                     );
+
+            folderService.synchronize(true);
             return true;
         } catch (Exception e) {
             log.error("Ошибка при получении чатов: {}", e.getMessage());

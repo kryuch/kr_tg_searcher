@@ -43,7 +43,7 @@ async def send_messages(client, chat_ids, message_text, delay, only_new_chats=Fa
                                 'status': 'skipped',
                                 'error': 'Чат уже существует'
                             })
-                            print(f"⏭️ [{i+1}/{len(chat_ids)}] Пропущен {chat_id} (чат уже существует)")
+                            print(f"⏭️ [{i+1}/{len(chat_ids)}] Пропущен {chat_id} ({entity.id}) (чат уже существует)")
                             break
                 except Exception as e:
                     print(f"⚠️ Ошибка проверки диалога для {chat_id}: {e}")
