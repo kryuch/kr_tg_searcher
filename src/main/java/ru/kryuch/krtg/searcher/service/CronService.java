@@ -37,6 +37,10 @@ public class CronService {
     @Scheduled(fixedDelay = 120000)
     public void schedule() {
         try {
+            if (settingService.getValueByCode("cron_enable").equals("0")) {
+                return;
+            }
+
             String cronTab = settingService.getValueByCode(CRONTIME_CODE);
             String cronLastRun = settingService.getValueByCode(CRON_LASTRUN_CODE);
 

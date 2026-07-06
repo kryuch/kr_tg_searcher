@@ -12,6 +12,7 @@ MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (10, 'cron_
 MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (11, 'cron_lastmessage', '*');
 MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (12, 'cron_newmessage', '*');
 MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (13, 'cron_lastrun', '');
+MERGE INTO krrg_settings (id, code, setting_value) KEY (code) VALUES (14, 'cron_enable', '0');
 
 
 
