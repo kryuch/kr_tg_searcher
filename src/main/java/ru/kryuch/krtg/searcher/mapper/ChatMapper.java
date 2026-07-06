@@ -26,6 +26,7 @@ public abstract class ChatMapper {
     public abstract List<ChatEntity> toEntityList(Collection<ChatInfo> info);
 
     @Mapping(target = "name", source = "username")
+    @Mapping(target = "id", source = "numericId")
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "sendStatus", expression = "java(getSendStatus(result))")
     @Mapping(target = "comment", source = "error")

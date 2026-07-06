@@ -15,30 +15,36 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Строка времени</td>
-                            <td id="cron_time"></td>
-                        </tr>
-                        <tr>
-                            <td>Шаблон поиска</td>
-                            <td id="term"></td>
-                        </tr>
-                        <tr>
-                            <td>После игнора</td>
-                            <td id="max_day"></td>
-                        </tr>
-                        <tr>
-                            <td>Последнее сообщение</td>
-                            <td id="cron_lastmessage"></td>
-                        </tr>
-                        <tr>
-                            <td>Новое сообщение</td>
-                            <td id="cron_newmessage"></td>
-                        </tr>
-                        <tr>
-                            <td>Последний запуск</td>
-                            <td id="cron_lastrun"></td>
-                        </tr>
+                    <tr>
+                        <td>Использование</td>
+                        <td id="cron_enable">
+                            <input type="checkbox" id="cron_enable_value"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Строка времени</td>
+                        <td id="cron_time"></td>
+                    </tr>
+                    <tr>
+                        <td>Шаблон поиска</td>
+                        <td id="term"></td>
+                    </tr>
+                    <tr>
+                        <td>После игнора</td>
+                        <td id="max_day"></td>
+                    </tr>
+                    <tr>
+                        <td>Последнее сообщение</td>
+                        <td id="cron_lastmessage"></td>
+                    </tr>
+                    <tr>
+                        <td>Новое сообщение</td>
+                        <td id="cron_newmessage"></td>
+                    </tr>
+                    <tr>
+                        <td>Последний запуск</td>
+                        <td id="cron_lastrun"></td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
@@ -62,7 +68,8 @@
                                 <input th:field="*{settings[__${iter.index}__].code}" readonly="readonly"/>
                             </td>
                             <td id="value">
-                                <input th:field="*{settings[__${iter.index}__].value}" th:data="*{settings[__${iter.index}__].code}"/>
+                                <input th:field="*{settings[__${iter.index}__].value}"
+                                       th:data="*{settings[__${iter.index}__].code}"/>
                             </td>
                         </tr>
                     </th:block>
@@ -72,23 +79,31 @@
         </div>
         <button class="save" type="submit">Сохранить</button>
         <script>
-            jQuery( function() {
-                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage"], function(index, field) {
+            jQuery(function () {
+                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage"], function (index, field) {
                     console.log(field);
-                    var td = jQuery("input[data="+field+"]").parent();
-                    jQuery("td#"+field).html(td.html());
+                    var td = jQuery("input[data=" + field + "]").parent();
+                    jQuery("td#" + field).html(td.html());
                     td.parent().hide();
                     td.remove();
                 })
 
-                jQuery.each(["term", "max_day", "cron_lastrun"], function(index, field) {
-                    var value = jQuery("input[data="+field+"]").val();
-                    jQuery("td#"+field).html(value);
+                jQuery.each(["term", "max_day", "cron_lastrun"], function (index, field) {
+                    var value = jQuery("input[data=" + field + "]").val();
+                    jQuery("td#" + field).html(value);
                 })
 
                 jQuery("input[data=cron_lastrun]").parents("tr").hide();
-                jQuery( "#tabs" ).tabs();
-            } );
+                jQuery("input[data=cron_enable]").parents("tr").hide();
+
+                jQuery("#tabs").tabs();
+
+                jQuery("#cron_enable_value").on("click", function() {
+                    var checkFlag = jQuery("#cron_enable_value").prop("checked");
+                    console.log(checkFlag);
+                    jQuery("input[data=cron_enable]").val((checkFlag) ? "1" : "0");
+                })
+            });
         </script>
     </form>
 </div>

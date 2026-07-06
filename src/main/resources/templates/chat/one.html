@@ -1,10 +1,11 @@
 <div class="onepage">
+    <script th:src="@{/js/onechat.js}"></script>
     <table>
         <tr>
             <td class="sendmessage">
                 <input type="text" id="message" name="message" th:value="${message}">
                 <input type="hidden" id="back" name="back" th:value="${id}">
-                <input type="submit" id="sendMessageBtn"/>
+                <button type="submit" class="save" id="sendMessageBtn">Отправить</button>
             </td>
             <td>
                 <span>Новые ТГ</span>
@@ -17,69 +18,23 @@
             </td>
         </tr>
         <tr>
-            <td>
-                <div class="econtent" th:insert="chat/messages.html :: div"></div>
-            </td>
-            <td class="vacancycontainer" id="vacancyContainer" th:insert="chat/vacancies.html :: div">
-            </td>
-        </tr>
-        <tr>
-            <td class="settingbuttons" rowspan="2">
-                <input type="text" id="term" name="term" class="1col active form-control"/>
-                <input type="text" id="text" name="text" class="1col active form-control"/>
-                <a class="btn-save" th:attr="data-chat-id=${id}" href="#">Разобрать</a>
+            <td colspan="2">
+                <div id="tabs">
+                    <ul>
+                        <li><a href="#tab-messages">Сообщения</a></li>
+                        <li><a href="#tab-vacancies">Вакансии</a></li>
+                    </ul>
+                    <div id="tab-messages">
+                        <div class="econtent" th:insert="chat/messages.html :: div"></div>
+                    </div>
+                    <div class="vacancycontainer" id="tab-vacancies" th:insert="chat/vacancies.html :: div">
+                    </div>
+                </div>
             </td>
         </tr>
     </table>
     <script>
-        document.getElementById('sendMessageBtn').addEventListener('click', function() {
-            var message = document.getElementById('message').value.trim();
-            var back = document.getElementById('back').value;
 
-            if (!message) {
-                alert('Введите текст сообщения');
-                return;
-            }
-
-            if (!back) {
-                alert('ID чата не найден');
-                return;
-            }
-
-            var btn = this;
-            var originalText = btn.innerText;
-            btn.innerText = 'Отправка...';
-            btn.disabled = true;
-
-            fetch('/chat/send', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    back: parseInt(back),
-                    chatIds: [],
-                    message: message
-                })
-            })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        alert('Сообщение отправлено');
-                        location.reload();
-                    } else {
-                        alert('Ошибка: ' + (result.error || 'Не удалось отправить сообщение'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    alert('Ошибка при отправке сообщения');
-                })
-                .finally(function() {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                });
-        });
     </script>
     <script>
         document.addEventListener('click', function (e) {
@@ -132,6 +87,11 @@
                     console.error('Ошибка:', error);
                     container.innerHTML = '<div style="padding: 10px; color: red;">Ошибка загрузки</div>';
                 });
+        });
+    </script>
+    <script>
+        jQuery(function () {
+            jQuery("#tabs").tabs();
         });
     </script>
 </div>
