@@ -9,7 +9,7 @@ import java.util.Set;
 @Builder
 public class SendBulkMessageRequestByContactId {
 
-    private Set<Long> contactIds;
+    private ChatIdsRequest contacts;
     private String messageText;
     private Integer delaySeconds;
 

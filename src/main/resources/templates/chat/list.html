@@ -7,6 +7,7 @@
             <th id="id" class="table-id">Id</th>
             <th id="name" class="table-name">Имя</th>
             <th id="avatar" class="table-avatar">Аватар</th>
+            <th id="tgAccount" class="table-folders">Аккаунт</th>
             <th id="folders" class="table-folders">Папки</th>
             <th class="table-setting"></th>
         </tr>
@@ -51,6 +52,9 @@
                             📷
                         </div>
                     </div>
+                </td>
+                <td>
+                    <span class="tgAccount" th:text="${item.tgAccount}">tgAccount</span>
                 </td>
                 <td th:class="${'foldertitle_' + (item.hasTargetFolder)}">
                     <span class="folderspan" th:text="${item.folderTitles}">Folders</span>

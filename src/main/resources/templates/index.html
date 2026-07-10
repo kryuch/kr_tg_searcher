@@ -8,11 +8,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link th:href="@{/css/bootstrap.css}" rel="stylesheet"/>
     <link th:href="@{/css/colorbox.css}" rel="stylesheet"/>
+    <link th:href="@{/css/jquery.multiselect.css}" rel="stylesheet"/>
     <link th:href="@{/css/main.css}" rel="stylesheet"/>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.2/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
     <script th:src="@{/js/jquery.min.js}"></script>
     <script th:src="@{/js/jquery-ui.js}"></script>
+    <script th:src="@{/js/jquery.multiselect.js}"></script>
     <script th:src="@{/js/chats.js}"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css"/>
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
@@ -67,6 +69,9 @@
                 </li>
                 <li>
                     <a id="js__synchr" class="menuitem" th:href="@{/synchr/}">Синхронизация</a>
+                </li>
+                <li>
+                    <a id="js__tg" class="menuitem" th:href="@{/tg/list}">ТГ</a>
                 </li>
                 <li>
                     <a id="js__ignore" class="menuitem" th:href="@{/ignore/list}">Игнорирование</a>

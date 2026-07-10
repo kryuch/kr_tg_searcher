@@ -31,14 +31,14 @@ public class FolderService {
     private final String SETTING_VALUE = "folder";
 
     @Transactional
-    public void synchronize(boolean forceFlag) {
+    public void synchronize(Integer tgAccountId, boolean forceFlag) {
         String targetFolderTitle = settingService.getValueByCode(SETTING_VALUE);
 
         if (forceFlag) {
-            folderRepository.deleteAll();
+            folderRepository.deleteByTgId(tgAccountId);
         }
 
-        List<FolderInfo> folders = telegramPythonClient.findAllFolders();
+        List<FolderInfo> folders = telegramPythonClient.findAllFolders(tgAccountId);
 
         for (FolderInfo folderInfo : folders) {
             // 1. Сохраняем или обновляем папку
@@ -46,6 +46,7 @@ public class FolderService {
 
             if (folderEntity == null || !folderInfo.getTitle().equals(folderEntity.getTitle())) {
                 folderEntity = folderMapper.toEntity(folderInfo);
+                folderEntity.setTgId(tgAccountId);
                 folderEntity.setTarget(folderInfo.getTitle().equals(targetFolderTitle));
                 folderEntity = folderRepository.save(folderEntity);
             }

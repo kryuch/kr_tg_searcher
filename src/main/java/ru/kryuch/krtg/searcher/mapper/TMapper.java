@@ -12,7 +12,9 @@ public interface TMapper<TEntity, TDto> {
 
     List<TDto> fromEntityList(Collection<TEntity> entity);
 
-    TDto fromEntity(TEntity entity);
+    List<TEntity> toEntityList(Collection<TDto> entity);
 
+    TDto fromEntity(TEntity entity);
+ 
     TEntity toEntity(TDto info);
 }

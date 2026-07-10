@@ -1,0 +1,36 @@
+<div class="icontent">
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="telegramId" class="table-alias"> Id</th>
+            <th id="username" class="table-alias"> Название</th>
+            <th id="phone" class="table-phone"> Телефон</th>
+            <th id="appId" class="table-phone"> Приложение</th>
+            <th id="hash" class="table-alias"> Хеш</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${items.empty}">
+            <td colspan="5"> Тут пусто</td>
+        </tr>
+
+        <th:block th:each="tgItem, iStat : ${items}">
+            <tr>
+                <td><span th:text="${tgItem.id}"> Идентификатор </span></td>
+                <td><span th:text="${tgItem.description}"> Описание </span></td>
+                <td><span th:text="${tgItem.phone}"> Телефон </span></td>
+                <td><span th:text="${tgItem.appId}"> Приложение </span></td>
+                <td><span th:text="${tgItem.appHash}"> Хеш </span></td>
+                <td class="settingbuttons">
+                    <a class="btn-save" th:href="@{/tg/{id}/edit(id=${tgItem.id})}">Изменить</a>
+                    <a class="btn-save" th:href="@{/tg/{id}/remove(id=${tgItem.id})}">Удалить</a>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+    <a class="save" type="submit" th:href="@{/tg/add}">Добавить</a>
+</div>

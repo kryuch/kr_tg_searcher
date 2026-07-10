@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
+import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,7 @@ public class CronService {
     private final SettingService settingService;
     private final ChatService chatService;
     private final TelegramMessagingService telegramMessagingService;
+    private final TgAccountRepository tgAccountRepository;
 
     private static final String CRONTIME_CODE = "cron_time";
     private static final String CRON_LASTRUN_CODE = "cron_lastrun";
@@ -115,6 +117,7 @@ public class CronService {
                         .lastMessage(settingService.getValueByCode("cron_lastmessage"))
                         .maxFoundCount(16)
                         .messagesCount(0)
+                        .tgAccountIds(tgAccountRepository.getAllIds())
                         .build();
 
         List<ChatInfo> chats = chatService.search(searchParams, false);

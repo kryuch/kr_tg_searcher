@@ -1,0 +1,60 @@
+<div id="directionForm">
+    <form action="#"
+          th:action="@{/tg/add}" th:object="${tg}"
+          class="edit-form form-horizontal"
+          method="post">
+        <table class="list">
+            <tr>
+                <td>
+                    <label for="id">ID приложения</label>
+                </td>
+                <td>
+                    <input type="text" th:field="*{id}" id="id" placeholder="ID приложения">
+                    <span th:if="${#fields.hasErrors('id')}" th:errors="*{id}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="appId">ID приложения</label>
+                </td>
+                <td>
+                    <input type="text" th:field="*{appId}" id="appId" placeholder="ID приложения">
+                    <span th:if="${#fields.hasErrors('appId')}" th:errors="*{appId}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="appHash">Хэш приложения</label>
+                </td>
+                <td>
+                    <input type="text" th:field="*{appHash}" id="appHash" placeholder="Хэш приложения">
+                    <span th:if="${#fields.hasErrors('appHash')}" th:errors="*{appHash}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="phone">Телефон</label>
+                </td>
+                <td>
+                    <input type="text" th:field="*{phone}" id="phone" placeholder="Телефон">
+                    <span th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="description">Описание</label>
+                </td>
+                <td>
+                    <input type="text" th:field="*{description}" id="description" placeholder="ID приложения">
+                    <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+                </td>
+           </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button class="save" type="submit">Сохранить</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>

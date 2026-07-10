@@ -3,6 +3,12 @@
     <table>
         <tr>
             <td class="sendmessage">
+                <label>ТГ аккаунты:</label>
+                <select id="tgAccounts" name="tgAccountIds" multiple="multiple" class="form-control">
+                    <option th:each="tgAccount : ${tgAccounts}"
+                            th:value="${tgAccount.id}"
+                            th:text="${tgAccount.description}"></option>
+                </select>
                 <input type="text" id="message" name="message" th:value="${message}">
                 <input type="hidden" id="back" name="back" th:value="${id}">
                 <button type="submit" class="save" id="sendMessageBtn">Отправить</button>

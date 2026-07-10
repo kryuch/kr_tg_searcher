@@ -6,9 +6,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.ChatSynchronizationService;
+import ru.kryuch.krtg.searcher.service.TgAccountService;
+
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -16,12 +20,13 @@ import ru.kryuch.krtg.searcher.service.ChatSynchronizationService;
 public class SynchrController {
 
     private final ChatService chatServiceImpl;
+    private final TgAccountService tgAccountService;
     private final ChatSynchronizationService chatSynchronizationService;
 
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("page", "synchr");
-
+        model.addAttribute("tgAccounts", tgAccountService.getAll());
         if (model.containsAttribute("successMessage")) {
             model.addAttribute("successMessage", model.getAttribute("successMessage"));
         }
@@ -29,8 +34,8 @@ public class SynchrController {
     }
 
     @PostMapping(value = "/action")
-    public String action(RedirectAttributes redirectAttributes) {
-        Boolean synchr = chatSynchronizationService.synchr();
+    public String action(@RequestParam("tgAccountIds") List<Integer> tgAccountIds, RedirectAttributes redirectAttributes) {
+        chatSynchronizationService.synchr(tgAccountIds);
         redirectAttributes.addFlashAttribute("successMessage", "Синхронизация выполнена");
         return "redirect:/synchr/";
     }
