@@ -5,36 +5,29 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
-
 @Entity
-@Table(name = "krrg_chats")
+@Table(name = "krrg_tg")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ChatEntity implements Serializable {
+public class TgAccountEntity {
 
     @Id
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
-    private String username;
+    private String description;
 
-    private String name;
+    @Column(name = "app_id")
+    private String appId;
 
-    private Integer status;
+    @Column(name = "app_hash")
+    private String appHash;
 
-    @Column(name = "tg_id")
-    private Integer tgId;
-
-    public ChatEntity(Long id) {
-        this.id = id;
-    }
+    private String phone;
 }

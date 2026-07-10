@@ -13,4 +13,5 @@ public class SendBulkMessageRequestByConcatUsername {
     private String messageText;
     private Integer delaySeconds;
     private Boolean onlyNewChats;
+    private Integer tgAccountId;
 }

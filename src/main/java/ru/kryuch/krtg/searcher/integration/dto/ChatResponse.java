@@ -1,14 +1,16 @@
-package ru.kryuch.krtg.searcher.dto;
+package ru.kryuch.krtg.searcher.integration.dto;
 
 import lombok.Data;
+import ru.kryuch.krtg.searcher.dto.FolderInfo;
+import ru.kryuch.krtg.searcher.dto.Message;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
-public class ChatInfo {
+public class ChatResponse {
+
     String name;
     String username;
     String avatar;
@@ -24,11 +26,5 @@ public class ChatInfo {
 
     List<Message> messages;
 
-    String tgAccount;
-
-    public String getFolderTitles() {
-        return folders.stream()
-                .map(item -> item.getTitle())
-                .collect(Collectors.joining("/"));
-    }
+    Integer tgAccountId;
 }

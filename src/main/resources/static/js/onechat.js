@@ -1,6 +1,23 @@
 $(document).ready(function () {
+
+    jQuery('select[multiple]#tgAccounts').multiselect({
+        columns: 1,
+        search: true,
+        selectAll: true,
+        texts: {
+            placeholder: 'Тг-аккаунты',
+            search: 'Тг-аккаунты'
+        }
+    });
+
     $('#sendMessageBtn').click(function (e) {
         e.preventDefault();
+
+        var tgAccountIds = $('#tgAccounts').val();
+        if (tgAccountIds.length != 1) {
+            alert("нужно выбрать 1 тг-аккаунт");
+            return;
+        }
 
         var back = $('#back').val();
         var message = $('#message').val().trim();
@@ -24,6 +41,12 @@ $(document).ready(function () {
             type: 'hidden',
             name: 'back',
             value: back
+        }).appendTo(form);
+
+        $('<input>', {
+            type: 'hidden',
+            name: 'tgAccountId',
+            value: tgAccountIds[0]
         }).appendTo(form);
 
         $('<input>', {

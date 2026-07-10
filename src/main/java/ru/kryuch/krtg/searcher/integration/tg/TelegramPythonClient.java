@@ -9,8 +9,12 @@ import ru.kryuch.krtg.searcher.config.TelegramSettingsResolver;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
+import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.exception.TelegramClientException;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
+import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.integration.dto.InitRequest;
+import ru.kryuch.krtg.searcher.integration.dto.SearchRequest;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByConcatUsername;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByContactId;
 import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
@@ -30,11 +34,26 @@ public class TelegramPythonClient {
     private final RestTemplate restTemplate;
     private final TelegramSettingsResolver settings;
 
-    public List<FolderInfo> findAllFolders() {
+    public void init(InitRequest initRequest) {
+        String response = execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/init"),
+                        initRequest,
+                        String.class
+                ),
+                "Failed to init"
+        );
+    }
+
+    public List<FolderInfo> findAllFolders(Integer tgAccountId) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUri(buildUri("/api/folders"))
+                .queryParam("accountId", tgAccountId);
 
         FolderInfo[] response = execute(
                 () -> restTemplate.getForObject(
-                        buildUri("/api/folders"),
+                        builder.build().toUri(),
                         FolderInfo[].class
                 ),
                 "Failed to get folders"
@@ -46,11 +65,15 @@ public class TelegramPythonClient {
     }
 
 
-    public List<ChatInfo> findAllChats() {
+    public List<ChatInfo> findAllChats(Integer tgAccountId) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUri(buildUri("/api/chats/all"))
+                .queryParam("accountId", tgAccountId);
 
         ChatInfo[] response = execute(
                 () -> restTemplate.getForObject(
-                        buildUri("/api/chats/all"),
+                        builder.build().toUri(),
                         ChatInfo[].class
                 ),
                 "Failed to get chats"
@@ -76,12 +99,12 @@ public class TelegramPythonClient {
                 : List.of(response);
     }
 
-    public List<ChatInfo> searchChats(SearchParams params) {
-        ChatInfo[] response = execute(
+    public List<ChatResponse> searchChats(SearchRequest request) {
+        ChatResponse[] response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/search"),
-                        params,
-                        ChatInfo[].class
+                        request,
+                        ChatResponse[].class
                 ),
                 "Failed to search chats"
         );
@@ -113,9 +136,11 @@ public class TelegramPythonClient {
         );
     }
 
-    public PythonMessagesResponse getChatPreview(Long chatId, Integer limit) {
+    public PythonMessagesResponse getChatPreview(Long chatId, Integer tgAccountId, Integer limit) {
         UriComponentsBuilder builder = UriComponentsBuilder
-                .fromUri(buildUri("/api/chat-preview/" + chatId));
+                .fromUri(buildUri("/api/chat-preview/"))
+                .queryParam("chatId", chatId)
+                .queryParam("accountId", tgAccountId);
 
         if (limit != null && limit > 0) {
             builder.queryParam("limit", limit);

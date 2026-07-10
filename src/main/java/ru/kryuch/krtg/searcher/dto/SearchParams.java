@@ -24,4 +24,5 @@ public class SearchParams {
     Boolean excludeStatusFlag = true;
     List<Long> excludeChatIds = new ArrayList<>();
     Integer messagesCount = 0;
+    List <Integer> tgAccountIds = new ArrayList<>();
 }

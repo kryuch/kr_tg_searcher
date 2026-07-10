@@ -1,4 +1,5 @@
 <table class="filtercontainericontent" id="filtercontainericontent">
+    <script th:src="@{/js/chatsfilter.js}"></script>
     <tr class="filter" id="filterparams">
         <td class="colid"></td>
         <td class="col">
@@ -12,13 +13,20 @@
             </div>
         </td>
         <td class="col limit">
-            <label>Максимум результатов:</label>
+            <label>Максимум сообщений:</label>
             <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount"
                    class="1col active form-control"/>
+
+            <label>ТГ аккаунты:</label>
+            <select id="tgAccounts" name="tgAccountIds" multiple="multiple" class="form-control">
+                <option th:each="tgAccount : ${tgAccounts}"
+                        th:value="${tgAccount.id}"
+                        th:text="${tgAccount.description}"></option>
+            </select>
         </td>
         <td class="col">
             <div class="filterchatblock">
-                <label>Не писали больше чем (в днях):</label>
+                <label>Не писали больше чем (д):</label>
                 <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}" name="minDiffDaysCount"
                        class="1col active form-control"/>
 
@@ -48,52 +56,6 @@
         </td>
         <td colspan="2">
             <button class="save" id="filter" type="submit">Фильтровать</button>
-            <script>
-                $(document).ready(function () {
-                    var action = "/chat/search";
-
-                    $("#filter").click(function (e) {
-                        e.preventDefault();
-
-                        var formData = {
-                            term: $("#term").val(),
-                            maxFoundCount: $("#maxFoundCount").val(),
-                            minDiffDaysCount: $("#minDiffDaysCount").val(),
-                            excludeStatusFlag: $("#excludeStatusFlag").is(":checked"),
-                            botType: $("#botType").val(),
-                            lastMessage: $("#lastMessage").val(),
-                            groupType: $("#groupType").val(),
-                            messagesCount: $("#messagesCount").val()
-                        };
-
-                        console.log("Отправляемые данные:", formData);
-
-                        $.ajax({
-                            url: action,
-                            type: "GET",
-                            data: formData,
-                            success: function (response) {
-                                console.log("Ответ от сервера:", response);
-                                $(".icontent").remove();
-                                $(".econtent").html(response);
-
-                                var titleOnlyFlag = jQuery("table.list").hasClass("onlychatheaders");
-                                var messagesCount = Number($("#messagesCount").val());
-
-                                if (messagesCount > 0 && titleOnlyFlag) {
-                                    jQuery("table.list").removeClass("onlychatheaders")
-                                }
-                                if (messagesCount == 0 && !titleOnlyFlag) {
-                                    jQuery("table.list").addClass("onlychatheaders")
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error("Ошибка:", error);
-                            }
-                        });
-                    });
-                });
-            </script>
         </td>
     </tr>
     <tr class="message">

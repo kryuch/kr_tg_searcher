@@ -24,4 +24,7 @@ public class FolderEntity {
     private String title;
 
     private Boolean target = false;
+
+    @Column(name = "tg_id")
+    private Integer tgId;
 }

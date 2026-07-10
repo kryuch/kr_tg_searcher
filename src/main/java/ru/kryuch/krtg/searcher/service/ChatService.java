@@ -15,6 +15,7 @@ import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
+import ru.kryuch.krtg.searcher.mapper.SearchMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
 import ru.kryuch.krtg.searcher.repository.FolderRepository;
@@ -40,12 +41,13 @@ public class ChatService {
     private final SettingService settingService;
 
 
+
     private final String TARGET_FOLDER_TITLE = "folder";
 
     public List<ChatInfo> all() {
         try {
             log.info("Запрос всех чатов");
-            return   telegramMessagingGateway.findAllChats();
+            return   telegramMessagingGateway.findAllChats(1);
         } catch (Exception e) {
             log.error("Ошибка при получении чатов: {}", e.getMessage());
             return Collections.emptyList();
@@ -114,7 +116,7 @@ public class ChatService {
             chatEntity.get().setStatus(status);
             chatRepository.save(chatEntity.get());
         } else {
-            chatRepository.save(new ChatEntity(chatId, username, name, status));
+        //    chatRepository.save(new ChatEntity(chatId, username, name, status));
         }
         return true;
     }
@@ -131,9 +133,9 @@ public class ChatService {
                         .toList();
 
         if (!CollectionUtils.isEmpty(emptyIds)) {
-            telegramMessagingGateway.findChatsByIds(new ChatIdsRequest(emptyIds)).stream().forEach(item -> {
-                names.put(item.getId(), item.getName());
-            });
+    //        telegramMessagingGateway.findChatsByIds(new ChatIdsRequest(emptyIds)).stream().forEach(item -> {
+      ///          names.put(item.getId(), item.getName());
+       //     });
         }
 
         return names;

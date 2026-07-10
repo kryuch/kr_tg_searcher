@@ -430,10 +430,12 @@ input.input-file {
 
 .inputs {text-align:center}
 
-button.save, button[type="reset"], a.save {color:#fff;
+button.save, button[type="reset"], a.save {
+    color:#fff;
     font-size: 11pt;
     padding: 0 15px;
     height:28px;
+    margin-top: 8px;
     border-radius: 6px;
     cursor:pointer;}
 
@@ -747,11 +749,6 @@ table.list .filter button#filter {
     margin-top: 16px;
     margin-right: 16px;
     margin-bottom: 16px;
-}
-
-.ms-options-wrap > .ms-options {
-    margin-left: -128px;
-    width: 200% !important;
 }
 
 .chartfilter .ms-options-wrap .ms-options {

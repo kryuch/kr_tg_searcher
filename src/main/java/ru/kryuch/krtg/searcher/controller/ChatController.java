@@ -9,19 +9,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
+import ru.kryuch.krtg.searcher.dto.SendMessageParam;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.FolderChatService;
 import ru.kryuch.krtg.searcher.service.SettingService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
-import ru.kryuch.krtg.searcher.service.VacancyService;
+import ru.kryuch.krtg.searcher.service.TgAccountService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -41,13 +41,8 @@ public class ChatController {
     private final FolderChatService folderChatService;
     private final SettingService settingService;
     private final TelegramMessagingService telegramMessagingService;
+    private final TgAccountService tgAccountService;
 
-    @Data
-    public static class SendMessageRequest {
-        private List<Long> chatIds;
-        private String message;
-        private Long back;
-    }
 
     @GetMapping("/")
     public String list(Model model) {
@@ -56,6 +51,7 @@ public class ChatController {
         }
         model.addAttribute("items", new ArrayList());
         model.addAttribute("filter", new SearchParams());
+        model.addAttribute("tgAccounts", tgAccountService.getAll());
         model.addAttribute("page", "chat/list");
         return "index";
     }
@@ -64,6 +60,7 @@ public class ChatController {
     public String search(SearchParams searchParams, Model model) {
         model.addAttribute("items", chatService.search(searchParams, true));
         model.addAttribute("targetFolder", settingService.getValueByCode("folder"));
+        model.addAttribute("tgAccounts", tgAccountService.getAll());
         return "chat/list";
     }
 
@@ -75,19 +72,19 @@ public class ChatController {
 
     @GetMapping("/{chatId}")
     public String chat(@PathVariable("chatId") Long chatId, Model model) {
-        //MessagesHistory messagesHistory = chatService.messages(chatId, 100);
         VacanciesContainer vacanciesContainer = chatService.createVacanciesContainer(chatId, 100);
         model.addAttribute("messages", vacanciesContainer.getMessagesHistory());
         model.addAttribute("data", vacanciesContainer);
         model.addAttribute("id", chatId);
         model.addAttribute("message", settingService.getValueByCode("first_message"));
+        model.addAttribute("tgAccounts", tgAccountService.getAll());
         model.addAttribute("page", "chat/one");
         return "index";
     }
 
     @PostMapping("/send")
     public String sendMessage(
-            SendMessageRequest request,
+            SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
         List<ChatInfo> chats;
@@ -98,7 +95,7 @@ public class ChatController {
                     chatService.createVacanciesContainer(request.getBack(), 100);
 
             chats = telegramMessagingService.registerAndSend(
-                    request.getMessage(),
+                    request,
                     vacanciesContainer.getNewTg()
             );
 
@@ -127,7 +124,7 @@ public class ChatController {
 
     @PostMapping("/toFolder")
     public String toFolder(
-            SendMessageRequest request,
+            SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
         folderChatService.addLinksToTarget(request.getChatIds(), true);
@@ -143,7 +140,7 @@ public class ChatController {
 
     @PostMapping("/fromFolder")
     public String fromFolder(
-            SendMessageRequest request,
+            SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
         folderChatService.addLinksToTarget(request.getChatIds(), false);

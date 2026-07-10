@@ -96,6 +96,7 @@
                 jQuery("input[data=cron_lastrun]").parents("tr").hide();
                 jQuery("input[data=cron_enable]").parents("tr").hide();
 
+                jQuery("#cron_enable_value").prop("checked", Number(jQuery("input[data=cron_enable]").val()) == 1);
                 jQuery("#tabs").tabs();
 
                 jQuery("#cron_enable_value").on("click", function() {
