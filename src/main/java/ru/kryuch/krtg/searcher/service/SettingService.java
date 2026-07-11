@@ -19,12 +19,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SettingService {
 
+    private final SettingAccessService settingAccessService;
     private final SettingRepository settingRepository;
 
     private final SettingMapper settingMapper;
 
     public List<Setting> getAll() {
-        return settingMapper.fromEntityList(Streamable.of(settingRepository.findAll()).toList());
+        init();
+        return settingAccessService.getAll();
     }
 
     public SettingsWrapper getWrapper() {
@@ -33,31 +35,38 @@ public class SettingService {
 
     public void save(SettingsWrapper wrapper) {
         wrapper.getSettings().stream().forEach(item -> {
-            Optional<SettingEntity> optionalSettingEntity =
-                    settingRepository.findByCode(item.getCode()).stream().findFirst();
-            if (optionalSettingEntity.isPresent()) {
-                optionalSettingEntity.get().setValue(item.getValue());
-                settingRepository.save(optionalSettingEntity.get());
-            }
+            settingAccessService.save(item);
         });
     }
 
     public Setting getByCode(String code) {
-        return settingMapper.fromEntity(
-                settingRepository.findByCode(code).stream().findFirst().orElse(null)
-        );
+        return settingAccessService.getByCode(code);
     }
 
     public String getValueByCode(String code) {
-        Optional <SettingEntity> setting = settingRepository.findByCode(code).stream().findFirst();
-        return (setting.isPresent()) ? setting.get().getValue() : null;
+        Setting setting = getByCode(code);
+        return setting.getValue();
     }
 
     public void setValueByCode(String code, String value) {
-        Optional <SettingEntity> setting = settingRepository.findByCode(code).stream().findFirst();
-        if (setting.isPresent()) {
-            setting.get().setValue(value);
-        }
+        settingAccessService.setValueByCode(code, value);
+    }
+
+    protected void init() {
+        settingAccessService.setValueByCode("first_message", "Добрый день. Скажите, пожалуйста, у вас вакансии по Java-разработке");
+        settingAccessService.setValueByCode("term", "Java");
+        settingAccessService.setValueByCode("folder", "HR");
+        settingAccessService.setValueByCode("max_day", "3");
+        settingAccessService.setValueByCode("ignore", "СВО");
+        settingAccessService.setValueByCode("python", "http://localhost:8081");
+        settingAccessService.setValueByCode("send_delay", "10");
+        settingAccessService.setValueByCode("text_in_vacancy", "Java");
+        settingAccessService.setValueByCode("tg_folder", "HR");
+        settingAccessService.setValueByCode("cron_time", "0 0 7 * * *");
+        settingAccessService.setValueByCode("cron_lastmessage", "*");
+        settingAccessService.setValueByCode("cron_newmessage", "*");
+        settingAccessService.setValueByCode("cron_lastrun", "");
+        settingAccessService.setValueByCode("cron_enable", "0");
     }
 
 }

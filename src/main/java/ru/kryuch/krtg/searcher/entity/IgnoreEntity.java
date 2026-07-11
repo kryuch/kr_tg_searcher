@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IgnoreEntity {
+public class IgnoreEntity extends BasedAccessEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

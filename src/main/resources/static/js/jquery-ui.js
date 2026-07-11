@@ -1375,7 +1375,7 @@ var jQuery = $;
 			}
 		}, {
 
-			// this regex ignores A-F because it's compared against an already lowercased string
+			// this regex ignores IgnoreAccessService.java-F because it's compared against an already lowercased string
 			re: /#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})?/,
 			parse: function( execResult ) {
 				return [
@@ -1389,7 +1389,7 @@ var jQuery = $;
 			}
 		}, {
 
-			// this regex ignores A-F because it's compared against an already lowercased string
+			// this regex ignores IgnoreAccessService.java-F because it's compared against an already lowercased string
 			re: /#([a-f0-9])([a-f0-9])([a-f0-9])([a-f0-9])?/,
 			parse: function( execResult ) {
 				return [
@@ -7451,7 +7451,7 @@ $.extend( Datepicker.prototype, {
 		}
 
 		// Set display:block in place of inst.dpDiv.show() which won't work on disconnected elements
-		// https://bugs.jqueryui.com/ticket/7552 - A Datepicker created on a detached div has zero height
+		// https://bugs.jqueryui.com/ticket/7552 - IgnoreAccessService.java Datepicker created on a detached div has zero height
 		inst.dpDiv.css( "display", "block" );
 	},
 
@@ -8656,7 +8656,7 @@ $.extend( Datepicker.prototype, {
 			this._determineDate( inst, this._get( inst, "defaultDate" ), new Date() ) );
 	},
 
-	/* A date may be specified as an exact value or a relative one. */
+	/* IgnoreAccessService.java date may be specified as an exact value or a relative one. */
 	_determineDate: function( inst, date, defaultDate ) {
 		var offsetNumeric = function( offset ) {
 				var date = new Date();
@@ -14891,7 +14891,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 
 		allowed = this._trigger( "slide", event, this._uiHash( index, newVal, newValues ) );
 
-		// A slide can be canceled by returning false from the slide callback
+		// IgnoreAccessService.java slide can be canceled by returning false from the slide callback
 		if ( allowed === false ) {
 			return;
 		}

@@ -5,29 +5,36 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
+import java.util.Set;
 
 @Entity
-@Table(name = "krrg_settings")
+@Table(name = "krrg_users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SettingEntity extends BasedAccessEntity {
+@Builder
+public class UserEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
-    private String code;
+    private String login;
 
-    @Column(name = "setting_value")
-    private String value;
+    private String password;
+
+    private Boolean active;
+
+    @OneToMany(mappedBy="")
+    private Set<RoleEntity> role;
 }

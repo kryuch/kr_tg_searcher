@@ -2,50 +2,39 @@ package ru.kryuch.krtg.searcher.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
-import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
 import ru.kryuch.krtg.searcher.integration.dto.InitRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
-import ru.kryuch.krtg.searcher.mapper.TgAccountMapper;
-import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
 public class TgAccountService {
 
-    private final TgAccountRepository tgAccountRepository;
-    private final TgAccountMapper tgAccountMapper;
+    private final TgAccountAccessService tgAccountAccessService;
+
     private final TelegramPythonClient telegramPythonClient;
 
     @PostConstruct
     protected void init() {
-        telegramPythonClient.init(
-                new InitRequest(
-                        tgAccountMapper.fromEntityList(
-                                StreamSupport.stream(tgAccountRepository.findAll().spliterator(), false).toList()
-                        )
-                )
-        );
+        //telegramPythonClient.init(new InitRequest(tgAccountAccessService.getAll()));
     }
 
     public List<TgAccountInfo> getAll() {
-        return tgAccountMapper.fromEntityList(Streamable.of(tgAccountRepository.findAll()).toList());
+        return tgAccountAccessService.getAll();
     }
 
     public TgAccountInfo get(Integer id) {
-        return tgAccountMapper.fromEntity(tgAccountRepository.findById(id).orElse(new TgAccountEntity()));
+        return tgAccountAccessService.get(id);
     }
 
     public void add(TgAccountInfo tgAccountInfo) {
-        tgAccountRepository.save(tgAccountMapper.toEntity(tgAccountInfo));
+        tgAccountAccessService.add(tgAccountInfo);
     }
 
     public void remove(Integer id) {
-        tgAccountRepository.deleteById(id);
+        tgAccountAccessService.delete(id);
     }
 }
