@@ -38,6 +38,7 @@ public class CronService {
 
     @Scheduled(fixedDelay = 120000)
     public void schedule() {
+        /*
         try {
             if (settingService.getValueByCode("cron_enable").equals("0")) {
                 return;
@@ -55,7 +56,7 @@ public class CronService {
             }
         } catch (Exception e) {
             log.error("Ошибка при проверке расписания", e);
-        }
+        }*/
     }
 
     private boolean shouldRun(String cronTab, String cronLastRun) {

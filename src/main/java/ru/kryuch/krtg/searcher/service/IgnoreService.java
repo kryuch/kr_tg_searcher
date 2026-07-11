@@ -15,31 +15,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IgnoreService {
 
-    private final IgnoreRepository ignoreRepository;
-    private final IgnoreMapper ignoreMapper;
+    private final IgnoreAccessService ignoreAccessService;
 
     @Transactional
     public IgnoreInfo update(IgnoreInfo ignoreInfo) {
-        IgnoreInfo oldValue = get(ignoreInfo.getId());
-        oldValue.setUsername(ignoreInfo.getUsername());
-        return ignoreMapper.fromEntity(ignoreRepository.save(ignoreMapper.toEntity(oldValue)));
+    //    ignoreAccessService.update(ignoreInfo);
+        return null;
     }
 
-    @Transactional(readOnly = true)
     public List<IgnoreInfo> getAll() {
-        return ignoreMapper.fromEntityList(Streamable.of(ignoreRepository.findAll()).toList());
+        return ignoreAccessService.getAll();
     }
 
-    @Transactional(readOnly = true)
     public IgnoreInfo get(Long id) {
-        return ignoreMapper.fromEntity(ignoreRepository.findById(id).orElse(new IgnoreEntity()));
+        return ignoreAccessService.get(id);
     }
 
     public void add(IgnoreInfo ignoreInfo) {
-        ignoreRepository.save(ignoreMapper.toEntity(ignoreInfo));
+        ignoreAccessService.add(ignoreInfo);
     }
 
     public void remove(Long ignoreId) {
-        ignoreRepository.deleteById(ignoreId);
+        ignoreAccessService.delete(ignoreId);
     }
 }
