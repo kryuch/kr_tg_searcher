@@ -26,6 +26,7 @@ import ru.kryuch.krtg.searcher.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -40,6 +41,7 @@ public class SecurityConfig {
                         .loginPage("/login/")
                         .loginProcessingUrl("/login/")
                         .defaultSuccessUrl("/chat/", true)
+                        .successHandler(authenticationSuccessHandler)
                         .failureUrl("/login?error")
                         .usernameParameter("username")
                         .passwordParameter("password")
@@ -61,7 +63,8 @@ public class SecurityConfig {
                 )
 
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")
+                        .ignoringRequestMatchers("/api/**",
+                        "/chat/status/**")
                 );
 
         return http.build();

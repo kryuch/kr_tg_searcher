@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
+import ru.kryuch.krtg.searcher.integration.dto.FolderChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
@@ -52,8 +53,20 @@ public class FolderChatService {
                 folderChatRepository.delete(folderChatEntity);
             }
 
-            UpdateFolderRequest request = new UpdateFolderRequest(folderEntity.getId(), List.of(chatId), status);
-            telegramPythonClient.updateFolder(request);
+            telegramPythonClient.updateFolder(
+                    UpdateFolderRequest.builder()
+                            .items(
+                                    List.of(
+                                            FolderChatIdsRequestItem.builder()
+                                                    .folderId(folderEntity.getId())
+                                                    .id(chatId)
+                                                    .tgAccountId(folderEntity.getTgId())
+                                                    .build()
+                                    )
+                            )
+                            .addOperationFlag(status)
+                            .build()
+            );
         }
         return true;
     }
