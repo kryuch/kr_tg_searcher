@@ -8,22 +8,44 @@ telegram:
 
 server:
   port: 8080
+
 spring:
+  # Отключаем H2 (больше не нужен)
   h2:
     console:
-      enabled: true
-      path: /h2-console
+      enabled: false  # <-- отключаем H2 консоль
+
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Europe/Moscow
     serialization:
       write-dates-as-timestamps: false
+
+  # ============================================================
+  # НОВАЯ КОНФИГУРАЦИЯ ДЛЯ POSTGRESQL
+  # ============================================================
   datasource:
-    url: jdbc:h2:file:./data/chats_db
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:postgresql://localhost:5432/krrg
+    driver-class-name: org.postgresql.Driver
+    username: krrg
+    password: H.hbr2123
+
   jpa:
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true  # <-- опционально, для отладки SQL
+    properties:
+      hibernate:
+        format_sql: true  # <-- опционально, красивое форматирование SQL
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  # ============================================================
+  # ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ (опционально)
+  # ============================================================
+  sql:
+    init:
+      mode: always  # <-- выполняет schema.sql и data.sql при старте
+      continue-on-error: false

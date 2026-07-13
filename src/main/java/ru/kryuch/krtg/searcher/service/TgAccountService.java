@@ -2,6 +2,7 @@ package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.integration.dto.InitRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
@@ -17,7 +18,10 @@ public class TgAccountService {
     private final TelegramPythonClient telegramPythonClient;
 
     public void init() {
-        telegramPythonClient.init(new InitRequest(getAll()));
+        List <TgAccountInfo> accouts = getAll();
+        if (!CollectionUtils.isEmpty(accouts)) {
+            telegramPythonClient.init(new InitRequest(accouts));
+        }
     }
 
     public List<TgAccountInfo> getAll() {

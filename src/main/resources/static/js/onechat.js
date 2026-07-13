@@ -1,15 +1,5 @@
 $(document).ready(function () {
 
-    jQuery('select[multiple]#tgAccounts').multiselect({
-        columns: 1,
-        search: true,
-        selectAll: true,
-        texts: {
-            placeholder: 'Тг-аккаунты',
-            search: 'Тг-аккаунты'
-        }
-    });
-
     $('#sendMessageBtn').click(function (e) {
         e.preventDefault();
 
