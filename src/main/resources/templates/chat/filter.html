@@ -17,12 +17,7 @@
             <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount"
                    class="1col active form-control"/>
 
-            <label>ТГ аккаунты:</label>
-            <select id="tgAccounts" name="tgAccountIds" multiple="multiple" class="form-control">
-                <option th:each="tgAccount : ${tgAccounts}"
-                        th:value="${tgAccount.id}"
-                        th:text="${tgAccount.description}"></option>
-            </select>
+            <div class="tgmultiselectcontainer" th:insert="tgmultiselect.html :: div"></div>
         </td>
         <td class="col">
             <div class="filterchatblock">

@@ -49,8 +49,8 @@
             search         : 'Search',         // search input placeholder text
             searchNoResult : 'No results',     // search results not found text
             selectedOptions: ' selected',      // selected suffix text
-            selectAll      : 'Select all',     // select all text
-            unselectAll    : 'Unselect all',   // unselect all text
+            selectAll      : 'Выделить все',     // select all text
+            unselectAll    : 'Снять выделение',   // unselect all text
             noneSelected   : 'None Selected'   // None selected text
         },
 

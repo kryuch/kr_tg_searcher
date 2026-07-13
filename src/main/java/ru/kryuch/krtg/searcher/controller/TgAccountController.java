@@ -57,7 +57,7 @@ public class TgAccountController {
 
     @RequestMapping(value = "/add")
     public String add(@Valid @ModelAttribute("tg") TgAccountInfo info, BindingResult result, Model model) {
-        if (result.hasErrors() || Objects.isNull(info.getId()) || info.getId() == 0) {
+        if (result.hasErrors()) {
             model.addAttribute("page", "tg/add");
             model.addAttribute("error", result.getAllErrors().toString());
             return "index";
