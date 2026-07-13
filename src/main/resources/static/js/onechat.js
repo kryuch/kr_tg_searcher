@@ -45,6 +45,12 @@ $(document).ready(function () {
 
         $('<input>', {
             type: 'hidden',
+            name: '_csrf',
+            value: csrfToken
+        }).appendTo(form);
+
+        $('<input>', {
+            type: 'hidden',
             name: 'tgAccountId',
             value: tgAccountIds[0]
         }).appendTo(form);

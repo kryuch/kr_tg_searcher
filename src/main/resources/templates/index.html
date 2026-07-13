@@ -18,6 +18,9 @@
     <script th:src="@{/js/chats.js}"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css"/>
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
 <body class="adminka">
 <header>
     <div class="header-top">
@@ -84,6 +87,10 @@
     </div>
 </header>
 <div class="layout">
+    <script>
+        var csrfToken = $('meta[name="_csrf"]').attr('content');
+        var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+    </script>
     <div class="conteiner">
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
@@ -169,8 +176,8 @@
             $(this).stop().slideUp();
         }
     );
-    jQuery(document).ready(function() {
-        jQuery(".btn-send, .btn-remove, .btn-restore").on("click", function(e) {
+    jQuery(document).ready(function () {
+        jQuery(".btn-send, .btn-remove, .btn-restore").on("click", function (e) {
             e.preventDefault();
             e.stopImmediatePropagation();
             console.log(jQuery(this).attr("href"));
@@ -195,12 +202,12 @@
 
 <script>
     // Функция открытия превью
-    window.openChatPreview = function(chatId, chatName) {
+    window.openChatPreview = function (chatId, chatName) {
         var url = '/chat/' + chatId + '/messages';
         if (typeof Fancybox !== 'undefined') {
-            Fancybox.show([{ src: url, type: 'ajax', preload: false }]);
+            Fancybox.show([{src: url, type: 'ajax', preload: false}]);
         } else if (typeof jQuery !== 'undefined' && jQuery.fancybox) {
-            jQuery.fancybox.open({ href: url, type: 'ajax', width: 600, height: 500 });
+            jQuery.fancybox.open({href: url, type: 'ajax', width: 600, height: 500});
         } else {
             window.open(url, '_blank');
         }
@@ -212,7 +219,7 @@
     // Делегирование событий
     if (typeof jQuery !== 'undefined') {
         // Клик по ссылке — мгновенно
-        jQuery(document).on('click', '.chat-preview-link', function(e) {
+        jQuery(document).on('click', '.chat-preview-link', function (e) {
             e.preventDefault();
             var chatId = $(this).data('chat-id');
             var chatName = $(this).data('chat-name');
@@ -220,14 +227,14 @@
         });
 
         // Клик по аватару — мгновенно
-        jQuery(document).on('click', '.chat-avatar', function() {
+        jQuery(document).on('click', '.chat-avatar', function () {
             var chatId = $(this).data('chat-id');
             var chatName = $(this).data('chat-name');
             openChatPreview(chatId, chatName);
         });
 
         // Наведение на аватар — с задержкой 2 секунды
-        jQuery(document).on('mouseenter', '.chat-avatar', function() {
+        jQuery(document).on('mouseenter', '.chat-avatar', function () {
             var $this = $(this);
             var chatId = $this.data('chat-id');
             var chatName = $this.data('chat-name');
@@ -236,14 +243,14 @@
                 clearTimeout(previewTimeout);
             }
 
-            previewTimeout = setTimeout(function() {
+            previewTimeout = setTimeout(function () {
                 openChatPreview(chatId, chatName);
                 previewTimeout = null;
             }, 2000);
         });
 
         // Уход мыши с аватара — отменяем таймер
-        jQuery(document).on('mouseleave', '.chat-avatar', function() {
+        jQuery(document).on('mouseleave', '.chat-avatar', function () {
             if (previewTimeout) {
                 clearTimeout(previewTimeout);
                 previewTimeout = null;

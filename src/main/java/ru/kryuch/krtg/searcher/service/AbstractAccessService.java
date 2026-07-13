@@ -2,17 +2,13 @@ package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
-import ru.kryuch.krtg.searcher.dto.IgnoreInfo;
-import ru.kryuch.krtg.searcher.dto.Setting;
-import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.entity.BasedAccessEntity;
-import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
 import ru.kryuch.krtg.searcher.mapper.TMapper;
 import ru.kryuch.krtg.searcher.repository.BaseAccessRepository;
+import ru.kryuch.krtg.searcher.util.UserUtil;
 
 import java.util.List;
 
@@ -31,6 +27,7 @@ public class AbstractAccessService <
 
 
     public List<DTO> getAll() {
+
         return mapper.fromEntityList(repository.findAllByUserId(getCurrentUserId()));
     }
 
@@ -66,15 +63,7 @@ public class AbstractAccessService <
     }
 
     public CurrentUser getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalStateException("Пользователь не авторизован");
-        }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof CurrentUser) {
-            return (CurrentUser) principal;
-        }
-        throw new IllegalStateException("Principal не является CurrentUser");
+        return UserUtil.getCurrentUser();
     }
 
     public Integer getCurrentUserId() {

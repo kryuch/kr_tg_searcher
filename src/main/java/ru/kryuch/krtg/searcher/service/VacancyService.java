@@ -8,7 +8,7 @@ import ru.kryuch.krtg.searcher.dto.VacancyInfo;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
-import ru.kryuch.krtg.searcher.util.UsernameUtil;
+import ru.kryuch.krtg.searcher.util.UserUtil;
 
 import java.util.HashSet;
 import java.util.List;
@@ -41,7 +41,7 @@ public class VacancyService {
         Set<String> tgSet =
                 vacancyInfoList.stream()
                         .filter(item -> Objects.nonNull(item.getTg()))
-                        .map(item -> UsernameUtil.normalizeUsername(item.getTg())).collect(Collectors.toSet());
+                        .map(item -> UserUtil.normalizeUsername(item.getTg())).collect(Collectors.toSet());
 
         Set<String> existingTg = chatRepository.findExistingUsername(tgSet);
 
@@ -54,7 +54,7 @@ public class VacancyService {
 
     private void enrich(Set<String> newTg, VacancyInfo vacancyInfo, String term, Set<String> existingTg) {
         if (Objects.nonNull(vacancyInfo.getTg())) {
-            if (existingTg.contains(UsernameUtil.normalizeUsername(vacancyInfo.getTg()).toLowerCase())) {
+            if (existingTg.contains(UserUtil.normalizeUsername(vacancyInfo.getTg()).toLowerCase())) {
                 vacancyInfo.setStatus(VacancyTgOwnerStatus.EXIST);
             } else {
                 vacancyInfo.setStatus(VacancyTgOwnerStatus.NEW);

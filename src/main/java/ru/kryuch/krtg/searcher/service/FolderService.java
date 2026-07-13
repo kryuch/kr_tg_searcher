@@ -41,7 +41,6 @@ public class FolderService {
         List<FolderInfo> folders = telegramPythonClient.findAllFolders(tgAccountId);
 
         for (FolderInfo folderInfo : folders) {
-            // 1. Сохраняем или обновляем папку
             FolderEntity folderEntity = folderRepository.findById(folderInfo.getId()).orElse(null);
 
             if (folderEntity == null || !folderInfo.getTitle().equals(folderEntity.getTitle())) {
@@ -49,6 +48,12 @@ public class FolderService {
                 folderEntity.setTgId(tgAccountId);
                 folderEntity.setTarget(folderInfo.getTitle().equals(targetFolderTitle));
                 folderEntity = folderRepository.save(folderEntity);
+            }
+            else {
+                if (folderEntity.getTgId() == null) {
+                    folderEntity.setTgId(tgAccountId);
+                    folderEntity = folderRepository.save(folderEntity);
+                }
             }
 
             synchronizeFolderChats(folderInfo);

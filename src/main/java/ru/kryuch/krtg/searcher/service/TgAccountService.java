@@ -1,6 +1,5 @@
 package ru.kryuch.krtg.searcher.service;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
@@ -17,9 +16,8 @@ public class TgAccountService {
 
     private final TelegramPythonClient telegramPythonClient;
 
-    @PostConstruct
-    protected void init() {
-        //telegramPythonClient.init(new InitRequest(tgAccountAccessService.getAll()));
+    public void init() {
+        telegramPythonClient.init(new InitRequest(getAll()));
     }
 
     public List<TgAccountInfo> getAll() {

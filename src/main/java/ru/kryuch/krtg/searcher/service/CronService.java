@@ -13,6 +13,7 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
+import ru.kryuch.krtg.searcher.util.UserUtil;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,7 +39,11 @@ public class CronService {
 
     @Scheduled(fixedDelay = 120000)
     public void schedule() {
-        /*
+
+        if (!UserUtil.isAuth()) {
+            return;
+        }
+
         try {
             if (settingService.getValueByCode("cron_enable").equals("0")) {
                 return;
@@ -56,7 +61,7 @@ public class CronService {
             }
         } catch (Exception e) {
             log.error("Ошибка при проверке расписания", e);
-        }*/
+        }
     }
 
     private boolean shouldRun(String cronTab, String cronLastRun) {

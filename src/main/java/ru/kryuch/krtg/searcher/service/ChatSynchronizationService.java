@@ -8,6 +8,7 @@ import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -29,10 +30,17 @@ public class ChatSynchronizationService {
             telegramMessagingGateway.findAllChats(tgAccountId)
                     .forEach(
                             item -> {
-                                if (!chatRepository.existsById(item.getId())) {
+                                Optional<ChatEntity> optionalChat = chatRepository.findById(item.getId());
+
+                                if (optionalChat.isEmpty()) {
                                     ChatEntity chatEntity = chatMapper.toEntity(item);
                                     chatEntity.setTgId(tgAccountId);
                                     chatRepository.save(chatEntity);
+                                } else {
+                                    if (optionalChat.get().getTgId() == null) {
+                                        optionalChat.get().setTgId(tgAccountId);
+                                        chatRepository.save(optionalChat.get());
+                                    }
                                 }
                             }
                     );
