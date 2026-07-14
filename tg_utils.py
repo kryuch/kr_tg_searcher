@@ -1,20 +1,184 @@
 import asyncio
 import logging
-from telethon.errors import FloodWaitError, ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
-from telethon.tl.types import User, Chat, Channel, InputPeerUser, InputPeerChat, InputPeerChannel
-from telethon.tl.functions.messages import GetDialogFiltersRequest, UpdateDialogFilterRequest
-from telethon.errors import FloodWaitError
-from telethon.tl.functions.messages import (
-    GetDialogFiltersRequest,
-    UpdateDialogFilterRequest,
+import threading
+from telethon import TelegramClient
+from telethon.errors import (
+    FloodWaitError,
+    ChatAdminRequiredError,
+    ChannelPrivateError,
+    UserIdInvalidError,
+    SessionPasswordNeededError,
+    PhoneCodeInvalidError,
+    PhoneCodeExpiredError
 )
-from telethon.tl.types import DialogFilter
+from telethon.tl.types import User, Chat, Channel, DialogFilter
+from telethon.tl.functions.messages import GetDialogFiltersRequest, UpdateDialogFilterRequest
 
 logger = logging.getLogger(__name__)
 
 # Ограничиваем количество одновременных запросов к Telegram
 SEMAPHORE = asyncio.Semaphore(5)
 
+# Параметры устройства для Telethon
+DEVICE_PARAMS = {
+    "device_model": "Samsung S23 Ultra",
+    "system_version": "Android 13",
+    "app_version": "9.6.1",
+    "lang_code": "en",
+    "system_lang_code": "en-US"
+}
+
+# ============================================================
+#  ХРАНИЛИЩЕ ДЛЯ PHONE_CODE_HASH
+# ============================================================
+
+# {phone: {'phone_code_hash': str, 'api_id': int, 'api_hash': str}}
+pending_verifications = {}
+
+
+# ============================================================
+#  ФУНКЦИИ ДЛЯ РАБОТЫ С СЕССИЯМИ И КЛИЕНТАМИ
+# ============================================================
+
+def get_session_name(account_id):
+    """Возвращает уникальное имя сессии для каждого потока."""
+    thread_name = threading.current_thread().name.replace('-', '_').replace(' ', '_')
+    return f'session_{account_id}_{thread_name}'
+
+
+async def get_client_and_connect(account_id, account_configs):
+    """Создаёт клиента, подключает и авторизует."""
+    if account_id not in account_configs:
+        raise ValueError(f'Аккаунт {account_id} не инициализирован')
+
+    config = account_configs[account_id]
+    session_name = get_session_name(account_id)
+
+    print(f"🔄 Создание клиента с сессией {session_name} для потока {threading.current_thread().name}")
+
+    client = TelegramClient(
+        session_name,
+        config['api_id'],
+        config['api_hash'],
+        device_model=DEVICE_PARAMS["device_model"],
+        system_version=DEVICE_PARAMS["system_version"],
+        app_version=DEVICE_PARAMS["app_version"],
+        lang_code=DEVICE_PARAMS["lang_code"],
+        system_lang_code=DEVICE_PARAMS["system_lang_code"]
+    )
+
+    await client.connect()
+    if not await client.is_user_authorized():
+        await client.start(config['phone'])
+        print(f"✅ Аккаунт {account_id} авторизован в сессии {session_name}")
+
+    return client
+
+
+async def execute_telegram_action(account_id, account_configs, action_func, *args, **kwargs):
+    """Универсальный исполнитель: создаёт клиента, выполняет действие, отключает."""
+    client = await get_client_and_connect(account_id, account_configs)
+    try:
+        return await action_func(client, *args, **kwargs)
+    finally:
+        await client.disconnect()
+        print(f"🔌 Клиент {account_id} отключён")
+
+
+# ============================================================
+#  ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ (С СОХРАНЕНИЕМ PHONE_CODE_HASH)
+# ============================================================
+
+async def request_code_internal(phone, api_id, api_hash):
+    """
+    Запрашивает код подтверждения у Telegram.
+    Сохраняет phone_code_hash для дальнейшей верификации.
+    """
+    client = TelegramClient(
+        f'temp_session_{phone}',
+        int(api_id),
+        api_hash,
+        device_model=DEVICE_PARAMS["device_model"],
+        system_version=DEVICE_PARAMS["system_version"],
+        app_version=DEVICE_PARAMS["app_version"],
+        lang_code=DEVICE_PARAMS["lang_code"],
+        system_lang_code=DEVICE_PARAMS["system_lang_code"]
+    )
+
+    try:
+        await client.connect()
+        result = await client.send_code_request(phone)
+        print(f"✅ Код отправлен на {phone}")
+
+        # Сохраняем phone_code_hash
+        pending_verifications[phone] = {
+            'phone_code_hash': result.phone_code_hash,
+            'api_id': int(api_id),
+            'api_hash': api_hash
+        }
+
+        return {'status': 'code_sent', 'phone': phone}
+    finally:
+        await client.disconnect()
+        print(f"🔌 Временный клиент для {phone} отключён")
+
+
+async def verify_code_with_new_client(phone, code, password=None):
+    """
+    Создаёт нового клиента и проверяет код используя сохранённый phone_code_hash.
+    """
+    if phone not in pending_verifications:
+        raise ValueError(f'Не найден phone_code_hash для {phone}. Сначала запросите код.')
+
+    data = pending_verifications[phone]
+    phone_code_hash = data['phone_code_hash']
+    api_id = data['api_id']
+    api_hash = data['api_hash']
+
+    client = TelegramClient(
+        f'session_{phone}',
+        int(api_id),
+        api_hash,
+        device_model=DEVICE_PARAMS["device_model"],
+        system_version=DEVICE_PARAMS["system_version"],
+        app_version=DEVICE_PARAMS["app_version"],
+        lang_code=DEVICE_PARAMS["lang_code"],
+        system_lang_code=DEVICE_PARAMS["system_lang_code"]
+    )
+
+    try:
+        await client.connect()
+
+        try:
+            await client.sign_in(phone=phone, code=code, phone_code_hash=phone_code_hash)
+            print(f"✅ Аккаунт {phone} успешно авторизован")
+
+            del pending_verifications[phone]
+            return {'status': 'success', 'phone': phone}
+
+        except SessionPasswordNeededError:
+            if password:
+                await client.sign_in(password=password)
+                print(f"✅ Аккаунт {phone} авторизован с 2FA")
+                del pending_verifications[phone]
+                return {'status': 'success', 'phone': phone}
+            else:
+                return {'status': 'password_required'}
+
+        except PhoneCodeInvalidError:
+            raise ValueError('Неверный код подтверждения')
+
+        except PhoneCodeExpiredError:
+            raise ValueError('Код подтверждения истёк')
+
+    finally:
+        await client.disconnect()
+        print(f"🔌 Клиент для {phone} отключён")
+
+
+# ============================================================
+#  ОСТАЛЬНЫЕ ФУНКЦИИ
+# ============================================================
 
 def _peer_id(peer):
     """Возвращает ID чата из InputPeer*."""
@@ -28,6 +192,7 @@ def _peer_id(peer):
 def _peers_equal(p1, p2):
     """Сравнивает два Peer объекта"""
     return _peer_id(p1) == _peer_id(p2)
+
 
 def clone_filter(filter_obj, include_peers):
     return DialogFilter(
@@ -51,10 +216,7 @@ def clone_filter(filter_obj, include_peers):
 
 
 async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
-    """
-    Добавляет или удаляет список чатов из пользовательской папки Telegram.
-    """
-
+    """Добавляет или удаляет список чатов из пользовательской папки Telegram."""
     try:
         filters = await client(GetDialogFiltersRequest())
         filters = filters.filters if hasattr(filters, "filters") else list(filters)
@@ -71,13 +233,10 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
             }
 
         include_peers = list(folder.include_peers)
-
         current_ids = {_peer_id(peer) for peer in include_peers}
-
         results = []
 
         for chat_id in chat_ids:
-
             try:
                 peer = await client.get_input_entity(chat_id)
 
@@ -85,7 +244,6 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
                     if chat_id not in current_ids:
                         include_peers.append(peer)
                         current_ids.add(chat_id)
-
                 else:
                     include_peers = [
                         p for p in include_peers
@@ -100,7 +258,6 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
 
             except FloodWaitError as e:
                 await asyncio.sleep(e.seconds)
-
                 results.append({
                     "chat_id": chat_id,
                     "status": "error",
@@ -109,7 +266,6 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
 
             except Exception as e:
                 logger.exception("Cannot process chat %s", chat_id)
-
                 results.append({
                     "chat_id": chat_id,
                     "status": "error",
@@ -132,7 +288,6 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
 
     except Exception:
         logger.exception("Cannot update folder %s", folder_id)
-
         return {
             "success": False,
             "error": "UPDATE_FAILED"
@@ -140,9 +295,7 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
 
 
 async def get_all_folders(client):
-    """
-    Возвращает список пользовательских папок Telegram.
-    """
+    """Возвращает список пользовательских папок Telegram."""
     try:
         result = await client(GetDialogFiltersRequest())
         filters = result.filters if hasattr(result, "filters") else list(result)
@@ -177,9 +330,7 @@ async def get_all_folders(client):
 
 
 async def get_chat_folders(client, chat_id):
-    """
-    Получает список папок, в которых находится чат.
-    """
+    """Получает список папок, в которых находится чат."""
     folders = []
     try:
         dialogs = await client.get_dialogs()
@@ -188,14 +339,12 @@ async def get_chat_folders(client, chat_id):
         for dialog in dialogs:
             if dialog.id == chat_id and dialog.folder_id is not None:
                 folder_ids.add(dialog.folder_id)
-                print(f"🔍 Найден folder_id: {dialog.folder_id} для чата {chat_id}")
 
         if folder_ids:
             all_folders = await get_all_folders(client)
             for folder in all_folders:
                 if folder['id'] in folder_ids:
                     folders.append(folder)
-                    print(f"✅ Папка: {folder['title']} (ID: {folder['id']})")
     except Exception as e:
         print(f"❌ Ошибка получения папок для чата {chat_id}: {e}")
 
@@ -203,9 +352,7 @@ async def get_chat_folders(client, chat_id):
 
 
 async def get_single_chat_info(client, chat_id, semaphore=None):
-    """
-    Получает информацию об одном чате.
-    """
+    """Получает информацию об одном чате."""
     if semaphore is None:
         semaphore = SEMAPHORE
 
@@ -238,8 +385,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
             username = getattr(entity, 'username', None)
             entity_id = entity.id
 
-            logger.info(f"Получена информация о чате {entity_id}: {name}")
-
             return {
                 'id': entity_id,
                 'username': username,
@@ -255,7 +400,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
         return await get_single_chat_info(client, chat_id, semaphore)
 
     except (ValueError, UserIdInvalidError):
-        logger.warning(f"Чат {chat_id} не найден")
         return {
             'id': chat_id,
             'username': None,
@@ -265,7 +409,6 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
         }
 
     except (ChatAdminRequiredError, ChannelPrivateError) as e:
-        logger.warning(f"Нет доступа к чату {chat_id}: {e}")
         return {
             'id': chat_id,
             'username': None,
@@ -286,9 +429,7 @@ async def get_single_chat_info(client, chat_id, semaphore=None):
 
 
 async def get_chats_info(client, chat_ids, max_concurrent=5):
-    """
-    Получает информацию о чатах по их ID параллельно.
-    """
+    """Получает информацию о чатах по их ID параллельно."""
     if not chat_ids:
         return []
 

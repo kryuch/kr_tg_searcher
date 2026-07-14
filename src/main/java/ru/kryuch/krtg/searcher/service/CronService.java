@@ -8,10 +8,17 @@ import com.cronutils.parser.CronParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
+import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
+import ru.kryuch.krtg.searcher.entity.UserEntity;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
+import ru.kryuch.krtg.searcher.repository.UserRepository;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
@@ -19,17 +26,20 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CronService {
 
-    private final SettingService settingService;
+    private final SettingAccessService settingAccessService;
     private final ChatService chatService;
+    private final UserRepository userRepository;
     private final TelegramMessagingService telegramMessagingService;
     private final TgAccountRepository tgAccountRepository;
 
@@ -40,28 +50,49 @@ public class CronService {
     @Scheduled(fixedDelay = 120000)
     public void schedule() {
 
-        if (!UserUtil.isAuth()) {
-            return;
-        }
 
-        try {
-            if (settingService.getValueByCode("cron_enable").equals("0")) {
-                return;
+        settingAccessService.findAllCronEabled().forEach((userId, value) -> {
+            try {
+                if (value.equals("0")) {
+                    return;
+                }
+
+                String cronTab = settingAccessService.getValueByCode(CRONTIME_CODE, userId);
+                String cronLastRun = settingAccessService.getValueByCode(CRON_LASTRUN_CODE, userId);
+
+                if (shouldRun(cronTab, cronLastRun)) {
+                    SecurityContextHolder.getContext().setAuthentication(
+                            createAuthentication(userId)
+                    );
+
+                    log.info("Запуск задачи по расписанию: {}", cronTab);
+                    doTask(userId);
+                    String now = LocalDateTime.now().format(FORMATTER);
+                    settingAccessService.setValueByCode(CRON_LASTRUN_CODE, now, userId);
+                    log.info("Задача выполнена, обновлено время: {}", now);
+                }
             }
-
-            String cronTab = settingService.getValueByCode(CRONTIME_CODE);
-            String cronLastRun = settingService.getValueByCode(CRON_LASTRUN_CODE);
-
-            if (shouldRun(cronTab, cronLastRun)) {
-                log.info("Запуск задачи по расписанию: {}", cronTab);
-                doTask();
-                String now = LocalDateTime.now().format(FORMATTER);
-                settingService.setValueByCode(CRON_LASTRUN_CODE, now);
-                log.info("Задача выполнена, обновлено время: {}", now);
+            catch (Exception ex) {
+                log.error(String.valueOf(ex.getStackTrace()));
             }
-        } catch (Exception e) {
-            log.error("Ошибка при проверке расписания", e);
-        }
+        });
+    }
+
+    private Authentication createAuthentication(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Пользователь не найден: " + userId));
+
+        CurrentUser currentUser = CurrentUser.builder()
+                .id(user.getId())
+                .username(user.getLogin())
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+
+        return new UsernamePasswordAuthenticationToken(
+                currentUser,
+                null,
+                currentUser.getAuthorities()
+        );
     }
 
     private boolean shouldRun(String cronTab, String cronLastRun) {
@@ -111,16 +142,16 @@ public class CronService {
         }
     }
 
-    private void doTask() {
+    private void doTask(Integer userId) {
         log.info("Выполнение задачи по расписанию");
         SearchParams searchParams =
                 SearchParams.builder()
                         .groupType(PersonalChatType.PERSONAL)
-                        .minDiffDaysCount(Integer.valueOf(settingService.getValueByCode("max_day")))
+                        .minDiffDaysCount(Integer.valueOf(settingAccessService.getValueByCode("max_day", userId)))
                         .botType(PersonalChatType.PERSONAL)
                         .excludeStatusFlag(true)
-                        .term(settingService.getValueByCode("term"))
-                        .lastMessage(settingService.getValueByCode("cron_lastmessage"))
+                        .term(settingAccessService.getValueByCode("term", userId))
+                        .lastMessage(settingAccessService.getValueByCode("cron_lastmessage", userId))
                         .maxFoundCount(16)
                         .messagesCount(0)
                         .tgAccountIds(tgAccountRepository.getAllIds())
@@ -131,7 +162,7 @@ public class CronService {
         log.info("Найдены " + chats.stream().map(ChatInfo::getName).collect(Collectors.joining(", ")));
 
         chats = telegramMessagingService.sendToChats(
-                settingService.getValueByCode("cron_newmessage"),
+                settingAccessService.getValueByCode("cron_newmessage", userId),
                 chats.stream().map(ChatInfo::getId).toList()
         );
 

@@ -10,4 +10,5 @@ public class TgAccountInfo {
     private String appHash;
     private String description;
     private String phone;
+    private Boolean isAuth;
 }

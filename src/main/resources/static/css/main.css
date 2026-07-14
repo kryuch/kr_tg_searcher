@@ -94,11 +94,8 @@ ul.top-menu ul.logsmenu {
     background-color: #2a6496;
     height: 100px;
     position: absolute;
-<<<<<<< e796200a5de880eba6ef6d79af2ec3166473684f
     z-index: 666;
-=======
     border-radius: 15px
->>>>>>> 13298cc813d6237bc83d779f3c539d3ed919f0d7
 }
 
 ul.top-menu ul.logsmenu li{
@@ -1065,4 +1062,20 @@ button.save#filter {
 
 .filterchatblock {
     margin-left: 8px;
+}
+
+.foldertitle_false #fromFolder.btn-remove {
+    display: none;
+}
+
+.foldertitle_true .btn-add {
+    display: none;
+}
+
+.tgaccount_false {
+    background-color: lightgray;
+}
+
+.tgaccount_true {
+    background-color: #4AB6EC;
 }

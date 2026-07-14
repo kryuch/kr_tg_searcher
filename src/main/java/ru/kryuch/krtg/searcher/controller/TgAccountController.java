@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.service.TgAccountService;
 
-import java.util.Objects;
-
 @Controller
 @RequestMapping("/tg")
 @RequiredArgsConstructor
@@ -31,6 +29,13 @@ public class TgAccountController {
         }
         model.addAttribute("items", tgAccountService.getAll());
         model.addAttribute("page", "tg/list");
+        return "index";
+    }
+
+    @GetMapping("/{id}/auth")
+    public String showAuthForm(@PathVariable("id") Integer id, Model model) {
+        model.addAttribute("tg", tgAccountService.get(id));
+        model.addAttribute("page", "tg/auth");
         return "index";
     }
 

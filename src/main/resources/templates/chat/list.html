@@ -59,13 +59,13 @@
                 <td th:class="${'foldertitle_' + (item.hasTargetFolder)}">
                     <span class="folderspan" th:text="${item.folderTitles}">Folders</span>
                 </td>
-                <td class="settingbuttons">
+                <td class="settingbuttons" th:classappend="${'foldertitle_' + (item.hasTargetFolder)}">
                     <a href="#" class="btn-restore btn-status" data-status="1">Отказ</a>
                     <a href="#" class="btn-send btn-status" data-status="2">--</a>
                     <a href="#" class="btn-remove btn-status" data-status="3">Не HR</a>
 
                     <a href="#" class="btn-add btn-folder" data-status="1">В папку</a>
-                    <a href="#" class="btn-remove btn-folder" data-status="0">Из папки</a>
+                    <a href="#" id="fromFolder" class="btn-remove btn-folder" data-status="0">Из папки</a>
                 </td>
             </tr>
             <tr class="chatpremessages">
