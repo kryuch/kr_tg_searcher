@@ -1,5 +1,47 @@
 from telethon.tl.types import User
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def group_chats_by_account(data):
+    """
+    Группирует чаты по tgAccountId из запроса.
+    Используется в эндпоинте /api/send_bulk_messages.
+
+    Args:
+        data: dict с данными запроса, содержащий 'contacts.chatIds'
+
+    Returns:
+        dict: {tg_account_id: [chat_id1, chat_id2, ...]}
+    """
+    chats_by_account = {}
+    contacts_data = data.get('contacts', {})
+
+    if not contacts_data:
+        return chats_by_account
+
+    chat_ids_data = contacts_data.get('chatIds', [])
+    for chat_item in chat_ids_data:
+        chat_id = chat_item.get('id')
+        tg_account_id_raw = chat_item.get('tgAccountId')
+        tg_account_id = str(tg_account_id_raw) if tg_account_id_raw is not None else None
+
+        if not chat_id:
+            logger.warning("Пропускаем чат: нет id")
+            continue
+
+        if not tg_account_id:
+            logger.warning(f"Пропускаем чат {chat_id}: нет tgAccountId")
+            continue
+
+        if tg_account_id not in chats_by_account:
+            chats_by_account[tg_account_id] = []
+        chats_by_account[tg_account_id].append(chat_id)
+
+    return chats_by_account
+
 
 async def send_messages(client, chat_ids, message_text, delay, only_new_chats=False):
     """

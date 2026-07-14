@@ -10,6 +10,8 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
+import ru.kryuch.krtg.searcher.dto.VacancyInfo;
+import ru.kryuch.krtg.searcher.dto.VerifyTgCodeParam;
 import ru.kryuch.krtg.searcher.exception.TelegramClientException;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
@@ -153,6 +155,39 @@ public class TelegramPythonClient {
                 String.format(
                         "Failed to get chat preview %s",
                         chatId
+                )
+        );
+    }
+
+    public String sendCode(Integer tgAccountId) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUri(buildUri("/api/session/request_code"))
+                .queryParam("accountId", tgAccountId);
+
+        return execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/session/request_code"),
+                        tgAccountId,
+                        String.class
+                ),
+                String.format(
+                        "Failed to get code %s",
+                        tgAccountId
+                )
+        );
+    }
+
+    public String verify(VerifyTgCodeParam verifyTgCodeParam) {
+
+        return execute(
+                () ->restTemplate.postForObject(
+                        buildUri("/api/session/verify_code"),
+                        verifyTgCodeParam,
+                        String.class
+                ),
+                String.format(
+                        "Failed to verify code %s",
+                        verifyTgCodeParam.getTgAccountId()
                 )
         );
     }

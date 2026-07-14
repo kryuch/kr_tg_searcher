@@ -34,4 +34,7 @@ public class TgAccountEntity extends BasedAccessEntity {
 
     private String phone;
 
+    @Column(name = "is_auth")
+    private Boolean isAuth = false;
+
 }

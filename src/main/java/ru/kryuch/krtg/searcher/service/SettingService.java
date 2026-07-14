@@ -12,6 +12,7 @@ import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -20,9 +21,6 @@ import java.util.Optional;
 public class SettingService {
 
     private final SettingAccessService settingAccessService;
-    private final SettingRepository settingRepository;
-
-    private final SettingMapper settingMapper;
 
     public List<Setting> getAll() {
         init();
@@ -53,20 +51,20 @@ public class SettingService {
     }
 
     protected void init() {
-        settingAccessService.setValueByCode("first_message", "Добрый день. Скажите, пожалуйста, у вас вакансии по Java-разработке");
-        settingAccessService.setValueByCode("term", "Java");
-        settingAccessService.setValueByCode("folder", "HR");
-        settingAccessService.setValueByCode("max_day", "3");
-        settingAccessService.setValueByCode("ignore", "СВО");
-        settingAccessService.setValueByCode("python", "http://localhost:8081");
-        settingAccessService.setValueByCode("send_delay", "10");
-        settingAccessService.setValueByCode("text_in_vacancy", "Java");
-        settingAccessService.setValueByCode("tg_folder", "HR");
-        settingAccessService.setValueByCode("cron_time", "0 0 7 * * *");
-        settingAccessService.setValueByCode("cron_lastmessage", "*");
-        settingAccessService.setValueByCode("cron_newmessage", "*");
-        settingAccessService.setValueByCode("cron_lastrun", "");
-        settingAccessService.setValueByCode("cron_enable", "0");
+        settingAccessService.setFirstValueByCode("first_message", "Добрый день. Скажите, пожалуйста, у вас вакансии по Java-разработке");
+        settingAccessService.setFirstValueByCode("term", "Java");
+        settingAccessService.setFirstValueByCode("folder", "HR");
+        settingAccessService.setFirstValueByCode("max_day", "3");
+        settingAccessService.setFirstValueByCode("ignore", "СВО");
+        settingAccessService.setFirstValueByCode("python", "http://localhost:8081");
+        settingAccessService.setFirstValueByCode("send_delay", "10");
+        settingAccessService.setFirstValueByCode("text_in_vacancy", "Java");
+        settingAccessService.setFirstValueByCode("tg_folder", "HR");
+        settingAccessService.setFirstValueByCode("cron_time", "0 0 7 * * *");
+        settingAccessService.setFirstValueByCode("cron_lastmessage", "*");
+        settingAccessService.setFirstValueByCode("cron_newmessage", "*");
+        settingAccessService.setFirstValueByCode("cron_lastrun", "");
+        settingAccessService.setFirstValueByCode("cron_enable", "0");
     }
 
 }

@@ -17,7 +17,7 @@
         </tr>
 
         <th:block th:each="tgItem, iStat : ${items}">
-            <tr>
+            <tr th:class="${'tgaccount_' + (tgItem.isAuth)}">
                 <td><span th:text="${tgItem.id}"> Идентификатор </span></td>
                 <td><span th:text="${tgItem.description}"> Описание </span></td>
                 <td><span th:text="${tgItem.phone}"> Телефон </span></td>
@@ -26,6 +26,7 @@
                 <td class="settingbuttons">
                     <a class="btn-save" th:href="@{/tg/{id}/edit(id=${tgItem.id})}">Изменить</a>
                     <a class="btn-save" th:href="@{/tg/{id}/remove(id=${tgItem.id})}">Удалить</a>
+                    <a class="btn-save" th:href="@{/tg/{id}/auth(id=${tgItem.id})}">Авторизоваться</a>
                 </td>
             </tr>
         </th:block>

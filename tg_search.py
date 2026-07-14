@@ -2,19 +2,36 @@ import asyncio
 from datetime import datetime
 from telethon.errors import ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
 
+
+def prepare_search_params(data):
+    """
+    Подготавливает параметры поиска из запроса.
+    """
+    return {
+        'term': data.get('term', 'Java'),
+        'lastMessage': data.get('lastMessage', '').strip(),
+        'maxFoundCount': data.get('maxFoundCount', 10),
+        'minDiffDaysCount': data.get('minDiffDaysCount', 7),
+        'botType': data.get('botType', 'PERSONAL'),
+        'groupType': data.get('groupType', 'PERSONAL'),
+        'excludeChatIds': data.get('excludeChatIds', []),
+        'messagesCount': data.get('messagesCount', 0) or 0
+    }
+
+
 async def search_chats(client, params):
     """
     Поиск чатов по параметрам
 
     params: {
         'term': str,                 # ключевое слово
-        'lastMessage': str,          # текст последнего сообщения (если пусто - не фильтровать)
+        'lastMessage': str,          # текст последнего сообщения
         'maxFoundCount': int,        # максимальное количество чатов
         'minDiffDaysCount': int,     # минимальное количество дней без сообщений
         'botType': str,              # PERSONAL, NOT_PERSONAL, ALL
         'groupType': str,            # PERSONAL, NOT_PERSONAL, ALL
         'excludeChatIds': list,      # список ID чатов для исключения
-        'messagesCount': int         # количество последних сообщений для каждого чата (0 - не добавлять)
+        'messagesCount': int         # количество последних сообщений для каждого чата
     }
     """
     term = params.get('term', 'Java')
@@ -56,16 +73,13 @@ async def search_chats(client, params):
         # Фильтр по давности (максимально защищённый)
         if min_diff_days_count and min_diff_days_count > 0:
             try:
-                # Проверяем, есть ли сообщение и дата
                 if d.message is None or d.message.date is None:
-                    # Нет сообщений — пропускаем чат
                     continue
 
                 last_date = d.message.date.replace(tzinfo=None)
                 now = datetime.now()
                 days_ago = (now - last_date).days
 
-                # Убеждаемся, что days_ago не None и сравниваем
                 if days_ago is not None and days_ago < min_diff_days_count:
                     continue
             except Exception as e:
@@ -77,7 +91,7 @@ async def search_chats(client, params):
             async for m in client.iter_messages(d.id, search=term, limit=1):
                 if m.text and term.lower() in m.text.lower():
 
-                    # Проверяем последнее сообщение (если задан lastMessage)
+                    # Проверяем последнее сообщение
                     if last_message:
                         found_in_chat = False
                         try:
@@ -108,7 +122,7 @@ async def search_chats(client, params):
                         'username': username
                     }
 
-                    # Добавляем последние сообщения, если messages_count > 0
+                    # Добавляем последние сообщения
                     if messages_count > 0:
                         messages = []
                         async for msg in client.iter_messages(d.id, limit=messages_count):
