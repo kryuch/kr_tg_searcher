@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.kryuch.krtg.searcher.dto.VerifyTgCodeParam;
+import ru.kryuch.krtg.searcher.integration.dto.RequestCodeResponse;
+import ru.kryuch.krtg.searcher.integration.dto.VerifyCodeResponse;
 import ru.kryuch.krtg.searcher.service.TelegrammAuthService;
 
 @RestController
@@ -18,14 +20,14 @@ public class TgAuthController {
 
     @PostMapping("/{id}/receive")
     public String receiveCode(@PathVariable("id") Integer id) {
-        telegrammAuthService.sendCode(id);
-        return "Код отправлен на номер телефона";
+        RequestCodeResponse requestCodeResponse = telegrammAuthService.sendCode(id);
+        return requestCodeResponse.getError();
     }
 
     @PostMapping("/verify")
     public String verifyCode(@RequestBody VerifyTgCodeParam param) {
-        telegrammAuthService.verify(param);
-        return "Аккаунт успешно авторизован";
+        VerifyCodeResponse verifyCodeResponse = telegrammAuthService.verify(param);
+        return verifyCodeResponse.getStatus();
     }
 
 }

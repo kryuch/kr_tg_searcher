@@ -12,4 +12,9 @@ public class TgAccountAccessService extends AbstractAccessService <Integer, TgAc
     public TgAccountAccessService(TgAccountRepository tgAccountRepository, TgAccountMapper tgAccountMapper) {
         super(tgAccountRepository, tgAccountMapper, "телеграмм-аккаунт");
     }
+
+    public void setAuth(Integer id) {
+        ((TgAccountRepository)repository).setAuth(id);
+    }
+
 }
