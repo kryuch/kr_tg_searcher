@@ -16,10 +16,12 @@ import ru.kryuch.krtg.searcher.exception.TelegramClientException;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.integration.dto.InitRequest;
+import ru.kryuch.krtg.searcher.integration.dto.RequestCodeResponse;
 import ru.kryuch.krtg.searcher.integration.dto.SearchRequest;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByConcatUsername;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByContactId;
 import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
+import ru.kryuch.krtg.searcher.integration.dto.VerifyCodeResponse;
 import ru.kryuch.krtg.searcher.util.PythonMessagesResponse;
 import ru.kryuch.krtg.searcher.util.SendResponse;
 
@@ -159,7 +161,7 @@ public class TelegramPythonClient {
         );
     }
 
-    public String sendCode(Integer tgAccountId) {
+    public RequestCodeResponse sendCode(Integer tgAccountId) {
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUri(buildUri("/api/session/request_code"))
                 .queryParam("accountId", tgAccountId);
@@ -168,7 +170,7 @@ public class TelegramPythonClient {
                 () -> restTemplate.postForObject(
                         buildUri("/api/session/request_code"),
                         tgAccountId,
-                        String.class
+                        RequestCodeResponse.class
                 ),
                 String.format(
                         "Failed to get code %s",
@@ -177,13 +179,13 @@ public class TelegramPythonClient {
         );
     }
 
-    public String verify(VerifyTgCodeParam verifyTgCodeParam) {
+    public VerifyCodeResponse verify(VerifyTgCodeParam verifyTgCodeParam) {
 
         return execute(
                 () ->restTemplate.postForObject(
                         buildUri("/api/session/verify_code"),
                         verifyTgCodeParam,
-                        String.class
+                        VerifyCodeResponse.class
                 ),
                 String.format(
                         "Failed to verify code %s",

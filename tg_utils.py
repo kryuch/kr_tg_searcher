@@ -2,6 +2,7 @@ import asyncio
 import logging
 import threading
 from telethon import TelegramClient
+from telethon.errors import FloodWaitError
 from telethon.errors import (
     FloodWaitError,
     ChatAdminRequiredError,
@@ -14,7 +15,20 @@ from telethon.errors import (
 from telethon.tl.types import User, Chat, Channel, DialogFilter
 from telethon.tl.functions.messages import GetDialogFiltersRequest, UpdateDialogFilterRequest
 
+from pathlib import Path
+
+SESSION_DIR = Path("var/session")
+SESSION_DIR.mkdir(parents=True, exist_ok=True)
+
 logger = logging.getLogger(__name__)
+
+def build_session_path(session_name: str) -> str:
+    """
+    Возвращает полный путь к session-файлу.
+    """
+    return str(SESSION_DIR / session_name)
+
+
 
 # Ограничиваем количество одновременных запросов к Telegram
 SEMAPHORE = asyncio.Semaphore(5)
@@ -75,105 +89,196 @@ async def get_client_and_connect(account_id, account_configs):
     return client
 
 
-async def execute_telegram_action(account_id, account_configs, action_func, *args, **kwargs):
-    """Универсальный исполнитель: создаёт клиента, выполняет действие, отключает."""
-    client = await get_client_and_connect(account_id, account_configs)
+async def execute_telegram_action(
+        account_id: str,
+        account_configs: dict,
+        action,
+        *args,
+        **kwargs
+):
+    """
+    Выполняет любую операцию Telegram для указанного аккаунта.
+
+    Пример:
+
+        await execute_telegram_action(
+            account_id,
+            account_configs,
+            search_chats,
+            params
+        )
+
+    В action первым параметром всегда передается client.
+    """
+
+    config = account_configs.get(str(account_id))
+    if config is None:
+        raise ValueError(f"Аккаунт {account_id} не найден")
+
+    session_name = f"account_{account_id}"
+    session_path = build_session_path(session_name)
+
+    client = TelegramClient(
+        session_path,
+        config["api_id"],
+        config["api_hash"],
+        device_model="Samsung S23 Ultra",
+        system_version="Android 13",
+        app_version="9.6.1",
+        lang_code="en",
+        system_lang_code="en-US"
+    )
+
     try:
-        return await action_func(client, *args, **kwargs)
+        await client.connect()
+
+        if not await client.is_user_authorized():
+            raise RuntimeError(
+                f"Аккаунт {account_id} не авторизован"
+            )
+
+        return await action(client, *args, **kwargs)
+
     finally:
-        await client.disconnect()
-        print(f"🔌 Клиент {account_id} отключён")
+        if client.is_connected():
+            await client.disconnect()
 
 
 # ============================================================
 #  ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ (С СОХРАНЕНИЕМ PHONE_CODE_HASH)
 # ============================================================
+async def request_code_internal(
+        phone: str,
+        api_id: int,
+        api_hash: str,
+        session_name: str
+):
+    """
+    Создает временный клиент и отправляет код авторизации.
+    После отправки клиент отключается, а session-файл остается.
+    """
 
-async def request_code_internal(phone, api_id, api_hash):
-    """
-    Запрашивает код подтверждения у Telegram.
-    Сохраняет phone_code_hash для дальнейшей верификации.
-    """
+    session_path = build_session_path(session_name)
+
     client = TelegramClient(
-        f'temp_session_{phone}',
-        int(api_id),
+        session_path,
+        api_id,
         api_hash,
-        device_model=DEVICE_PARAMS["device_model"],
-        system_version=DEVICE_PARAMS["system_version"],
-        app_version=DEVICE_PARAMS["app_version"],
-        lang_code=DEVICE_PARAMS["lang_code"],
-        system_lang_code=DEVICE_PARAMS["system_lang_code"]
+        device_model="Samsung S23 Ultra",
+        system_version="Android 13",
+        app_version="9.6.1",
+        lang_code="en",
+        system_lang_code="en-US"
     )
 
     try:
         await client.connect()
-        result = await client.send_code_request(phone)
-        print(f"✅ Код отправлен на {phone}")
 
-        # Сохраняем phone_code_hash
-        pending_verifications[phone] = {
-            'phone_code_hash': result.phone_code_hash,
-            'api_id': int(api_id),
-            'api_hash': api_hash
-        }
-
-        return {'status': 'code_sent', 'phone': phone}
-    finally:
-        await client.disconnect()
-        print(f"🔌 Временный клиент для {phone} отключён")
-
-
-async def verify_code_with_new_client(phone, code, password=None):
-    """
-    Создаёт нового клиента и проверяет код используя сохранённый phone_code_hash.
-    """
-    if phone not in pending_verifications:
-        raise ValueError(f'Не найден phone_code_hash для {phone}. Сначала запросите код.')
-
-    data = pending_verifications[phone]
-    phone_code_hash = data['phone_code_hash']
-    api_id = data['api_id']
-    api_hash = data['api_hash']
-
-    client = TelegramClient(
-        f'session_{phone}',
-        int(api_id),
-        api_hash,
-        device_model=DEVICE_PARAMS["device_model"],
-        system_version=DEVICE_PARAMS["system_version"],
-        app_version=DEVICE_PARAMS["app_version"],
-        lang_code=DEVICE_PARAMS["lang_code"],
-        system_lang_code=DEVICE_PARAMS["system_lang_code"]
-    )
-
-    try:
-        await client.connect()
+        if await client.is_user_authorized():
+            return {
+                "status": "already_authorized"
+            }
 
         try:
-            await client.sign_in(phone=phone, code=code, phone_code_hash=phone_code_hash)
-            print(f"✅ Аккаунт {phone} успешно авторизован")
 
-            del pending_verifications[phone]
-            return {'status': 'success', 'phone': phone}
+            sent = await client.send_code_request(phone)
 
-        except SessionPasswordNeededError:
-            if password:
-                await client.sign_in(password=password)
-                print(f"✅ Аккаунт {phone} авторизован с 2FA")
-                del pending_verifications[phone]
-                return {'status': 'success', 'phone': phone}
-            else:
-                return {'status': 'password_required'}
+            return {
+                "status": "code_sent",
+                "phone_code_hash": sent.phone_code_hash
+            }
 
-        except PhoneCodeInvalidError:
-            raise ValueError('Неверный код подтверждения')
+        except FloodWaitError as e:
+            return {
+                "status": "flood_wait",
+                "wait_seconds": e.seconds
+            }
 
-        except PhoneCodeExpiredError:
-            raise ValueError('Код подтверждения истёк')
+        return {
+            "status": "code_sent"
+        }
 
     finally:
         await client.disconnect()
-        print(f"🔌 Клиент для {phone} отключён")
+
+async def verify_code_with_new_client(
+    phone,
+    code,
+    phone_code_hash,
+    password,
+    api_id,
+    api_hash,
+    session_name
+):
+    """
+    Завершает авторизацию Telegram-аккаунта.
+
+    Использует ту же session, в которую ранее был отправлен код.
+    После успешной авторизации session сохраняется на диск.
+    """
+
+    session_path = build_session_path(session_name)
+
+    client = TelegramClient(
+        session_path,
+        api_id,
+        api_hash,
+        device_model="Samsung S23 Ultra",
+        system_version="Android 13",
+        app_version="9.6.1",
+        lang_code="en",
+        system_lang_code="en-US"
+    )
+
+    try:
+        await client.connect()
+
+        if await client.is_user_authorized():
+            return {
+                "status": "success",
+                "message": "Аккаунт уже авторизован"
+            }
+
+        try:
+            await client.sign_in(
+                phone=phone,
+                code=code,
+                phone_code_hash=phone_code_hash
+            )
+
+        except SessionPasswordNeededError:
+            if not password:
+                return {
+                    "status": "password_required"
+                }
+
+            await client.sign_in(password=password)
+
+        return {
+            "status": "success"
+        }
+
+    except PhoneCodeInvalidError:
+        return {
+            "status": "invalid_code",
+            "message": "Неверный код"
+        }
+
+    except PhoneCodeExpiredError:
+        return {
+            "status": "code_expired",
+            "message": "Код истек"
+        }
+
+    except Exception as e:
+        logger.exception("Ошибка авторизации")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+    finally:
+        await client.disconnect()
 
 
 # ============================================================

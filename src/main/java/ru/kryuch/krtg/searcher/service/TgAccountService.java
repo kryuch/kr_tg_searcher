@@ -39,4 +39,5 @@ public class TgAccountService {
     public void remove(Integer id) {
         tgAccountAccessService.delete(id);
     }
+
 }
