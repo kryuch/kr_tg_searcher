@@ -92,12 +92,20 @@
     <name>partition в Kafka</name>
     <parent>Брокеры сообщений</parent>
   </group>
+    <group>
+    <name>RabbitMQ</name>
+    <parent>Брокеры сообщений</parent>
+  </group>
   <group>
     <name>Паттерны</name>
     <parent>Паттерны (родитель)</parent>
   </group>
-  <group>
+    <group>
     <name>СУБД</name>
+    <parent>SQL</parent>
+  </group>
+  <group>
+    <name>изоляция</name>
     <parent>SQL</parent>
   </group>
   <group>
@@ -115,6 +123,10 @@
   <group>
     <name>миграции</name>
     <parent>SQL</parent>
+  </group>
+    <group>
+    <name>Сборка</name>
+    <parent>DevOps</parent>
   </group>
   <group>
     <name>микросервисы</name>

@@ -1,4 +1,3 @@
-```xml
 <questions>
     <question>
         <title>В каких случаях несколько консумеров могут читать из одной партиции?</title>
@@ -126,4 +125,4 @@
         <long>Запуск задачи только на одном инстансе в кластерной среде — важная задача для предотвращения дублирования.<br/><br/><b>Способы решения:</b><br/>1. <b>Распределённые блокировки</b>:<br/>   - Использовать Redis (Redlock) или базу данных (<code>SELECT ... FOR UPDATE</code>).<br/>   - При старте задачи захватывается блокировка, после выполнения — освобождается.<br/>   - Подходит для лёгких сценариев.<br/>2. <b>Leader Election</b>:<br/>   - Использовать ZooKeeper, Consul или etcd для выбора лидера.<br/>   - Только лидер запускает задачи.<br/>   - Надёжный способ для критичных систем.<br/>3. <b>Quartz с JDBC-хранилищем</b>:<br/>   - Quartz может хранить состояние задач в БД.<br/>   - Только один инстанс выполняет задачу.<br/>   - Поддерживает кластеризацию "из коробки".<br/>4. <b>Kubernetes CronJob</b>:<br/>   - K8s гарантирует выполнение задачи только на одном поде.<br/>   - Простота и надёжность.<br/>5. <b>Внешний сервис</b>:<br/>   - Использовать облачные сервисы (AWS EventBridge, GCP Cloud Scheduler).<br/><br/><b>Пример с Redis (Redlock):</b><br/><code>redisTemplate.opsForValue().setIfAbsent("lock", "locked", Duration.ofMinutes(5))</code><br/><br/><b>Пример с Quartz:</b><br/>- Настроить <code>org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX</code>.<br/>- Использовать кластеризацию: <code>org.quartz.scheduler.instanceId = AUTO</code>.<br/><br/><b>Вывод:</b> Выбор зависит от инфраструктуры и требований к надёжности.</long>
     </question>
 </questions>
-```
+
