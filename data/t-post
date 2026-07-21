@@ -1,0 +1,304 @@
+```xml
+<questions>
+    <question>
+        <title>в чем разница между созданием ArrayList через List.of и через Array.asList? Когда можно добавлять элементы в такой лист, а когда нельзя?</title>
+        <groups>
+            <group>коллекции</group>
+        </groups>
+        <short><b>List.of</b> (Java 9+) создаёт <b>полностью неизменяемый</b> список, который нельзя модифицировать (ни добавить, ни удалить, ни изменить элемент). <b>Arrays.asList</b> (Java) создаёт <b>изменяемый</b> список, но его размер фиксирован — нельзя добавлять или удалять элементы, но можно изменять существующие через <code>set</code>.</short>
+        <long>
+            <b>Ключевые различия между List.of и Arrays.asList:</b>
+            <ul>
+                <li><b><code>List.of</code> (Java 9+):</b> Возвращает полностью неизменяемый (immutable) список. Любые попытки изменить его (<code>add</code>, <code>remove</code>, <code>set</code>) вызовут <code>UnsupportedOperationException</code>. Не позволяет добавлять <code>null</code>.</li>
+                <li><b><code>Arrays.asList</code>:</b> Возвращает список фиксированного размера (fixed-size), который является «представлением» (view) переданного массива. Нельзя добавить или удалить элементы (<code>add</code>, <code>remove</code> вызовут <code>UnsupportedOperationException</code>), но можно изменить существующие через <code>set(index, element)</code>, что также изменит исходный массив.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Если есть ArrayList и мы будем в цикле удалять элементы (вызывать remove), то будет ли ошибка для for и для foreach?</title>
+        <groups>
+            <group>коллекции</group>
+        </groups>
+        <short>Для <b>обычного <code>for</code></b> с индексом ошибки не будет при правильной логике (например, удаление в обратном порядке), но для <b>foreach</b> (<code>for (Integer i : list)</code>) или <b>итератора</b> будет выброшено <code>ConcurrentModificationException</code>, если во время итерации изменить структуру коллекции.</short>
+        <long>
+            <b>Удаление в цикле for:</b>
+            <ul>
+                <li><b><code>for (int i = 0; i &lt; list.size(); i++)</code>:</b> Ошибки не будет, если правильно управлять индексом (например, удалять с конца или уменьшать индекс после удаления).</li>
+                <li><b><code>for (Integer item : list)</code> (foreach):</b> <b>БУДЕТ ошибка.</b> Выбросится <code>ConcurrentModificationException</code>, так как foreach неявно использует итератор, а модификация коллекции во время итерации запрещена.</li>
+                <li><b>Использование <code>Iterator</code>:</b> Безопасный способ — использовать <code>Iterator.remove()</code>, который корректно удаляет элемент и не вызывает ошибки.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какие есть способы решения проблема n+1</title>
+        <groups>
+            <group>Hibernate</group>
+        </groups>
+        <short>Проблема N+1 в Hibernate решается с помощью <code>JOIN FETCH</code> в JPQL, <code>@EntityGraph</code>, настройкой размера пакетной загрузки (<code>@BatchSize</code>) или использованием <code>Hibernate.initialize()</code> для принудительной загрузки. Также можно переключить стратегию на <code>@Fetch(FetchMode.SUBSELECT)</code>.</short>
+        <long>
+            <b>Способы решения N+1:</b>
+            <ul>
+                <li><b><code>JOIN FETCH</code> в JPQL:</b> <code>SELECT u FROM User u JOIN FETCH u.orders</code> загружает все данные в одном запросе.</li>
+                <li><b><code>@EntityGraph</code>:</b> Позволяет динамически определять, какие ассоциации загружать.</li>
+                <li><b><code>@BatchSize</code>:</b> Уменьшает количество запросов, загружая коллекции по несколько штук.</li>
+                <li><b><code>@Fetch(FetchMode.SUBSELECT)</code>:</b> Hibernate загружает коллекции одним дополнительным запросом для всех родительских сущностей.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какие проблемы возникают если мы хотим сделать постраничные запросы (пагинацию)</title>
+        <groups>
+            <group>Hibernate</group>
+        </groups>
+        <short>Основные проблемы при пагинации в Hibernate: <b>проблема N+1</b> (загрузка коллекций при каждом запросе), <b>потеря порядка</b> при использовании <code>JOIN FETCH</code> с <code>distinct</code>, и проблема с <b>глубокой пагинацией</b> (пропуск большого количества строк). Также могут быть проблемы с производительностью при использовании <code>JOIN FETCH</code> для коллекций.</short>
+        <long>
+            <b>Основные проблемы пагинации:</b>
+            <ul>
+                <li><b>Проблема N+1:</b> При пагинации каждый запрос может вызывать дополнительные запросы для коллекций.</li>
+                <li><b>Потеря порядка:</b> Использование <code>JOIN FETCH</code> с коллекциями и <code>distinct</code> может нарушить пагинацию, так как Hibernate не всегда корректно обрабатывает сложные join-запросы.</li>
+                <li><b>Глубокая пагинация:</b> <code>LIMIT 10000, 10</code> требует от БД пропуска 10000 строк, что на больших таблицах может быть очень медленно.</li>
+                <li><b>Решение:</b> Использовать <code>@BatchSize</code> или <code>@Fetch(FetchMode.SUBSELECT)</code> для коллекций, а также применять Keyset Pagination.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>какие есть стратегии кеширования?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short>Основные стратегии кеширования: <b>Cache-Aside</b>, <b>Read-Through</b>, <b>Write-Through</b>, <b>Write-Behind</b>, <b>Refresh-Ahead</b>. Каждая стратегия определяет, когда данные записываются или читаются из кеша и как синхронизируется с основным источником данных. <b>Cache-Aside</b> — самый популярный для микросервисов.</short>
+        <long>
+            <b>Стратегии кеширования:</b>
+            <ul>
+                <li><b>Cache-Aside (Lazy Loading):</b> Код сначала проверяет кеш. Если данных нет — загружает из БД и записывает в кеш. Актуально для read-heavy сценариев.</li>
+                <li><b>Read-Through:</b> Кеш сам загружает данные из БД при промахе. Код обращается только к кешу, а не к БД напрямую.</li>
+                <li><b>Write-Through:</b> Запись в кеш и БД происходит одновременно. Данные всегда согласованы, но операция записи становится синхронной.</li>
+                <li><b>Write-Behind (Write-Back):</b> Запись сначала происходит в кеш, а затем асинхронно в БД. Улучшает производительность записи, но есть риск потери данных при сбое.</li>
+                <li><b>Refresh-Ahead:</b> Активно обновляет кеш перед истечением TTL, чтобы избежать промахов.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>как можно предотвратить ситуацию, когда пользователь шлет к сервису очень много запросов?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short>Для защиты от избыточных запросов используются: <b>Rate Limiting</b> (ограничение количества запросов на пользователя или IP), <b>Circuit Breaker</b> (предотвращение каскадных отказов), <b>Bulkhead</b> (изоляция ресурсов) и <b>Throttling</b>.</short>
+        <long>
+            <b>Методы защиты:</b>
+            <ul>
+                <li><b>Rate Limiting:</b> Ограничение числа запросов от одного источника за единицу времени. Реализуется через паттерны Token Bucket или Leaky Bucket.</li>
+                <li><b>Circuit Breaker:</b> Предотвращает перегрузку системы, «отключая» вызовы к проблемному сервису при превышении порога ошибок.</li>
+                <li><b>Bulkhead:</b> Изолирует ресурсы (пулы потоков, соединения), чтобы один пользователь не мог «съесть» все ресурсы системы.</li>
+                <li><b>Аутентификация и API Keys:</b> Мониторинг и ограничение доступа по ключам.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какая будет проблема если разом очистится весь кеш и к базе пойдут много запросов? Как эту проблему решить?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short>Это явление называется <b>Cache Stampede</b> или <b>Thundering Herd</b>. При одновременной очистке кеша все запросы устремляются к БД, создавая пиковую нагрузку и потенциально вызывая её перегрузку. Решения: использование <b>асинхронного пересчёта кеша</b>, <b>плавная</b> инвалидация, <b>блокировки</b> (только один поток заполняет кеш) и <b>Refresh-Ahead</b>.</short>
+        <long>
+            <b>Проблема:</b>
+            Когда весь кеш очищается (например, при перезапуске), тысячи запросов одновременно обращаются к базе данных. Это может вызвать её перегрузку и, как следствие, падение всей системы.
+
+            <b>Решения:</b>
+            <ul>
+                <li><b>Блокировка при заполнении:</b> Один поток получает блокировку и пересчитывает кеш, остальные ждут (или получают старый закешированный ответ).</li>
+                <li><b>Асинхронное обновление:</b> Возвращать старые данные из кеша, пока в фоне обновляется новый.</li>
+                <li><b>Refresh-Ahead:</b> Кеш автоматически обновляется до истечения TTL.</li>
+                <li><b>Постепенная инвалидация:</b> Не удалять кеш полностью сразу, а обновлять его частями (например, по категориям).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что дал SpringBoot по сравнению со Spring?</title>
+        <groups>
+            <group>Spring</group>
+        </groups>
+        <short>Spring Boot — это не отдельный фреймворк, а мощное расширение Spring, призванное максимально упростить его использование. Он основан на философии «соглашение над конфигурацией» и предоставляет встроенные серверы, авто-конфигурации и готовые стартеры, что позволяет создавать production-ready приложения с минимальными усилиями.</short>
+        <long>
+            <b>Ключевые преимущества Spring Boot:</b>
+            <ul>
+                <li><b>Автоконфигурация:</b> Spring Boot автоматически настраивает бины на основе зависимостей в classpath.</li>
+                <li><b>Стартеры:</b> Упрощают управление зависимостями (<code>spring-boot-starter-web</code>, <code>spring-boot-starter-data-jpa</code>).</li>
+                <li><b>Встроенный сервер:</b> Приложение упаковывается в исполняемый JAR с встроенным Tomcat/Jetty.</li>
+                <li><b>Production-ready:</b> Встроенные метрики, health checks, externalized configuration.</li>
+                <li><b>Упрощение конфигурации:</b> Минимизация XML и Java-конфигураций.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какой жизненный цикл бина? На каком этапе добавляется Proxy</title>
+        <groups>
+            <group>Spring</group>
+        </groups>
+        <short>Жизненный цикл бина в Spring: Инстанцирование → Заполнение свойств → Вызов <code>@PostConstruct</code> → Инициализация → Использование → Уничтожение. Прокси добавляется на этапе <b>после инициализации</b> (Post-Initialization), когда создаётся объект <code>BeanPostProcessor</code>, оборачивающий исходный бин.</short>
+        <long>
+            <b>Этапы жизненного цикла:</b>
+            <ol>
+                <li><b>Инстанцирование:</b> Создание экземпляра бина.</li>
+                <li><b>Заполнение свойств:</b> Внедрение зависимостей.</li>
+                <li><b>Вызов <code>@PostConstruct</code>.</b></li>
+                <li><b>Инициализация:</b> <code>InitializingBean.afterPropertiesSet()</code> или <code>init-method</code>.</li>
+                <li><b>Обработка <code>BeanPostProcessor.postProcessAfterInitialization</code>:</b> На этом этапе создаётся <b>прокси</b> для бина (например, для <code>@Transactional</code> или AOP).</li>
+                <li><b>Использование:</b> Бин готов к работе.</li>
+                <li><b>Уничтожение:</b> <code>@PreDestroy</code>, <code>DisposableBean.destroy()</code>.</li>
+            </ol>
+        </long>
+    </question>
+
+    <question>
+        <title>Как связаны Entity и DataValue?</title>
+        <groups>
+            <group>Spring</group>
+        </groups>
+        <short>В контексте Spring Data JPA <b>Entity</b> — это класс, отображаемый на таблицу БД (JPA), а <b>DataValue</b> (или DTO) — это объект для передачи данных между слоями приложения. Обычно Entity используется для работы с БД, а DataValue — для ответов API, чтобы не «светить» внутреннюю структуру и избежать проблем с Lazy Loading.</short>
+        <long>
+            <b>Разница между Entity и DataValue (DTO):</b>
+            <ul>
+                <li><b>Entity:</b> Имеет связь с БД, аннотируется <code>@Entity</code>, поддерживает Lazy Loading, управляется Hibernate. Может быть изменён и сохранён обратно в БД.</li>
+                <li><b>DataValue (DTO):</b> Не имеет связей с БД, предназначен для передачи данных через сеть (API). Обычно immutable (с помощью Records в Java).</li>
+                <li><b>Как связаны:</b> Сервис загружает Entity из БД, преобразует его в DTO (например, через MapStruct) и возвращает клиенту. Это изолирует внутреннюю структуру данных от внешнего API.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что находится под капотом у сущности @Repository</title>
+        <groups>
+            <group>Spring</group>
+        </groups>
+        <short>Аннотация <code>@Repository</code> является маркером для Spring Data, указывающим на то, что класс является DAO (Data Access Object). Она позволяет Spring автоматически создавать реализации репозиториев на основе интерфейсов с помощью <b>JDK Dynamic Proxy</b>, а также преобразовывать исключения БД в иерархию <code>DataAccessException</code>.</short>
+        <long>
+            <b>Под капотом @Repository:</b>
+            <ul>
+                <li><b>Создание прокси:</b> Spring создаёт прокси-объект, который реализует интерфейс репозитория.</li>
+                <li><b>Преобразование исключений:</b> Любое низкоуровневое исключение (например, SQLException) преобразуется в <code>DataAccessException</code> через <code>PersistenceExceptionTranslationPostProcessor</code>.</li>
+                <li><b>Генерация запросов:</b> Spring Data автоматически генерирует SQL-запросы на основе названий методов (<code>findByName</code>, <code>findByAgeGreaterThan</code>).</li>
+                <li><b>Управление транзакциями:</b> Если метод аннотирован <code>@Transactional</code>, транзакции управляются через AOP.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое record в java и зачем он нужен?</title>
+        <groups>
+            <group>Core</group>
+        </groups>
+        <short><b>Record</b> — это новый тип классов в Java (начиная с Java 14), предназначенный для создания простых, неизменяемых (immutable) классов-носителей данных. <code>record</code> автоматически генерирует конструктор, <code>equals()</code>, <code>hashCode()</code> и <code>toString()</code>, уменьшая количество шаблонного кода. Он идеален для DTO (Data Transfer Objects) и Value Objects.</short>
+        <long>
+            <b>Особенности Record:</b>
+            <ul>
+                <li><b>Неизменяемость:</b> Все поля в Record являются <code>final</code>. Значение не может быть изменено после создания.</li>
+                <li><b>Автоматическая генерация:</b> Компилятор генерирует конструктор со всеми параметрами, аксессоры (геттеры), <code>equals()</code>, <code>hashCode()</code> и <code>toString()</code>.</li>
+                <li><b>Предназначение:</b> Идеально подходит для DTO, которые передают данные между слоями приложения или через сеть.</li>
+                <li><b>Отличие от класса:</b> Record не может наследовать другие классы (но может имплементировать интерфейсы) и не может быть расширен.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как создать полностью иммутабельный класс?</title>
+        <groups>
+            <group>Core</group>
+        </groups>
+        <short>Чтобы создать полностью иммутабельный класс в Java, необходимо: сделать класс <code>final</code>, все поля <code>private final</code>, не предоставлять сеттеры, гарантировать глубокую копию для изменяемых полей в конструкторе и геттерах. Также убедиться, что методы не изменяют состояние объекта.</short>
+        <long>
+            <b>Правила создания иммутабельного класса:</b>
+            <ul>
+                <li>Объявить класс как <code>final</code> (чтобы нельзя было расширить).</li>
+                <li>Все поля должны быть <code>private final</code>.</li>
+                <li>Не предоставлять сеттеры.</li>
+                <li>Если поле является изменяемым (например, <code>Date</code> или <code>List</code>), в конструкторе создавать его глубокую копию, а не сохранять переданную ссылку.</li>
+                <li>В геттерах для изменяемых объектов возвращать копию (клонировать объект).</li>
+                <li>Убедиться, что методы класса не изменяют состояние объекта.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Для чего в дженериках используется слово extend?</title>
+        <groups>
+            <group>Core</group>
+        </groups>
+        <short>Ключевое слово <code>extends</code> в дженериках используется для <b>ограничения верхней границы</b> (upper bound). Оно указывает, что тип может быть либо указанным классом, либо любым его подклассом. Например, <code>&lt;T extends Number&gt;</code> ограничивает T только числовыми типами. Это позволяет использовать методы из базового класса, сохраняя типобезопасность.</short>
+        <long>
+            <b>Использование extends:</b>
+            <ul>
+                <li><b>Ограничение типа:</b> <code>&lt;T extends Number&gt;</code> — T может быть <code>Integer</code>, <code>Double</code> или любым наследником <code>Number</code>.</li>
+                <li><b>Wildcard с extends:</b> <code>List&lt;? extends Number&gt;</code> — это список, который может содержать любой тип, наследующий <code>Number</code>.</li>
+                <li><b>Для методов:</b> <code>public &lt;T extends Comparable&lt;T&gt;&gt; T max(T a, T b)</code> — гарантирует, что тип реализует <code>Comparable</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какие есть типы данных в PostgreSQL?</title>
+        <groups>
+            <group>PostgreSQL</group>
+        </groups>
+        <short>PostgreSQL поддерживает широкий спектр типов данных: <b>числовые</b> (<code>INT</code>, <code>BIGINT</code>, <code>DECIMAL</code>), <b>строковые</b> (<code>VARCHAR</code>, <code>TEXT</code>), <b>дата/время</b> (<code>TIMESTAMP</code>, <code>DATE</code>), <b>JSON/JSONB</b> для работы с документами, <b>массивы</b>, <b>геометрические</b> типы (<code>POINT</code>, <code>POLYGON</code>), <b>сетевые</b> (<code>INET</code>, <code>CIDR</code>) и даже <b>пользовательские</b> типы (ENUM, составные типы).</short>
+        <long>
+            <b>Основные категории типов данных в PostgreSQL:</b>
+            <ul>
+                <li><b>Числовые:</b> <code>SMALLINT</code>, <code>INTEGER</code>, <code>BIGINT</code>, <code>DECIMAL</code>, <code>NUMERIC</code>, <code>REAL</code>, <code>DOUBLE PRECISION</code>.</li>
+                <li><b>Строковые:</b> <code>CHAR(n)</code>, <code>VARCHAR(n)</code>, <code>TEXT</code>.</li>
+                <li><b>Дата/время:</b> <code>DATE</code>, <code>TIME</code>, <code>TIMESTAMP</code>, <code>INTERVAL</code>.</li>
+                <li><b>JSON:</b> <code>JSON</code>, <code>JSONB</code> (бинаризованный, с индексами).</li>
+                <li><b>Массивы:</b> <code>INT[]</code>, <code>TEXT[]</code> и т.д.</li>
+                <li><b>Геометрические:</b> <code>POINT</code>, <code>LINE</code>, <code>POLYGON</code>, <code>CIRCLE</code>.</li>
+                <li><b>Сетевые:</b> <code>INET</code>, <code>CIDR</code>, <code>MACADDR</code>.</li>
+                <li><b>Специализированные:</b> <code>UUID</code>, <code>XML</code>, <code>HSTORE</code> (ключ-значение).</li>
+                <li><b>Пользовательские:</b> <code>CREATE TYPE</code> для создания ENUM или составных типов.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какие есть типы ограничений в PostgreSQL?</title>
+        <groups>
+            <group>PostgreSQL</group>
+        </groups>
+        <short>PostgreSQL поддерживает несколько типов ограничений (constraints) для обеспечения целостности данных: <b>PRIMARY KEY</b> (уникальный идентификатор), <b>FOREIGN KEY</b> (внешний ключ), <b>UNIQUE</b> (уникальность), <b>CHECK</b> (проверка условий), <b>NOT NULL</b> (обязательность поля), <b>EXCLUSION</b> (исключающие ограничения). Также есть <b>DEFAULT</b> (значение по умолчанию).</short>
+        <long>
+            <b>Типы ограничений в PostgreSQL:</b>
+            <ul>
+                <li><b><code>PRIMARY KEY</code>:</b> Уникальный идентификатор таблицы. Автоматически создаёт уникальный индекс и запрещает NULL.</li>
+                <li><b><code>FOREIGN KEY</code>:</b> Ограничение ссылочной целостности (связь с другой таблицей).</li>
+                <li><b><code>UNIQUE</code>:</b> Гарантирует уникальность значений в столбце или группе столбцов.</li>
+                <li><b><code>CHECK</code>:</b> Проверяет условие для каждой строки (например, <code>age &gt; 0</code>).</li>
+                <li><b><code>NOT NULL</code>:</b> Запрещает NULL-значения в столбце.</li>
+                <li><b><code>EXCLUSION</code>:</b> Гарантирует, что определенные комбинации значений не повторяются (например, для диапазонов).</li>
+                <li><b><code>DEFAULT</code>:</b> Устанавливает значение по умолчанию для столбца.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>В чем отличия EXPLAIN от EXPLAIN ANALYSE</title>
+        <groups>
+            <group>PostgreSQL</group>
+        </groups>
+        <short><code>EXPLAIN</code> показывает <b>план выполнения запроса</b>, который планировщик PostgreSQL <b>предполагает</b> использовать, основываясь на статистике таблиц. <code>EXPLAIN ANALYZE</code> <b>реально выполняет запрос</b> и показывает фактический план выполнения, включая реальные времена выполнения и количество обработанных строк. <code>EXPLAIN ANALYZE</code> даёт более точную информацию, но изменяет состояние базы данных (для INSERT/UPDATE) и добавляет накладные расходы.</short>
+        <long>
+            <b>Разница между EXPLAIN и EXPLAIN ANALYZE:</b>
+            <ul>
+                <li><b><code>EXPLAIN</code>:</b> Только планирует запрос, не выполняя его. Показывает предполагаемый план, основанный на статистике. Не изменяет данные.</li>
+                <li><b><code>EXPLAIN ANALYZE</code>:</b> Фактически выполняет запрос и показывает реальный план выполнения, включая реальные времена (<code>actual time</code>), количество строк (<code>rows</code>) и другие метрики. Добавляет накладные расходы на выполнение.</li>
+                <li><b>Когда использовать:</b> Для анализа производительности всегда предпочтительнее <code>EXPLAIN ANALYZE</code>, так как он показывает реальное поведение. <code>EXPLAIN</code> полезен для быстрой проверки плана без изменения данных.</li>
+            </ul>
+        </long>
+    </question>
+</questions>
+```
