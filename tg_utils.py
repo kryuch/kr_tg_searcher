@@ -47,33 +47,40 @@ DEVICE_PARAMS = {
 # ============================================================
 
 # {phone: {'phone_code_hash': str, 'api_id': int, 'api_hash': str}}
-pending_verifications = {}
-
 
 # ============================================================
-#  ФУНКЦИИ ДЛЯ РАБОТЫ С СЕССИЯМИ И КЛИЕНТАМИ
+#  ПУЛ TELEGRAM-КЛИЕНТОВ
 # ============================================================
 
-def get_session_name(account_id):
-    """Возвращает уникальное имя сессии для каждого потока."""
-    thread_name = threading.current_thread().name.replace('-', '_').replace(' ', '_')
-    return f'session_{account_id}_{thread_name}'
+telegram_clients = {}
+telegram_locks = {}
 
 
-async def get_client_and_connect(account_id, account_configs):
-    """Создаёт клиента, подключает и авторизует."""
-    if account_id not in account_configs:
-        raise ValueError(f'Аккаунт {account_id} не инициализирован')
+async def get_client(account_id: str, account_configs: dict):
+    """
+    Возвращает единственный TelegramClient для аккаунта.
+    Если клиента нет — создает и подключает.
+    """
+
+    account_id = str(account_id)
+
+    if account_id in telegram_clients:
+        client = telegram_clients[account_id]
+
+        if client.is_connected():
+            return client
+
+        await client.connect()
+        return client
 
     config = account_configs[account_id]
-    session_name = get_session_name(account_id)
 
-    print(f"🔄 Создание клиента с сессией {session_name} для потока {threading.current_thread().name}")
+    session_path = build_session_path(f"account_{account_id}")
 
     client = TelegramClient(
-        session_name,
-        config['api_id'],
-        config['api_hash'],
+        session_path,
+        config["api_id"],
+        config["api_hash"],
         device_model=DEVICE_PARAMS["device_model"],
         system_version=DEVICE_PARAMS["system_version"],
         app_version=DEVICE_PARAMS["app_version"],
@@ -82,67 +89,48 @@ async def get_client_and_connect(account_id, account_configs):
     )
 
     await client.connect()
+
     if not await client.is_user_authorized():
-        await client.start(config['phone'])
-        print(f"✅ Аккаунт {account_id} авторизован в сессии {session_name}")
+        raise RuntimeError(f"Аккаунт {account_id} не авторизован")
+
+    telegram_clients[account_id] = client
+    telegram_locks[account_id] = asyncio.Lock()
+
+    logger.info("Telegram client %s created", account_id)
 
     return client
 
-
 async def execute_telegram_action(
-        account_id: str,
-        account_configs: dict,
+        account_id,
+        account_configs,
         action,
         *args,
         **kwargs
 ):
     """
-    Выполняет любую операцию Telegram для указанного аккаунта.
+    Выполняет действие через единственный клиент аккаунта.
 
-    Пример:
-
-        await execute_telegram_action(
-            account_id,
-            account_configs,
-            search_chats,
-            params
-        )
-
-    В action первым параметром всегда передается client.
+    Для каждого аккаунта одновременно выполняется
+    только одна операция.
     """
 
-    config = account_configs.get(str(account_id))
-    if config is None:
-        raise ValueError(f"Аккаунт {account_id} не найден")
+    account_id = str(account_id)
 
-    session_name = f"account_{account_id}"
-    session_path = build_session_path(session_name)
+    client = await get_client(account_id, account_configs)
 
-    client = TelegramClient(
-        session_path,
-        config["api_id"],
-        config["api_hash"],
-        device_model="Samsung S23 Ultra",
-        system_version="Android 13",
-        app_version="9.6.1",
-        lang_code="en",
-        system_lang_code="en-US"
-    )
+    lock = telegram_locks[account_id]
 
-    try:
-        await client.connect()
+    async with lock:
 
-        if not await client.is_user_authorized():
-            raise RuntimeError(
-                f"Аккаунт {account_id} не авторизован"
-            )
+        if client.is_connected():
+            try:
+                await client.get_me()
+            except Exception:
+                await client.connect()
+        else:
+            await client.connect()
 
         return await action(client, *args, **kwargs)
-
-    finally:
-        if client.is_connected():
-            await client.disconnect()
-
 
 # ============================================================
 #  ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ (С СОХРАНЕНИЕМ PHONE_CODE_HASH)
@@ -194,14 +182,11 @@ async def request_code_internal(
                 "wait_seconds": e.seconds
             }
 
-        return {
-            "status": "code_sent"
-        }
-
     finally:
         await client.disconnect()
 
 async def verify_code_with_new_client(
+    account_id,
     phone,
     code,
     phone_code_hash,
@@ -233,7 +218,18 @@ async def verify_code_with_new_client(
     try:
         await client.connect()
 
+        old = telegram_clients.pop(account_id, None)
+
+        if old:
+            try:
+                await old.disconnect()
+            except:
+                pass
+
+        telegram_locks.pop(account_id, None)
+
         if await client.is_user_authorized():
+
             return {
                 "status": "success",
                 "message": "Аккаунт уже авторизован"
@@ -547,3 +543,18 @@ async def get_chats_info(client, chat_ids, max_concurrent=5):
 
     results = await asyncio.gather(*tasks)
     return results
+
+async def shutdown_clients():
+    """
+    Корректно закрывает все TelegramClient.
+    """
+
+    for client in telegram_clients.values():
+        try:
+            if client.is_connected():
+                await client.disconnect()
+        except Exception:
+            logger.exception("Cannot disconnect client")
+
+    telegram_clients.clear()
+    telegram_locks.clear()
