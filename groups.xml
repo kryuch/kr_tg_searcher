@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<groups>
+  <group>
+    <name>AOP</name>
+    <parent>Паттерны</parent>
+  </group>
+  <group>
+    <name>Cassandra</name>
+    <parent>noSQL</parent>
+  </group>
+  <group>
+    <name>Docker</name>
+    <parent>DevOps</parent>
+  </group>
+  <group>
+    <name>Elasticsearch</name>
+    <parent>Кеширование</parent>
+  </group>
+  <group>
+    <name>GitLab</name>
+    <parent>GitLab (родитель)</parent>
+  </group>
+  <group>
+    <name>Grafana</name>
+    <parent>Аналитика</parent>
+  </group>
+  <group>
+    <name>HashMap</name>
+    <parent>Коллекции</parent>
+  </group>
+  <group>
+    <name>Hbase</name>
+    <parent>noSQL</parent>
+  </group>
+  <group>
+    <name>Kafka</name>
+    <parent>Брокеры сообщений</parent>
+  </group>
+  <group>
+    <name>Kotlin</name>
+    <parent>Kotlin (родитель)</parent>
+  </group>
+  <group>
+    <name>Kubernetes</name>
+    <parent>DevOps</parent>
+  </group>
+  <group>
+    <name>PostgreSQL</name>
+    <parent>SQL</parent>
+  </group>
+  <group>
+    <name>Prometheus</name>
+    <parent>Аналитика</parent>
+  </group>
+  <group>
+    <name>Redis</name>
+    <parent>Кеширование</parent>
+  </group>
+  <group>
+    <name>SOLID</name>
+    <parent>Паттерны</parent>
+  </group>
+  <group>
+    <name>Spring</name>
+    <parent>Java Spring</parent>
+  </group>
+  <group>
+    <name>Spring Cache</name>
+    <parent>Java Spring</parent>
+  </group>
+  <group>
+    <name>Spring Security</name>
+    <parent>Java Spring</parent>
+  </group>
+  <group>
+    <name>cron</name>
+    <parent>Cron (родитель)</parent>
+  </group>
+  <group>
+    <name>partition в Kafka</name>
+    <parent>Брокеры сообщений</parent>
+  </group>
+  <group>
+    <name>Паттерны</name>
+    <parent>Паттерны (родитель)</parent>
+  </group>
+  <group>
+    <name>СУБД</name>
+    <parent>SQL</parent>
+  </group>
+  <group>
+    <name>брокеры сообщений</name>
+    <parent>Брокеры сообщений</parent>
+  </group>
+  <group>
+    <name>индексы</name>
+    <parent>SQL</parent>
+  </group>
+  <group>
+    <name>коллекции</name>
+    <parent>Java Core</parent>
+  </group>
+  <group>
+    <name>миграции</name>
+    <parent>SQL</parent>
+  </group>
+  <group>
+    <name>микросервисы</name>
+    <parent>микросервисы (родитель)</parent>
+  </group>
+  <group>
+    <name>потоки</name>
+    <parent>потоки (родитель)</parent>
+  </group>
+  <group>
+    <name>реактивность</name>
+    <parent>реактивность (родитель)</parent>
+  </group>
+</groups>
