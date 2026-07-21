@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <groups>
   <group>
+    <name>JVM</name>
+    <parent>Java-машина</parent>
+  </group>
+    <group>
+    <name>GB</name>
+    <parent>Java-машина</parent>
+  </group>
+      <group>
+    <name>Java Core</name>
+    <parent>Java Core (родитель)</parent>
+  </group>
+  <group>
     <name>AOP</name>
-    <parent>Паттерны</parent>
+    <parent>Паттерны (родитель)</parent>
   </group>
   <group>
     <name>Cassandra</name>
@@ -18,7 +30,7 @@
   </group>
   <group>
     <name>GitLab</name>
-    <parent>GitLab (родитель)</parent>
+    <parent>DevOps</parent>
   </group>
   <group>
     <name>Grafana</name>
@@ -26,7 +38,7 @@
   </group>
   <group>
     <name>HashMap</name>
-    <parent>Коллекции</parent>
+    <parent>Java Core (родитель)</parent>
   </group>
   <group>
     <name>Hbase</name>
@@ -58,7 +70,7 @@
   </group>
   <group>
     <name>SOLID</name>
-    <parent>Паттерны</parent>
+    <parent>Паттерны (родитель)</parent>
   </group>
   <group>
     <name>Spring</name>
@@ -98,7 +110,7 @@
   </group>
   <group>
     <name>коллекции</name>
-    <parent>Java Core</parent>
+    <parent>Java Core (родитель)</parent>
   </group>
   <group>
     <name>миграции</name>
