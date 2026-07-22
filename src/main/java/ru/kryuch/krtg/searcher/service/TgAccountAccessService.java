@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
 import ru.kryuch.krtg.searcher.mapper.TgAccountMapper;
@@ -13,6 +14,7 @@ public class TgAccountAccessService extends AbstractAccessService <Integer, TgAc
         super(tgAccountRepository, tgAccountMapper, "телеграмм-аккаунт");
     }
 
+    @Transactional
     public void setAuth(Integer id) {
         ((TgAccountRepository)repository).setAuth(id);
     }

@@ -1079,3 +1079,7 @@ button.save#filter {
 .tgaccount_true {
     background-color: #4AB6EC;
 }
+
+.tgaccount_true #auth{
+    display: none;
+}

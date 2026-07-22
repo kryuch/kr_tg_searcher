@@ -143,10 +143,12 @@ async def request_code_internal(
 ):
     """
     Создает временный клиент и отправляет код авторизации.
-    После отправки клиент отключается, а session-файл остается.
     """
-
     session_path = build_session_path(session_name)
+
+    logger.info(f"📱 Запрос кода для телефона: {phone}")
+    logger.info(f"🔑 Используется сессия: {session_path}")
+    logger.info(f"🆔 API ID: {api_id}")
 
     client = TelegramClient(
         session_path,
@@ -160,30 +162,58 @@ async def request_code_internal(
     )
 
     try:
+        logger.debug("🔗 Подключение к Telegram...")
         await client.connect()
+        logger.debug("✅ Подключение установлено")
 
-        if await client.is_user_authorized():
-            return {
-                "status": "already_authorized"
+        is_authorized = await client.is_user_authorized()
+        logger.debug(f"🔐 Статус авторизации: {is_authorized}")
+
+        # ============================================================
+        # ГЛАВНОЕ ИСПРАВЛЕНИЕ: возвращаем authorised=True
+        # ============================================================
+        if is_authorized:
+            logger.info(f"✅ Аккаунт {phone} уже авторизован")
+            response = {
+                "success": True,
+                "authorised": True,
+                "error": None,
+                "wait_seconds": None
             }
+            logger.info(f"📤 Python ответ: {response}")
+            return response
 
         try:
-
             sent = await client.send_code_request(phone)
+            logger.info(f"✅ Код успешно отправлен на {phone}")
+            logger.debug(f"📋 phone_code_hash: {sent.phone_code_hash}")
 
             return {
                 "status": "code_sent",
+                "authorised": False,
                 "phone_code_hash": sent.phone_code_hash
             }
 
         except FloodWaitError as e:
+            logger.warning(f"⏳ FloodWait: необходимо подождать {e.seconds} секунд для {phone}")
             return {
                 "status": "flood_wait",
+                "authorised": False,
                 "wait_seconds": e.seconds
             }
 
+        except Exception as e:
+            logger.error(f"❌ Ошибка при отправке кода для {phone}: {type(e).__name__}: {e}")
+            raise
+
+    except Exception as e:
+        logger.error(f"❌ Критическая ошибка в request_code_internal для {phone}: {type(e).__name__}: {e}")
+        raise
+
     finally:
+        logger.debug(f"🔌 Отключение клиента для {phone}...")
         await client.disconnect()
+        logger.debug(f"✅ Клиент для {phone} отключён")
 
 async def verify_code_with_new_client(
     account_id,
