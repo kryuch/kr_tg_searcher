@@ -4,7 +4,7 @@
           class="edit-form form-horizontal"
           method="post">
         <table class="list">
-            <tr>
+            <tr style="display: none">
                 <td>
                     <label for="id">ID приложения</label>
                 </td>
@@ -45,7 +45,7 @@
                     <label for="description">Описание</label>
                 </td>
                 <td>
-                    <input type="text" th:field="*{description}" id="description" placeholder="ID приложения">
+                    <input type="text" th:field="*{description}" id="description" placeholder="Описание">
                     <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
                 </td>
            </tr>

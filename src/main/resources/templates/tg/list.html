@@ -24,9 +24,9 @@
                 <td><span th:text="${tgItem.appId}"> Приложение </span></td>
                 <td><span th:text="${tgItem.appHash}"> Хеш </span></td>
                 <td class="settingbuttons">
-                    <a class="btn-save" th:href="@{/tg/{id}/edit(id=${tgItem.id})}">Изменить</a>
-                    <a class="btn-save" th:href="@{/tg/{id}/remove(id=${tgItem.id})}">Удалить</a>
-                    <a class="btn-save" th:href="@{/tg/{id}/auth(id=${tgItem.id})}">Авторизоваться</a>
+                    <a id="edit" class="btn-save" th:href="@{/tg/{id}/edit(id=${tgItem.id})}">Изменить</a>
+                    <a id="remove" class="btn-save" th:href="@{/tg/{id}/remove(id=${tgItem.id})}">Удалить</a>
+                    <a id="auth" class="btn-save" th:href="@{/tg/{id}/auth(id=${tgItem.id})}">Авторизоваться</a>
                 </td>
             </tr>
         </th:block>
