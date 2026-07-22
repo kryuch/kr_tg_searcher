@@ -33,6 +33,42 @@ function deleteCookie(name) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 }
 
+// ============================================================
+// Функции для показа/скрытия спиннера
+// ============================================================
+
+function showLoading(button) {
+    // Сохраняем оригинальный текст
+    var $btn = $(button);
+    if (!$btn.data('original-text')) {
+        $btn.data('original-text', $btn.text());
+    }
+
+    // Отключаем кнопку и показываем спиннер
+    $btn.prop('disabled', true);
+    $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Загрузка...');
+
+    // Добавляем overlay на всю страницу (опционально)
+    if (!$('#loading-overlay').length) {
+        $('body').append('<div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:9999;display:none;"></div>');
+    }
+    $('#loading-overlay').show();
+}
+
+function hideLoading(button) {
+    var $btn = $(button);
+    var originalText = $btn.data('original-text') || $btn.text();
+    $btn.prop('disabled', false);
+    $btn.text(originalText);
+    $btn.removeData('original-text');
+
+    $('#loading-overlay').hide();
+}
+
+// ============================================================
+// Функции для работы с фильтрами (без изменений)
+// ============================================================
+
 function applyFilter() {
     var formData = {
         term: document.getElementById('term')?.value || '',
@@ -63,7 +99,7 @@ function applyFilter() {
 // ============================================================
 
 function saveSearchParamsToCookies(params) {
-    setCookie('searchParams', params, 30); // храним 30 дней
+    setCookie('searchParams', params, 30);
 }
 
 function loadSearchParamsFromCookies() {
@@ -99,7 +135,6 @@ function restoreSearchParamsFromCookies() {
 
     if (params.tgAccountIds && params.tgAccountIds.length > 0) {
         jQuery("#tgAccounts").val(params.tgAccountIds);
-        // Обновляем отображение мультиселекта
         jQuery("#tgAccounts").multiselect('refresh');
     }
 }
@@ -127,12 +162,17 @@ function getSelectedItems() {
 }
 
 // ============================================================
-// Функция formSubmit (без изменений)
+// Функция formSubmit с поддержкой спиннера
 // ============================================================
 
-function formSubmit(url, func) {
+function formSubmit(url, func, button) {
     var selectedChats = getSelectedItems();
     if (selectedChats == null) return;
+
+    // Показываем спиннер на кнопке
+    if (button) {
+        showLoading(button);
+    }
 
     var form = $('<form>', {
         action: url,
@@ -159,6 +199,14 @@ function formSubmit(url, func) {
 
     $('body').append(form);
     form.submit();
+
+    // Скрываем спиннер через некоторое время (форма отправлена, но ответ ещё не пришёл)
+    // Спиннер скроется после загрузки страницы
+    setTimeout(function() {
+        if (button) {
+            hideLoading(button);
+        }
+    }, 5000);
 }
 
 // ============================================================
@@ -188,12 +236,12 @@ jQuery(document).ready(function () {
 
     $("#toFolder").click(function (e) {
         e.preventDefault();
-        formSubmit('/chat/toFolder');
+        formSubmit('/chat/toFolder', null, this);
     });
 
     $("#fromFolder").click(function (e) {
         e.preventDefault();
-        formSubmit('/chat/fromFolder');
+        formSubmit('/chat/fromFolder', null, this);
     });
 
     $("#sendMessage").click(function (e) {
@@ -213,7 +261,7 @@ jQuery(document).ready(function () {
                 name: 'message',
                 value: message
             }).appendTo(form);
-        });
+        }, this);
     });
 
     $("#export").click(function (e) {
@@ -224,13 +272,21 @@ jQuery(document).ready(function () {
             var originalText = $btn.text();
             $btn.text('Экспорт...').prop('disabled', true);
             $btn.text(originalText).prop('disabled', false);
-        });
+        }, this);
     });
+
+    // ============================================================
+    // 3. ОБРАБОТЧИК ФИЛЬТРА (со спиннером)
+    // ============================================================
 
     var action = "/chat/search";
 
     jQuery("#filter").click(function (e) {
         e.preventDefault();
+
+        // Показываем спиннер на кнопке
+        var $btn = $(this);
+        showLoading($btn);
 
         // Собираем данные формы
         var formData = {
@@ -248,10 +304,11 @@ jQuery(document).ready(function () {
         // Проверка выбора ТГ-аккаунтов
         if (jQuery("#tgAccounts").val().length == 0) {
             alert("Необходимо выбрать ТГ-аккаунты");
+            hideLoading($btn);
             return false;
         }
 
-        // СОХРАНЯЕМ ПАРАМЕТРЫ В COOKIES
+        // Сохраняем параметры в cookies
         saveSearchParamsToCookies(formData);
         console.log("💾 Параметры сохранены в cookies:", formData);
 
@@ -279,25 +336,29 @@ jQuery(document).ready(function () {
                     jQuery("table.list").addClass("onlychatheaders");
                 }
 
-                // Восстанавливаем состояние чекбоксов после обновления
-                // (если нужно — можно добавить логику)
+                // Скрываем спиннер после успешного ответа
+                hideLoading($btn);
             },
             error: function (xhr, status, error) {
                 console.error("❌ Ошибка:", error);
+                alert("Ошибка при выполнении запроса: " + error);
+                hideLoading($btn);
             }
         });
     });
 
     // ============================================================
-    // 5. ОЧИСТКА COOKIES ПРИ ВЫХОДЕ (опционально)
+    // 4. ВОССТАНОВЛЕНИЕ СОСТОЯНИЯ ПОСЛЕ SUBMIT (для formSubmit)
     // ============================================================
 
-    // Если есть кнопка "Сбросить фильтры", можно добавить:
-    // $("#clearFilters").click(function(e) {
-    //     e.preventDefault();
-    //     clearSearchParamsCookies();
-    //     location.reload();
-    // });
+    // Если страница перезагрузилась после отправки формы,
+    // убираем все спиннеры
+    $('button').each(function() {
+        var $btn = $(this);
+        if ($btn.data('original-text')) {
+            hideLoading($btn);
+        }
+    });
 
     console.log("✅ Страница загружена, параметры восстановлены из cookies");
 });

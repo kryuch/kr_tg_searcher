@@ -104,6 +104,7 @@ public class TelegramPythonClient {
     }
 
     public List<ChatResponse> searchChats(SearchRequest request) {
+        log.info("TelegramPythonClient::searchChats (request = {}", request);
         ChatResponse[] response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/search"),
@@ -119,6 +120,7 @@ public class TelegramPythonClient {
     }
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByConcatUsername request) {
+        log.info("TelegramPythonClient::sendBulkMessages (request = %s", request);
         return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
