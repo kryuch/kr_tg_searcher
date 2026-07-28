@@ -7,11 +7,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import ru.kryuch.krtg.searcher.config.SettingConfig;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
+import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.MessagesHistory;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
+import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
@@ -26,7 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -39,20 +44,19 @@ public class ChatService {
     private final ChatMapper chatMapper;
     private final VacancyService vacancyService;
     private final SettingService settingService;
+    private final ChatHelper chatHelper;
 
 
-
-    private final String TARGET_FOLDER_TITLE = "folder";
-
+/*
     public List<ChatInfo> all() {
         try {
             log.info("Запрос всех чатов");
             return   telegramMessagingGateway.findAllChats(1);
         } catch (Exception e) {
-            log.error("Ошибка при получении чатов: {}", e.getMessage());
+            log.error("Ошибка при получении чатов: {}", e);
             return Collections.emptyList();
         }
-    }
+    }*/
 
     public List<ChatInfo> search(SearchParams searchParams, boolean withFolderFlag) {
         try {
@@ -62,19 +66,28 @@ public class ChatService {
                 searchParams.setExcludeChatIds(chatRepository.findIdsByStatusGreaterThan(0));
             }
 
-            String targetFolderTitle = settingService.getValueByCode(TARGET_FOLDER_TITLE);
-            List<ChatInfo> result = telegramMessagingGateway.searchChats(searchParams).stream()
+            String targetFolderTitle = settingService.getValueByCode(SettingConfig.TARGET_FOLDER_SETTING_CODE);
+            List<ChatInfo> chatInfos = telegramMessagingGateway.searchChats(searchParams);
+
+            List<Long> chatIds = chatInfos.stream().map(ChatInfo::getId).toList();
+
+            Map<Long, ChatEntity> chatsMap = chatHelper.getChatMap(chatIds);
+
+            Map<Long, List<FolderInfo>> foldersMap = (withFolderFlag) ? folderChatService.getFoldersByChatIds(chatIds) : null;
+
+            List<ChatInfo> result = chatInfos.stream()
                     .map(item -> {
-                        Optional<ChatEntity> chatEntity = chatRepository.findById(item.getId());
-                        if (chatEntity.isPresent()) {
-                            item.setStatus(ChatStatus.getChatStatus(chatEntity.get().getStatus()));
+
+                        if (chatsMap.containsKey(item.getId())) {
+                            item.setStatus(ChatStatus.getChatStatus(chatsMap.get(item.getId()).getStatus()));
                         }
                         if (withFolderFlag) {
-                            item.setFolders(folderChatService.getFoldersByChatId(item.getId()));
+                            item.setFolders(foldersMap.get(item.getId()));
                             item.setHasTargetFolder(
-                                    item.getFolders().stream()
-                                            .filter(folder -> folder.getTitle().equals(targetFolderTitle))
-                                            .findFirst().isPresent()
+                                    (CollectionUtils.isEmpty(item.getFolders())) ? false :
+                                            (item.getFolders().stream()
+                                                    .filter(folder -> targetFolderTitle.equals(folder.getTitle()))
+                                                    .findFirst().isPresent())
                             );
                         }
                         return item;
@@ -83,29 +96,26 @@ public class ChatService {
 
             return result;
         } catch (Exception e) {
-            log.error("Ошибка при поиске чатов: {}", e.getMessage(), e);
+            log.error("Ошибка при поиске чатов: {}", e);
             return Collections.emptyList();
         }
     }
 
     public MessagesHistory messages(Long chatId, Integer limit) {
         try {
-            MessagesHistory history = telegramMessagingGateway.getMessages(chatId, limit);
-            history.setChatInfo(chatMapper.fromEntity(chatRepository.findById(chatId).orElse(new ChatEntity())));
-            log.info("Получено сообщений для чата {}: {}", chatId, history.size());
-            return history;
+            MessagesHistory messagesHistory = telegramMessagingGateway.getMessages(chatId, limit);
+            messagesHistory.setChatInfo(chatMapper.fromEntity(chatRepository.findById(chatId).orElse(new ChatEntity())));
+            log.info("Получено сообщений для чата {}: {}", chatId, messagesHistory.size());
+            return messagesHistory;
         } catch (Exception e) {
-            log.error("Ошибка при получении сообщений чата {}: {}", chatId, e.getMessage());
+            log.error("Ошибка при получении сообщений чата {}: {}", chatId, e);
             return new MessagesHistory();
         }
     }
 
 
     public VacanciesContainer createVacanciesContainer(Long chatId, Integer limit) {
-        MessagesHistory messagesHistory = telegramMessagingGateway.getMessages(chatId, limit);
-        messagesHistory.setChatInfo(chatMapper.fromEntity(chatRepository.findById(chatId).orElse(new ChatEntity())));
-        log.info("Получено сообщений для чата {}: {}", chatId, messagesHistory.size());
-
+        MessagesHistory messagesHistory = messages(chatId, limit);
         return vacancyService.analyze(messagesHistory);
     }
 
@@ -116,26 +126,26 @@ public class ChatService {
             chatEntity.get().setStatus(status);
             chatRepository.save(chatEntity.get());
         } else {
-        //    chatRepository.save(new ChatEntity(chatId, username, name, status));
+            //    chatRepository.save(new ChatEntity(chatId, username, name, status));
         }
         return true;
     }
 
-    public Map<Long, String> getNamesByIds(List <Long> chatIds) {
+    public Map<Long, String> getNamesByIds(List<Long> chatIds) {
         Map<Long, String> names =
                 Streamable.of(chatRepository.findAllById(chatIds)).stream()
-                        .filter(item -> item != null && item.getId() != null & item.getName() != null)
+                        .filter(item -> item != null && item.getId() != null && item.getName() != null)
                         .collect(Collectors.toMap(ChatEntity::getId, ChatEntity::getName));
 
         List<Long> emptyIds =
                 chatIds.stream()
-                        .filter(item -> !names.containsKey(item) || Objects.isNull(names.get(item)) || names.get(item).isEmpty())
+                        .filter(item -> !names.containsKey(item) || names.get(item) == null || names.get(item).isEmpty())
                         .toList();
 
         if (!CollectionUtils.isEmpty(emptyIds)) {
-    //        telegramMessagingGateway.findChatsByIds(new ChatIdsRequest(emptyIds)).stream().forEach(item -> {
-      ///          names.put(item.getId(), item.getName());
-       //     });
+            //        telegramMessagingGateway.findChatsByIds(new ChatIdsRequest(emptyIds)).stream().forEach(item -> {
+            ///          names.put(item.getId(), item.getName());
+            //     });
         }
 
         return names;

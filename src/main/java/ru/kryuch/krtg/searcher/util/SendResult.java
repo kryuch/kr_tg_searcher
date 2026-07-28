@@ -9,8 +9,12 @@ public class SendResult {
     private String username;
     private String status;
     private String error;
+    private String comment;
 
     public Long getNumericId() {
+
+        if (id == null) return 0L;
+
         if (id.matches("-?\\d+(\\.\\d+)?")) return Long.valueOf(id);
 
         return 0L;

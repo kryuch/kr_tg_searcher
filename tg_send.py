@@ -164,7 +164,8 @@ async def process_and_send_messages(data, run_async_func, account_configs, execu
             'name': not_found['username'],
             'username': not_found['username'],
             'status': 'error',
-            'error': f"Пользователь не найден: {not_found['error']}"
+            'error': 'USER_NOT_FOUND',
+            'comment': f"Пользователь не найден: {not_found['error']}"
         })
         total_error += 1
 
@@ -182,7 +183,10 @@ async def process_and_send_messages(data, run_async_func, account_configs, execu
 async def send_messages(client, chat_ids, message_text, delay, only_new_chats=False):
     """
     Отправка сообщений. Поддерживает как числовые ID, так и username.
-    (ОРИГИНАЛЬНАЯ РАБОЧАЯ ФУНКЦИЯ — не трогаем!)
+    Возвращает:
+        - status: 'success' | 'skipped' | 'error'
+        - error: код ошибки (если status='error')
+        - comment: человекочитаемое описание (если status='error' или 'skipped')
     """
     results = []
     sent_count = 0
@@ -198,7 +202,8 @@ async def send_messages(client, chat_ids, message_text, delay, only_new_chats=Fa
                         'name': str(chat_id),
                         'username': None,
                         'status': 'error',
-                        'error': f'Не удалось найти чат: {e}'
+                        'error': 'USER_NOT_FOUND',
+                        'comment': f'Не удалось найти чат: {e}'
                     })
                     print(f"❌ [{i+1}/{len(chat_ids)}] Чат {chat_id} не найден")
                     continue
@@ -216,7 +221,8 @@ async def send_messages(client, chat_ids, message_text, delay, only_new_chats=Fa
                                 'name': getattr(entity, 'first_name', getattr(entity, 'title', str(chat_id))),
                                 'username': getattr(entity, 'username', None),
                                 'status': 'skipped',
-                                'error': 'Чат уже существует'
+                                'error': None,
+                                'comment': 'Чат уже существует'
                             })
                             print(f"⏭️ [{i+1}/{len(chat_ids)}] Пропущен {chat_id} ({entity.id}) (чат уже существует)")
                             break
@@ -232,7 +238,9 @@ async def send_messages(client, chat_ids, message_text, delay, only_new_chats=Fa
                 'id': entity.id,
                 'name': getattr(entity, 'first_name', getattr(entity, 'title', str(chat_id))),
                 'username': getattr(entity, 'username', None),
-                'status': 'success'
+                'status': 'success',
+                'error': None,
+                'comment': None
             }
             results.append(chat_info)
             sent_count += 1
@@ -243,25 +251,52 @@ async def send_messages(client, chat_ids, message_text, delay, only_new_chats=Fa
 
         except Exception as e:
             error_msg = str(e)
+            error_code = None
+            comment = error_msg
+
             if "invalid peer" in error_msg.lower():
-                error_msg = "Некорректный получатель"
+                error_code = 'INVALID_PEER'
+                comment = 'Некорректный получатель'
             elif "user is blocked" in error_msg.lower():
-                error_msg = "Пользователь заблокировал вас"
+                error_code = 'USER_BLOCKED'
+                comment = 'Пользователь заблокировал вас'
             elif "user is deleted" in error_msg.lower():
-                error_msg = "Пользователь удалил аккаунт"
+                error_code = 'USER_DELETED'
+                comment = 'Пользователь удалил аккаунт'
             elif "bot cannot start conversation" in error_msg.lower():
-                error_msg = "Нельзя начать диалог с ботом"
+                error_code = 'BOT_CANNOT_START'
+                comment = 'Нельзя начать диалог с ботом'
             elif "flood" in error_msg.lower():
-                error_msg = "Слишком много запросов"
+                error_code = 'MANY_REQUESTS'
+                comment = 'Слишком много запросов'
+            elif "chat admin required" in error_msg.lower():
+                error_code = 'ADMIN_REQUIRED'
+                comment = 'Требуются права администратора'
+            elif "not enough rights" in error_msg.lower():
+                error_code = 'NOT_ENOUGH_RIGHTS'
+                comment = 'Недостаточно прав'
+            elif "you are not a member" in error_msg.lower():
+                error_code = 'NOT_MEMBER'
+                comment = 'Вы не являетесь участником чата'
+            elif "user not found" in error_msg.lower():
+                error_code = 'USER_NOT_FOUND'
+                comment = 'Пользователь не найден'
+            elif "chat not found" in error_msg.lower():
+                error_code = 'CHAT_NOT_FOUND'
+                comment = 'Чат не найден'
+            else:
+                error_code = 'UNKNOWN_ERROR'
+                comment = error_msg
 
             results.append({
                 'id': chat_id if isinstance(chat_id, (int, str)) else None,
                 'name': str(chat_id),
                 'username': chat_id if isinstance(chat_id, str) else None,
                 'status': 'error',
-                'error': error_msg
+                'error': error_code,
+                'comment': comment
             })
-            print(f"❌ Ошибка отправки в {chat_id}: {error_msg}")
+            print(f"❌ Ошибка отправки в {chat_id}: {error_code} - {comment}")
 
     print(f"\n📊 Итог: отправлено {sent_count} из {len(chat_ids)} сообщений")
     return results

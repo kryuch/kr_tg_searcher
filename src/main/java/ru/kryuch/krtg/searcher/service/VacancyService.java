@@ -7,6 +7,7 @@ import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
+import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
 import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class VacancyService {
     private final ChatRepository chatRepository;
     private final SettingService settingService;
+    private final IgnoreRepository ignoreRepository;
 
     private static final String VACANCY_TERM_SETTING = "text_in_vacancy";
 
@@ -48,7 +50,11 @@ public class VacancyService {
         vacancyInfoList.forEach(vacancyInfo -> enrich(newTg, vacancyInfo, term, existingTg));
 
         vacanciesContainer.setVacancies(vacancyInfoList);
-        vacanciesContainer.setNewTg(newTg);
+        vacanciesContainer.setNewTg(
+                ignoreRepository.findNonExistingUsernames(
+                        UserUtil.normalizeUsernames(newTg)
+                ).stream().collect(Collectors.toSet())
+        );
         return vacanciesContainer;
     }
 

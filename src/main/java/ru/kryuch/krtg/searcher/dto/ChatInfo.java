@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
@@ -27,6 +28,8 @@ public class ChatInfo {
     String tgAccount;
 
     public String getFolderTitles() {
+        if (CollectionUtils.isEmpty(folders)) return "";
+
         return folders.stream()
                 .map(item -> item.getTitle())
                 .collect(Collectors.joining("/"));

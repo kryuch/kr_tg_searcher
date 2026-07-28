@@ -34,7 +34,7 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true  # <-- опционально, для отладки SQL
+ #   show-sql: true  # <-- опционально, для отладки SQL
     properties:
       hibernate:
         format_sql: true  # <-- опционально, красивое форматирование SQL

@@ -2,10 +2,9 @@ package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.entity.BasedAccessEntity;
+import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.mapper.TMapper;
 import ru.kryuch.krtg.searcher.repository.BaseAccessRepository;
 import ru.kryuch.krtg.searcher.util.UserUtil;
@@ -14,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-public class AbstractAccessService <
+public abstract class AbstractAccessService<
         NUMBER,
         ENTITY extends BasedAccessEntity,
         DTO,
@@ -27,15 +26,14 @@ public class AbstractAccessService <
 
 
     public List<DTO> getAll() {
-
         return mapper.fromEntityList(repository.findAllByUserId(getCurrentUserId()));
     }
 
     public DTO get(NUMBER id) {
         return mapper.fromEntity(
-                repository.findById(id)
-                        .orElseThrow(() -> new RuntimeException(
-                                String.format("Не существует сущности <<%s>> с id=%d", entityName, id)
+                repository.findByIdAndUserId(id, getCurrentUserId())
+                        .orElseThrow(() -> new BusinessException(
+                                String.format("Не существует сущности <<%s>> с id=%s", entityName, id)
                         ))
         );
     }
@@ -46,20 +44,28 @@ public class AbstractAccessService <
         repository.save(entity);
     }
 
-    public void update(DTO dto, NUMBER id) {/*
-        ENTITY entity = repository.mapper.toEntity(dto);
-        entity.setId(dto);
-        ENTITY entity = mapper.toEntity(dto);
-        entity.setUserId(getCurrentUserId());
-        repository.save(entity);
+    public void add(List<DTO> dto) {
+        repository.saveAll(
+                mapper.toEntityList(dto).stream()
+                        .map(item -> {
+                            item.setUserId(getCurrentUserId());
+                            return item;
+                        })
+                        .toList()
+        );
+    }
 
-        IgnoreInfo oldValue = get(ignoreInfo.getId());
-        oldValue.setUsername(ignoreInfo.getUsername());
-        return ignoreMapper.fromEntity(ignoreRepository.save(ignoreMapper.toEntity(oldValue)));*/
+    public void update(DTO dto, NUMBER id) {
+        ENTITY entity =
+                repository.findByIdAndUserId(id, getCurrentUserId())
+                        .orElseThrow(() -> new BusinessException(
+                                String.format("Не существует сущности <<%s>> с id=%s", entityName, id)
+                        ));
+        repository.save(mapper.mergeToEntity(dto, entity));
     }
 
     public void delete(NUMBER id) {
-        repository.deleteById(id);
+        repository.deleteByIdAndUserId(id, getCurrentUserId());
     }
 
     public CurrentUser getCurrentUser() {

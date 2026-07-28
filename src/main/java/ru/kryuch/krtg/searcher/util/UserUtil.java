@@ -4,11 +4,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class UserUtil {
     public static String normalizeUsername(String username) {
         return username.startsWith("@")
                 ? username.substring(1)
                 : username;
+    }
+
+    public static Set <String> normalizeUsernames(Set<String> usernames) {
+        return usernames.stream().map(item -> UserUtil.normalizeUsername(item)).collect(Collectors.toSet());
     }
 
     public static boolean isAuth() {

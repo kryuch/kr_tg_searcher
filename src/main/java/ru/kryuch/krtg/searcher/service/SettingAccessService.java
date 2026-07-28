@@ -2,8 +2,8 @@ package ru.kryuch.krtg.searcher.service;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import ru.kryuch.krtg.searcher.config.SettingConfig;
 import ru.kryuch.krtg.searcher.dto.Setting;
-import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.entity.SettingEntity;
 import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
@@ -26,7 +26,6 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingEnt
                 repository.findByCodeAndUserId(setting.getCode(), getCurrentUserId()).stream().findFirst();
         if (optionalSettingEntity.isPresent()) {
             optionalSettingEntity.get().setValue(setting.getValue());
-            repository.save(optionalSettingEntity.get());
         }
     }
 
@@ -49,7 +48,7 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingEnt
             SettingEntity settingEntity = new SettingEntity();
             settingEntity.setCode(code);
             settingEntity.setValue(value);
-            settingEntity.setUserId(getCurrentUserId());
+            settingEntity.setUserId(userId);
             repository.save(settingEntity);
         }
     }
@@ -62,8 +61,8 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingEnt
         }
     }
 
-    public Map<Integer, String> findAllCronEabled() {
-        return StreamSupport.stream(repository.findByCode("cron_enable").spliterator(), false)
+    public Map<Integer, String> findAllCronEnabled() {
+        return StreamSupport.stream(repository.findByCode(SettingConfig.CRON_ENABLE_SETTING_CODE).spliterator(), false)
                 .collect(Collectors.toMap(SettingEntity::getUserId, SettingEntity::getValue));
     }
 

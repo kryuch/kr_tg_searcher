@@ -48,6 +48,9 @@ public abstract class ChatMapper implements TMapper <ChatEntity, ChatInfo> {
     @Mapping(target = "comment", source = "error")
     public abstract ChatInfo fromSendResult(SendResult result);
 
+    @Mapping(target = "status", ignore = true)
+    public abstract ChatEntity mergeToEntity(ChatInfo model, @MappingTarget ChatEntity entity);
+
     protected SendMessageStatus getSendStatus(SendResult result) {
         if (result.getStatus().equals("skipped")) return SendMessageStatus.SKIP;
         if (result.getStatus().equals("error")) return SendMessageStatus.ERROR;
