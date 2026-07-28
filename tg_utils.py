@@ -202,7 +202,6 @@ async def request_code_internal(
         logger.debug(f"✅ Клиент для {phone} отключён")
 
 
-
 async def verify_code_with_new_client(
     account_id,
     phone,
@@ -215,8 +214,14 @@ async def verify_code_with_new_client(
 ):
     """
     Завершает авторизацию Telegram-аккаунта.
+    Добавлены таймауты на подключение и sign_in.
     """
+    import asyncio
+
+    print(f"🔵 verify_code_with_new_client: НАЧАЛО для {account_id}")
+
     session_path = build_session_path(session_name)
+    print(f"🔵 verify_code_with_new_client: session_path={session_path}")
 
     client = TelegramClient(
         session_path,
@@ -230,7 +235,9 @@ async def verify_code_with_new_client(
     )
 
     try:
-        await client.connect()
+        print(f"🔵 verify_code_with_new_client: подключение к {account_id}...")
+        await asyncio.wait_for(client.connect(), timeout=10.0)
+        print(f"🔵 verify_code_with_new_client: подключено к {account_id}")
 
         old = telegram_clients.pop(account_id, None)
         if old:
@@ -247,22 +254,34 @@ async def verify_code_with_new_client(
                 "message": "Аккаунт уже авторизован"
             }
 
-        try:
-            await client.sign_in(
+        print(f"🔵 verify_code_with_new_client: sign_in для {account_id}...")
+        await asyncio.wait_for(
+            client.sign_in(
                 phone=phone,
                 code=code,
                 phone_code_hash=phone_code_hash
-            )
-        except SessionPasswordNeededError:
-            if not password:
-                return {
-                    "status": "password_required"
-                }
-            await client.sign_in(password=password)
+            ),
+            timeout=15.0
+        )
 
         return {
             "status": "success"
         }
+
+    except asyncio.TimeoutError:
+        print(f"⏰ Таймаут в verify_code_with_new_client для {account_id}")
+        return {
+            "status": "error",
+            "message": "Превышено время ожидания ответа от Telegram"
+        }
+
+    except SessionPasswordNeededError:
+        if not password:
+            return {
+                "status": "password_required"
+            }
+        await client.sign_in(password=password)
+        return {"status": "success"}
 
     except PhoneCodeInvalidError:
         return {
@@ -285,6 +304,7 @@ async def verify_code_with_new_client(
 
     finally:
         await client.disconnect()
+        print(f"🔌 Клиент для {account_id} отключён")
 
 
 # ============================================================
