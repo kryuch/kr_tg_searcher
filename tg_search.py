@@ -1,6 +1,22 @@
 import asyncio
+import base64
 from datetime import datetime
+from io import BytesIO
 from telethon.errors import ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
+
+
+async def get_avatar(client, entity):
+    """Асинхронное получение аватара в base64."""
+    try:
+        photo = await client.get_profile_photos(entity, limit=1)
+        if photo:
+            buffer = BytesIO()
+            await client.download_media(photo[0], file=buffer)
+            if buffer.getvalue():
+                return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    except Exception as e:
+        print(f"Avatar error: {e}")
+    return None
 
 
 def prepare_search_params(data):
@@ -22,17 +38,6 @@ def prepare_search_params(data):
 async def search_chats(client, params):
     """
     Поиск чатов по параметрам
-
-    params: {
-        'term': str,                 # ключевое слово
-        'lastMessage': str,          # текст последнего сообщения
-        'maxFoundCount': int,        # максимальное количество чатов
-        'minDiffDaysCount': int,     # минимальное количество дней без сообщений
-        'botType': str,              # PERSONAL, NOT_PERSONAL, ALL
-        'groupType': str,            # PERSONAL, NOT_PERSONAL, ALL
-        'excludeChatIds': list,      # список ID чатов для исключения
-        'messagesCount': int         # количество последних сообщений для каждого чата
-    }
     """
     term = params.get('term', 'Java')
     last_message = params.get('lastMessage', '').strip()
@@ -50,18 +55,17 @@ async def search_chats(client, params):
         if len(result) >= max_found_count:
             break
 
-        # Исключаем чаты из списка
         if d.id in exclude_chat_ids:
             continue
 
-        # Фильтр по ботам (3 варианта)
+        # Фильтр по ботам
         is_bot = hasattr(d.entity, 'bot') and d.entity.bot
         if bot_type == 'PERSONAL' and is_bot:
             continue
         elif bot_type == 'NOT_PERSONAL' and not is_bot:
             continue
 
-        # Фильтр по группам/каналам (3 варианта)
+        # Фильтр по группам/каналам
         is_group = (hasattr(d.entity, 'broadcast') and d.entity.broadcast) or \
                    (hasattr(d.entity, 'megagroup') and d.entity.megagroup)
 
@@ -70,7 +74,7 @@ async def search_chats(client, params):
         elif group_type == 'NOT_PERSONAL' and not is_group:
             continue
 
-        # Фильтр по давности (максимально защищённый)
+        # Фильтр по давности
         if min_diff_days_count and min_diff_days_count > 0:
             try:
                 if d.message is None or d.message.date is None:
@@ -90,8 +94,6 @@ async def search_chats(client, params):
         try:
             async for m in client.iter_messages(d.id, search=term, limit=1):
                 if m.text and term.lower() in m.text.lower():
-
-                    # Проверяем последнее сообщение
                     if last_message:
                         found_in_chat = False
                         try:
@@ -109,20 +111,24 @@ async def search_chats(client, params):
                         if not found_in_chat:
                             continue
 
-                    # Получаем username или телефон
                     username = getattr(d.entity, 'username', None)
                     if not username:
                         phone = getattr(d.entity, 'phone', None)
                         if phone:
                             username = phone
 
+                    # ============================================================
+                    # ПОЛУЧАЕМ АВАТАР
+                    # ============================================================
+                    avatar = await get_avatar(client, d.entity)
+
                     chat_info = {
                         'id': d.id,
                         'name': d.name,
-                        'username': username
+                        'username': username,
+                        'avatar': avatar
                     }
 
-                    # Добавляем последние сообщения
                     if messages_count > 0:
                         messages = []
                         async for msg in client.iter_messages(d.id, limit=messages_count):
@@ -173,10 +179,13 @@ async def get_chats_info(client, chat_ids):
                 if phone:
                     username = phone
 
+            avatar = await get_avatar(client, entity)
+
             results.append({
                 'id': chat_id,
                 'username': username,
-                'name': name
+                'name': name,
+                'avatar': avatar
             })
 
             print(f"✅ Получена информация о чате {chat_id}: {name} (username: {username})")
@@ -186,6 +195,7 @@ async def get_chats_info(client, chat_ids):
                 'id': chat_id,
                 'username': None,
                 'name': None,
+                'avatar': None,
                 'error': str(e)
             })
             print(f"❌ Ошибка: чат {chat_id} не найден")
@@ -195,6 +205,7 @@ async def get_chats_info(client, chat_ids):
                 'id': chat_id,
                 'username': None,
                 'name': None,
+                'avatar': None,
                 'error': f"Нет доступа: {str(e)}"
             })
             print(f"⚠️ Нет доступа к чату {chat_id}")
@@ -204,6 +215,7 @@ async def get_chats_info(client, chat_ids):
                 'id': chat_id,
                 'username': None,
                 'name': None,
+                'avatar': None,
                 'error': str(e)
             })
             print(f"❌ Ошибка при получении чата {chat_id}: {e}")

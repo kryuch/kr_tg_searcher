@@ -265,7 +265,7 @@ jQuery(document).ready(function () {
             $('<input>', {
                 type: 'hidden',
                 name: 'clearPrevious',
-                value: $("#clearPrevious").val().trim()
+                value: $("#clearPrevious").prop("checked")
             }).appendTo(form);
         }, this);
     });

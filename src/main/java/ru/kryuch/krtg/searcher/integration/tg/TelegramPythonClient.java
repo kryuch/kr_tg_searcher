@@ -15,6 +15,8 @@ import ru.kryuch.krtg.searcher.dto.VerifyTgCodeParam;
 import ru.kryuch.krtg.searcher.exception.TelegramClientException;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.integration.dto.CreateFolderRequest;
+import ru.kryuch.krtg.searcher.integration.dto.CreateFolderResponse;
 import ru.kryuch.krtg.searcher.integration.dto.InitRequest;
 import ru.kryuch.krtg.searcher.integration.dto.RequestCodeResponse;
 import ru.kryuch.krtg.searcher.integration.dto.SearchRequest;
@@ -139,6 +141,17 @@ public class TelegramPythonClient {
                         SendResponse.class
                 ),
                 "Failed to send messages"
+        );
+    }
+
+    public CreateFolderResponse createFolder(CreateFolderRequest request) {
+        return execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/folders/create"),
+                        request,
+                        CreateFolderResponse.class
+                ),
+                "Failed to create folder"
         );
     }
 
