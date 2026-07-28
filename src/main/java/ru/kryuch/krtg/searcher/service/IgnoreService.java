@@ -10,6 +10,7 @@ import ru.kryuch.krtg.searcher.mapper.IgnoreMapper;
 import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,11 @@ public class IgnoreService {
 
     public void add(IgnoreInfo ignoreInfo) {
         ignoreAccessService.add(ignoreInfo);
+    }
+
+    @Transactional
+    public void addList(List <IgnoreInfo> dtos) {
+        ignoreAccessService.add(dtos);
     }
 
     public void remove(Long ignoreId) {

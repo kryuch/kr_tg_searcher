@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.FolderChatService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/chat/status")
 @RequiredArgsConstructor
@@ -23,6 +25,6 @@ public class ChatStatusController {
 
     @PostMapping("/folder")
     public Boolean folder(@Param("chatId") Long chatId, @Param("username") String username, @Param("name") String name, Integer status) {
-        return folderChatService.addLinkToTarget(chatId, status.equals(Integer.valueOf(1)));
+        return folderChatService.updateLinksToTarget(List.of(chatId), status.equals(Integer.valueOf(1)));
     }
 }

@@ -2,7 +2,6 @@ import asyncio
 import logging
 import threading
 from telethon import TelegramClient
-from telethon.errors import FloodWaitError
 from telethon.errors import (
     FloodWaitError,
     ChatAdminRequiredError,
@@ -22,12 +21,12 @@ SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
 
+
 def build_session_path(session_name: str) -> str:
     """
     Возвращает полный путь к session-файлу.
     """
     return str(SESSION_DIR / session_name)
-
 
 
 # Ограничиваем количество одновременных запросов к Telegram
@@ -43,12 +42,6 @@ DEVICE_PARAMS = {
 }
 
 # ============================================================
-#  ХРАНИЛИЩЕ ДЛЯ PHONE_CODE_HASH
-# ============================================================
-
-# {phone: {'phone_code_hash': str, 'api_id': int, 'api_hash': str}}
-
-# ============================================================
 #  ПУЛ TELEGRAM-КЛИЕНТОВ
 # ============================================================
 
@@ -61,20 +54,16 @@ async def get_client(account_id: str, account_configs: dict):
     Возвращает единственный TelegramClient для аккаунта.
     Если клиента нет — создает и подключает.
     """
-
     account_id = str(account_id)
 
     if account_id in telegram_clients:
         client = telegram_clients[account_id]
-
         if client.is_connected():
             return client
-
         await client.connect()
         return client
 
     config = account_configs[account_id]
-
     session_path = build_session_path(f"account_{account_id}")
 
     client = TelegramClient(
@@ -100,6 +89,7 @@ async def get_client(account_id: str, account_configs: dict):
 
     return client
 
+
 async def execute_telegram_action(
         account_id,
         account_configs,
@@ -109,11 +99,8 @@ async def execute_telegram_action(
 ):
     """
     Выполняет действие через единственный клиент аккаунта.
-
-    Для каждого аккаунта одновременно выполняется
-    только одна операция.
+    Для каждого аккаунта одновременно выполняется только одна операция.
     """
-
     account_id = str(account_id)
 
     client = await get_client(account_id, account_configs)
@@ -121,7 +108,6 @@ async def execute_telegram_action(
     lock = telegram_locks[account_id]
 
     async with lock:
-
         if client.is_connected():
             try:
                 await client.get_me()
@@ -132,9 +118,11 @@ async def execute_telegram_action(
 
         return await action(client, *args, **kwargs)
 
+
 # ============================================================
-#  ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ (С СОХРАНЕНИЕМ PHONE_CODE_HASH)
+#  ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ
 # ============================================================
+
 async def request_code_internal(
         phone: str,
         api_id: int,
@@ -169,9 +157,6 @@ async def request_code_internal(
         is_authorized = await client.is_user_authorized()
         logger.debug(f"🔐 Статус авторизации: {is_authorized}")
 
-        # ============================================================
-        # ГЛАВНОЕ ИСПРАВЛЕНИЕ: возвращаем authorised=True
-        # ============================================================
         if is_authorized:
             logger.info(f"✅ Аккаунт {phone} уже авторизован")
             response = {
@@ -215,6 +200,7 @@ async def request_code_internal(
         await client.disconnect()
         logger.debug(f"✅ Клиент для {phone} отключён")
 
+
 async def verify_code_with_new_client(
     account_id,
     phone,
@@ -227,11 +213,7 @@ async def verify_code_with_new_client(
 ):
     """
     Завершает авторизацию Telegram-аккаунта.
-
-    Использует ту же session, в которую ранее был отправлен код.
-    После успешной авторизации session сохраняется на диск.
     """
-
     session_path = build_session_path(session_name)
 
     client = TelegramClient(
@@ -249,7 +231,6 @@ async def verify_code_with_new_client(
         await client.connect()
 
         old = telegram_clients.pop(account_id, None)
-
         if old:
             try:
                 await old.disconnect()
@@ -259,7 +240,6 @@ async def verify_code_with_new_client(
         telegram_locks.pop(account_id, None)
 
         if await client.is_user_authorized():
-
             return {
                 "status": "success",
                 "message": "Аккаунт уже авторизован"
@@ -271,13 +251,11 @@ async def verify_code_with_new_client(
                 code=code,
                 phone_code_hash=phone_code_hash
             )
-
         except SessionPasswordNeededError:
             if not password:
                 return {
                     "status": "password_required"
                 }
-
             await client.sign_in(password=password)
 
         return {
@@ -308,7 +286,7 @@ async def verify_code_with_new_client(
 
 
 # ============================================================
-#  ОСТАЛЬНЫЕ ФУНКЦИИ
+#  ФУНКЦИИ ДЛЯ РАБОТЫ С ПАПКАМИ
 # ============================================================
 
 def _peer_id(peer):
@@ -482,6 +460,10 @@ async def get_chat_folders(client, chat_id):
     return folders
 
 
+# ============================================================
+#  ФУНКЦИИ ДЛЯ РАБОТЫ С ЧАТАМИ
+# ============================================================
+
 async def get_single_chat_info(client, chat_id, semaphore=None):
     """Получает информацию об одном чате."""
     if semaphore is None:
@@ -574,11 +556,70 @@ async def get_chats_info(client, chat_ids, max_concurrent=5):
     results = await asyncio.gather(*tasks)
     return results
 
+
+# ============================================================
+#  ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ ПАПОК (БИЗНЕС-ЛОГИКА)
+# ============================================================
+
+async def process_update_folders(data, account_configs, run_async_func):
+    """
+    Обрабатывает запрос на обновление папок.
+    """
+    # Извлекаем accountId из разных мест
+    account_id = data.get('accountId')
+
+    if account_id is None:
+        items = data.get('items', [])
+        if items and len(items) > 0:
+            account_id = items[0].get('tgAccountId')
+
+    if account_id is None:
+        account_id = data.get('tgAccountId')
+
+    folder_id = data.get('folderId')
+    chat_ids = data.get('chatIds', [])
+    add_to_folder = data.get('addOperationFlag', True)
+
+    # Если chat_ids пуст, пробуем достать id из items
+    if not chat_ids:
+        items = data.get('items', [])
+        for item in items:
+            chat_id = item.get('id')
+            if chat_id:
+                chat_ids.append(chat_id)
+        if folder_id is None and items:
+            folder_id = items[0].get('folderId')
+
+    if not account_id:
+        return {'error': 'Не указан accountId'}
+
+    if not folder_id:
+        return {'error': 'Не указан ID папки'}
+
+    if not chat_ids:
+        return {'error': 'Не указаны ID чатов'}
+
+    account_id = str(account_id)
+
+    if account_id not in account_configs:
+        return {'error': f'Аккаунт {account_id} не инициализирован'}
+
+    # Используем правильную функцию
+    client = await get_client(account_id, account_configs)
+
+    result = await update_chat_folders(client, folder_id, chat_ids, add_to_folder)
+
+    return result
+
+
+# ============================================================
+#  ЗАВЕРШЕНИЕ КЛИЕНТОВ
+# ============================================================
+
 async def shutdown_clients():
     """
     Корректно закрывает все TelegramClient.
     """
-
     for client in telegram_clients.values():
         try:
             if client.is_connected():

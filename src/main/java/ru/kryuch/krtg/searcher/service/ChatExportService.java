@@ -15,20 +15,25 @@ public class ChatExportService {
     private final ChatService chatService;
 
     public String export(List<Long> chatIds) {
-     
-            log.info("Export {}", chatIds);
 
-            StringBuilder content = new StringBuilder();
+        log.info("Export {} chats", chatIds.size());
 
-            Map<Long, String> names = chatService.getNamesByIds(chatIds);
+        if (chatIds == null || chatIds.isEmpty()) {
+            return "";
+        }
 
-            chatIds.stream().forEach(item -> {
+        StringBuilder content = new StringBuilder();
+
+        Map<Long, String> names = chatService.getNamesByIds(chatIds);
+
+        chatIds.forEach(item -> {
+            if (item != null) {
                 content.append(names.get(item));
                 content.append("\n");
-            });
+            }
+        });
 
-            return content.toString();
-
+        return content.toString();
 
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import ru.kryuch.krtg.searcher.config.SettingConfig;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
@@ -20,7 +21,6 @@ import ru.kryuch.krtg.searcher.entity.UserEntity;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 import ru.kryuch.krtg.searcher.repository.UserRepository;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
-import ru.kryuch.krtg.searcher.util.UserUtil;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -43,22 +42,23 @@ public class CronService {
     private final TelegramMessagingService telegramMessagingService;
     private final TgAccountRepository tgAccountRepository;
 
-    private static final String CRONTIME_CODE = "cron_time";
-    private static final String CRON_LASTRUN_CODE = "cron_lastrun";
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @Scheduled(fixedDelay = 120000)
+    private static final long CRON_DELAY = 120_000;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.SPRING));
+
+    @Scheduled(fixedDelay = CRON_DELAY)
     public void schedule() {
 
 
-        settingAccessService.findAllCronEabled().forEach((userId, value) -> {
+        settingAccessService.findAllCronEnabled().forEach((userId, value) -> {
             try {
-                if (value.equals("0")) {
+                if ("0".equals(value)) {
                     return;
                 }
 
-                String cronTab = settingAccessService.getValueByCode(CRONTIME_CODE, userId);
-                String cronLastRun = settingAccessService.getValueByCode(CRON_LASTRUN_CODE, userId);
+                String cronTab = settingAccessService.getValueByCode(SettingConfig.CRONTIME_SETTING_CODE, userId);
+                String cronLastRun = settingAccessService.getValueByCode(SettingConfig.CRON_LASTRUN_SETTING_CODE, userId);
 
                 if (shouldRun(cronTab, cronLastRun)) {
                     SecurityContextHolder.getContext().setAuthentication(
@@ -68,12 +68,15 @@ public class CronService {
                     log.info("Запуск задачи по расписанию: {}", cronTab);
                     doTask(userId);
                     String now = LocalDateTime.now().format(FORMATTER);
-                    settingAccessService.setValueByCode(CRON_LASTRUN_CODE, now, userId);
+                    settingAccessService.setValueByCode(SettingConfig.CRON_LASTRUN_SETTING_CODE, now, userId);
                     log.info("Задача выполнена, обновлено время: {}", now);
                 }
             }
             catch (Exception ex) {
-                log.error(String.valueOf(ex.getStackTrace()));
+                log.error("Ошибка выполнения cron для пользователя {}", userId, ex);
+            }
+            finally {
+                SecurityContextHolder.clearContext();
             }
         });
     }
@@ -104,7 +107,6 @@ public class CronService {
             LocalDateTime nextExecution = getNextExecutionTime(cronTab);
             LocalDateTime now = LocalDateTime.now();
 
-            // Если задача никогда не запускалась — запускаем сейчас
             if (cronLastRun == null || cronLastRun.isEmpty()) {
                 log.info("🟢 Первый запуск задачи по расписанию: {}", cronTab);
                 return true;
@@ -112,7 +114,6 @@ public class CronService {
 
             LocalDateTime lastRun = LocalDateTime.parse(cronLastRun, FORMATTER);
 
-            // Проверяем: следующее выполнение уже наступило И последний запуск был до него
             if (!nextExecution.isAfter(now) && lastRun.isBefore(nextExecution)) {
                 log.info("🟢 Запуск задачи по расписанию: {}, последний запуск: {}", cronTab, lastRun);
                 return true;
@@ -128,7 +129,7 @@ public class CronService {
     }
 
     private LocalDateTime getNextExecutionTime(String cronTab) {
-        CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.SPRING));
+
         Cron cron = parser.parse(cronTab);
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
@@ -147,22 +148,28 @@ public class CronService {
         SearchParams searchParams =
                 SearchParams.builder()
                         .groupType(PersonalChatType.PERSONAL)
-                        .minDiffDaysCount(Integer.valueOf(settingAccessService.getValueByCode("max_day", userId)))
+                        .minDiffDaysCount(Integer.valueOf(settingAccessService.getValueByCode(SettingConfig.MAX_DAY_SETTING_CODE, userId)))
                         .botType(PersonalChatType.PERSONAL)
                         .excludeStatusFlag(true)
-                        .term(settingAccessService.getValueByCode("term", userId))
-                        .lastMessage(settingAccessService.getValueByCode("cron_lastmessage", userId))
-                        .maxFoundCount(16)
+                        .term(settingAccessService.getValueByCode(SettingConfig.TERM_SETTING_CODE, userId))
+                        .lastMessage(settingAccessService.getValueByCode(SettingConfig.CRON_LASTMESSAGE_SETTING_CODE, userId))
+                        .maxFoundCount(Integer.valueOf(settingAccessService.getValueByCode(SettingConfig.CRON_CHATS_COUNT, userId)))
                         .messagesCount(0)
                         .tgAccountIds(tgAccountRepository.getAllIds())
                         .build();
 
         List<ChatInfo> chats = chatService.search(searchParams, false);
 
-        log.info("Найдены " + chats.stream().map(ChatInfo::getName).collect(Collectors.joining(", ")));
+        log.info(
+                "Найдено {} чатов: {}",
+                chats.size(),
+                chats.stream()
+                        .map(ChatInfo::getName)
+                        .collect(Collectors.joining(", "))
+        );
 
         chats = telegramMessagingService.sendToChats(
-                settingAccessService.getValueByCode("cron_newmessage", userId),
+                settingAccessService.getValueByCode(SettingConfig.CRON_NEWMESSAGE_SETTING_CODE, userId),
                 chats.stream().map(ChatInfo::getId).toList()
         );
 

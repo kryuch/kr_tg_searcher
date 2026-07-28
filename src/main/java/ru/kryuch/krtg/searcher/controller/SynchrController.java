@@ -35,7 +35,7 @@ public class SynchrController {
 
     @PostMapping(value = "/action")
     public String action(@RequestParam("tgAccountIds") List<Integer> tgAccountIds, RedirectAttributes redirectAttributes) {
-        chatSynchronizationService.synchr(tgAccountIds);
+        chatSynchronizationService.synchronize(tgAccountIds);
         redirectAttributes.addFlashAttribute("successMessage", "Синхронизация выполнена");
         return "redirect:/synchr/";
     }

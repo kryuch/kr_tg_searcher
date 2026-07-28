@@ -1,7 +1,6 @@
 package ru.kryuch.krtg.searcher.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -22,6 +21,7 @@ import ru.kryuch.krtg.searcher.service.FolderChatService;
 import ru.kryuch.krtg.searcher.service.SettingService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
 import ru.kryuch.krtg.searcher.service.TgAccountService;
+import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -107,15 +107,29 @@ public class ChatController {
             );
         }
 
-        String successMessage = "Сообщение отправлено в " +
-                chats.stream()
-                        .map(ChatInfo::getName)
-                        .collect(Collectors.joining(", "));
+        String successMessage = chats.stream()
+                .filter(item -> item.getSendStatus().equals(SendMessageStatus.SUCCESS))
+                .map(ChatInfo::getName)
+                .collect(Collectors.joining(", "));
 
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                successMessage
-        );
+        if (!successMessage.isEmpty()) {
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Сообщение отправлено в " + successMessage
+            );
+        }
+
+        String errorMessage = chats.stream()
+                .filter(item -> !item.getSendStatus().equals(SendMessageStatus.SUCCESS))
+                .map(item -> item.getName() + " (" + item.getComment() + ") ")
+                .collect(Collectors.joining(", "));
+
+        if (!errorMessage.isEmpty()) {
+            redirectAttributes.addFlashAttribute(
+                    "error",
+                    "Сообщение отправлено в " + errorMessage
+            );
+        }
 
         return request.getBack() != null
                 ? "redirect:/chat/" + request.getBack()
@@ -127,7 +141,7 @@ public class ChatController {
             SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
-        folderChatService.addLinksToTarget(request.getChatIds(), true);
+        folderChatService.updateLinksToTarget(request.getChatIds(), true);
         String successMessage = "Чаты добавлены в папку";
 
         redirectAttributes.addFlashAttribute(
@@ -143,7 +157,7 @@ public class ChatController {
             SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
-        folderChatService.addLinksToTarget(request.getChatIds(), false);
+        folderChatService.updateLinksToTarget(request.getChatIds(), false);
         String successMessage = "Чаты добавлены в папку";
 
         redirectAttributes.addFlashAttribute(

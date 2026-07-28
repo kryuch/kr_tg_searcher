@@ -65,6 +65,8 @@ public class SettingService {
         settingAccessService.setFirstValueByCode("cron_newmessage", "*");
         settingAccessService.setFirstValueByCode("cron_lastrun", "");
         settingAccessService.setFirstValueByCode("cron_enable", "0");
+        settingAccessService.setFirstValueByCode("ignore_if_not_found", "0");
+        settingAccessService.setFirstValueByCode("cron_chats_count", "32");
     }
 
 }

@@ -30,6 +30,10 @@
                         <td id="term"></td>
                     </tr>
                     <tr>
+                        <td>Число чатов в одной операции крона</td>
+                        <td id="cron_chats_count"></td>
+                    </tr>
+                    <tr>
                         <td>После игнора</td>
                         <td id="max_day"></td>
                     </tr>
@@ -80,7 +84,7 @@
         <button class="save" type="submit">Сохранить</button>
         <script>
             jQuery(function () {
-                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage"], function (index, field) {
+                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count"], function (index, field) {
                     console.log(field);
                     var td = jQuery("input[data=" + field + "]").parent();
                     jQuery("td#" + field).html(td.html());
