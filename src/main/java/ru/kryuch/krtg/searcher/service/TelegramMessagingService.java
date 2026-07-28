@@ -59,12 +59,16 @@ public class TelegramMessagingService {
         return chatDtos;
     }
 
-    public List<ChatInfo> createNewContacts(String text) {
-        return null;/*
+    public List<ChatInfo> createNewContacts(String text, Integer tgId) {
+        SendMessageParam sendMessageParam =
+                SendMessageParam.builder().message(
+                        settingService.getByCode(FIRST_MESSAGE).getValue())
+                        .tgAccountId(tgId)
+                        .build();
         List<ChatInfo> chats =
-                registerAndSend(settingService.getByCode(FIRST_MESSAGE).getValue(), newContactService.contacts(text));
+                registerAndSend(sendMessageParam, newContactService.contacts(text));
         chats.forEach(chatStatusService::processSendResult);
-        return chats;*/
+        return chats;
     }
 
 
