@@ -174,6 +174,7 @@ async def request_code_internal(
             logger.debug(f"📋 phone_code_hash: {sent.phone_code_hash}")
 
             return {
+                "success": True,
                 "status": "code_sent",
                 "authorised": False,
                 "phone_code_hash": sent.phone_code_hash
