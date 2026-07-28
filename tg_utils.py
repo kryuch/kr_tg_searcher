@@ -202,6 +202,7 @@ async def request_code_internal(
         logger.debug(f"✅ Клиент для {phone} отключён")
 
 
+
 async def verify_code_with_new_client(
     account_id,
     phone,
