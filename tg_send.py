@@ -19,6 +19,12 @@ def group_chats_by_account(data, client=None):
     for chat_item in chat_ids_data:
         chat_id = chat_item.get('id')
         tg_account_id_raw = chat_item.get('tgAccountId')
+
+        # Пропускаем чаты без tgAccountId
+        if tg_account_id_raw is None:
+            print(f"⚠️ Пропускаем чат {chat_id}: tgAccountId = None")
+            continue
+
         tg_account_id = str(tg_account_id_raw) if tg_account_id_raw is not None else None
 
         if not chat_id:
@@ -34,6 +40,52 @@ def group_chats_by_account(data, client=None):
     return chats_by_account
 
 
+async def clear_chat_history(client, chat_id, delete_for_everyone=True):
+    """
+    Полностью очищает историю чата.
+
+    Args:
+        client: Telethon клиент
+        chat_id: ID чата
+        delete_for_everyone: Если True - удаляет для всех (аналог "Очистить историю"),
+                            если False - удаляет только у себя
+    """
+    try:
+        # Получаем сущность чата
+        entity = await client.get_entity(chat_id)
+
+        # Получаем все сообщения в чате (можно ограничить количество для очень больших чатов)
+        messages = []
+        async for msg in client.iter_messages(entity, limit=None):
+            messages.append(msg.id)
+
+        if not messages:
+            print(f"⚠️ В чате {chat_id} нет сообщений для удаления")
+            return {"success": True, "deleted": 0}
+
+        # Удаляем сообщения с параметром revoke
+        # revoke=True означает "удалить для всех"
+        result = await client.delete_messages(
+            entity,
+            messages,
+            revoke=delete_for_everyone
+        )
+
+        print(f"✅ Очищено {len(messages)} сообщений в чате {chat_id}")
+        return {
+            "success": True,
+            "deleted": len(messages),
+            "result": result
+        }
+
+    except Exception as e:
+        print(f"❌ Ошибка при очистке чата {chat_id}: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
 async def process_and_send_messages(data, run_async_func, account_configs, execute_telegram_action_func):
     """
     Обрабатывает запрос на отправку сообщений.
@@ -44,6 +96,7 @@ async def process_and_send_messages(data, run_async_func, account_configs, execu
     message_text = data.get('messageText', '')
     delay = data.get('delaySeconds', 2)
     only_new_chats = data.get('onlyNewChats', False)
+    clear_previous = data.get('clearPrevious', False)  # <-- НОВЫЙ ПАРАМЕТР
 
     if not message_text:
         return {
@@ -106,7 +159,14 @@ async def process_and_send_messages(data, run_async_func, account_configs, execu
         chat_ids_data = contacts_data.get('chatIds', [])
         for chat_item in chat_ids_data:
             chat_id = chat_item.get('id')
-            tg_account_id = str(chat_item.get('tgAccountId', '1'))
+            tg_account_id_raw = chat_item.get('tgAccountId')
+
+            # Пропускаем чаты без tgAccountId
+            if tg_account_id_raw is None:
+                print(f"⚠️ Пропускаем чат {chat_id}: tgAccountId = None")
+                continue
+
+            tg_account_id = str(tg_account_id_raw)
             if chat_id:
                 if tg_account_id not in chats_by_account:
                     chats_by_account[tg_account_id] = []
@@ -122,7 +182,7 @@ async def process_and_send_messages(data, run_async_func, account_configs, execu
         }
 
     # ============================================================
-    # 3. ОТПРАВКА СООБЩЕНИЙ (используем старую добрую send_messages)
+    # 3. ОТПРАВКА СООБЩЕНИЙ
     # ============================================================
     all_results = []
     total_success = 0
@@ -132,10 +192,33 @@ async def process_and_send_messages(data, run_async_func, account_configs, execu
     for tg_account_id, chat_ids in chats_by_account.items():
         print(f"🔵 Отправка от аккаунта {tg_account_id} в {len(chat_ids)} чатов")
 
+        # ============================================================
+        # 3.1. ОЧИСТКА ИСТОРИИ (если clear_previous = True)
+        # ============================================================
+        if clear_previous:
+            print(f"🔵 Очистка истории для {len(chat_ids)} чатов перед отправкой")
+
+            for chat_id in chat_ids:
+                clear_result = await execute_telegram_action_func(
+                    tg_account_id,
+                    account_configs,
+                    clear_chat_history,
+                    chat_id,
+                    True  # delete_for_everyone = True
+                )
+
+                if clear_result.get('success'):
+                    print(f"   ✅ История чата {chat_id} очищена (удалено {clear_result.get('deleted', 0)} сообщений)")
+                else:
+                    print(f"   ⚠️ Ошибка очистки чата {chat_id}: {clear_result.get('error', 'Unknown error')}")
+
+        # ============================================================
+        # 3.2. ОТПРАВКА СООБЩЕНИЙ
+        # ============================================================
         results = await execute_telegram_action_func(
             tg_account_id,
             account_configs,
-            send_messages,  # <-- используем исходную функцию
+            send_messages,
             chat_ids,
             message_text,
             delay,

@@ -31,7 +31,7 @@ public class TelegramMessagingService {
     private static final String FIRST_MESSAGE = "first_message";
 
 
-    public List<ChatInfo> sendToChats(String message, List<Long> ids) {
+    public List<ChatInfo> sendToChats(String message, boolean clearPrevious, List<Long> ids) {
 /*
         Set<String> chats = Streamable.of(chatRepository.findAllById(ids))
                 .stream()
@@ -41,8 +41,10 @@ public class TelegramMessagingService {
 */
 
 
+
         return telegramMessagingGateway.sendMessage(
                 message,
+                clearPrevious,
                 new ChatIdsRequest(
                         StreamSupport.stream(chatRepository.findAllById(ids).spliterator(), false)
                                 .map(item -> new ChatIdsRequestItem(item.getId(), item.getTgId()))

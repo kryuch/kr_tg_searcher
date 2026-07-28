@@ -261,6 +261,12 @@ jQuery(document).ready(function () {
                 name: 'message',
                 value: message
             }).appendTo(form);
+
+            $('<input>', {
+                type: 'hidden',
+                name: 'clearPrevious',
+                value: $("#clearPrevious").val().trim()
+            }).appendTo(form);
         }, this);
     });
 

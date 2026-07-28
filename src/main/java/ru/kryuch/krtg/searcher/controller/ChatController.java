@@ -103,6 +103,7 @@ public class ChatController {
 
             chats = telegramMessagingService.sendToChats(
                     request.getMessage(),
+                    request.getClearPrevious(),
                     request.getChatIds()
             );
         }
