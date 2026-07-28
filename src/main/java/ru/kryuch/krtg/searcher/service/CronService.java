@@ -170,6 +170,7 @@ public class CronService {
 
         chats = telegramMessagingService.sendToChats(
                 settingAccessService.getValueByCode(SettingConfig.CRON_NEWMESSAGE_SETTING_CODE, userId),
+                false,
                 chats.stream().map(ChatInfo::getId).toList()
         );
 

@@ -11,5 +11,6 @@ public class SendMessageParam {
     private List<Long> chatIds;
     private String message;
     private Long back;
+    private Boolean clearPrevious;
 
 }

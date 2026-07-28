@@ -12,5 +12,6 @@ public class SendBulkMessageRequestByContactId {
     private ChatIdsRequest contacts;
     private String messageText;
     private Integer delaySeconds;
+    private Boolean clearPrevious;
 
 }
