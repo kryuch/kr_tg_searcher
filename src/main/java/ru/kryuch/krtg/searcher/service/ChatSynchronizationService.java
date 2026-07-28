@@ -31,7 +31,7 @@ public class ChatSynchronizationService {
     public boolean synchronize(Integer tgAccountId) {
         try {
             log.info("Synchronize account {}", tgAccountId);
-            List<ChatInfo> chats = telegramMessagingGateway.findAllChats(tgAccountId);
+        /*    List<ChatInfo> chats = telegramMessagingGateway.findAllChats(tgAccountId);
             Map<Long, ChatEntity> chatMap = chatHelper.getChatMap(chats.stream().map(ChatInfo::getId).toList());
             List <ChatEntity> chatEntities = new ArrayList<>();
 
@@ -51,9 +51,9 @@ public class ChatSynchronizationService {
             if (!chatEntities.isEmpty()) {
                 chatRepository.saveAll(chatEntities);
             }
-
+*/
             folderService.synchronize(tgAccountId, true);
-            log.info("Saved {} chats", chatEntities.size());
+         //   log.info("Saved {} chats", chatEntities.size());
             return true;
         } catch (Exception e) {
             log.error("Ошибка синхронизации аккаунта {}", tgAccountId, e);

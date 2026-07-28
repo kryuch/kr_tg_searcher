@@ -1,7 +1,9 @@
 package ru.kryuch.krtg.searcher.service;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.config.SettingConfig;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
@@ -9,6 +11,7 @@ import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
 import ru.kryuch.krtg.searcher.helper.FolderHelper;
+import ru.kryuch.krtg.searcher.integration.dto.CreateFolderRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
@@ -22,12 +25,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class FolderService {
 
@@ -41,10 +46,15 @@ public class FolderService {
 
     private String targetFolderTitle;
 
+    @PostConstruct
+    protected void postConstruct() {
+
+    }
+
     @Transactional
     public void synchronize(Integer tgAccountId, boolean forceFlag) {
-
         targetFolderTitle = settingService.getValueByCode(SettingConfig.TARGET_FOLDER_SETTING_CODE);
+        createTargetFolder(tgAccountId);
 
         if (forceFlag) {
             folderRepository.deleteByTgId(tgAccountId);
@@ -160,5 +170,17 @@ public class FolderService {
             foldersToSave.add(folderEntity);
         }
         return foldersToSave;
+    }
+
+    private void createTargetFolder(Integer tgAccountId) {
+        Optional <FolderInfo> folderInfo =
+                telegramPythonClient.findAllFolders(tgAccountId).stream()
+                        .filter(item -> Objects.equals(targetFolderTitle, item.getTitle()))
+                        .findFirst();
+
+        if (folderInfo.isEmpty()) {
+            telegramPythonClient.createFolder(new CreateFolderRequest(tgAccountId, targetFolderTitle));
+            log.info("createTargetFolder {} for accountId", targetFolderTitle, tgAccountId);
+        }
     }
 }
