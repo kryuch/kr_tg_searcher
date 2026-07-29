@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 public interface FolderChatRepository
         extends JpaRepository<FolderChatEntity, FolderChatId> {
 
-    List<FolderChatEntity> findByFolder_Id(Integer folderId);
 
     List<FolderChatEntity> findByFolder_IdIn(List<Integer> folderIds);
 

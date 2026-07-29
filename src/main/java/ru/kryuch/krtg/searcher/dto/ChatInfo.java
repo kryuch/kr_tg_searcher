@@ -25,7 +25,10 @@ public class ChatInfo {
 
     List<Message> messages;
 
+    Integer tgAccountId;
     String tgAccount;
+
+    Long chatId;
 
     public String getFolderTitles() {
         if (CollectionUtils.isEmpty(folders)) return "";

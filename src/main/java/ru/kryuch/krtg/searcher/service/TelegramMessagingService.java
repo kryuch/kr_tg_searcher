@@ -32,22 +32,13 @@ public class TelegramMessagingService {
 
 
     public List<ChatInfo> sendToChats(String message, boolean clearPrevious, List<Long> ids) {
-/*
-        Set<String> chats = Streamable.of(chatRepository.findAllById(ids))
-                .stream()
-                .map(ChatEntity::getUsername)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-*/
-
-
 
         return telegramMessagingGateway.sendMessage(
                 message,
                 clearPrevious,
                 new ChatIdsRequest(
                         StreamSupport.stream(chatRepository.findAllById(ids).spliterator(), false)
-                                .map(item -> new ChatIdsRequestItem(item.getId(), item.getTgId()))
+                                .map(item -> new ChatIdsRequestItem(item.getUser().getId(), item.getTgId()))
                                 .toList()
                 )
         );

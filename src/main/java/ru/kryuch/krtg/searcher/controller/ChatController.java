@@ -15,6 +15,7 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
+import ru.kryuch.krtg.searcher.helper.ExportHelper;
 import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.FolderChatService;
@@ -24,7 +25,6 @@ import ru.kryuch.krtg.searcher.service.TgAccountService;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +42,7 @@ public class ChatController {
     private final SettingService settingService;
     private final TelegramMessagingService telegramMessagingService;
     private final TgAccountService tgAccountService;
+    private final ExportHelper exportHelper;
 
 
     @GetMapping("/")
@@ -171,23 +172,6 @@ public class ChatController {
 
     @PostMapping("/export")
     public void exportChats(@RequestParam("chatIds") List<Long> chatIds, HttpServletResponse response) throws IOException {
-        try {
-            response.setContentType("text/plain");
-            response.setCharacterEncoding("UTF-8");
-            response.setHeader("Content-Disposition", "attachment; filename=\"exported_chats.txt\"");
-
-            PrintWriter writer = response.getWriter();
-            writer.write(chatExportService.export(chatIds));
-            writer.flush();
-
-        } catch (Exception e) {
-            log.error("Ошибка при экспорте чатов", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            try {
-                response.getWriter().write("Ошибка при экспорте: " + e.getMessage());
-            } catch (IOException ex) {
-                log.error("Ошибка записи ошибки", ex);
-            }
-        }
+        exportHelper.export(chatExportService.exportByChatIds(chatIds), response);
     }
 }

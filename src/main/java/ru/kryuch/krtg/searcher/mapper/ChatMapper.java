@@ -7,18 +7,13 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
-import ru.kryuch.krtg.searcher.dto.IgnoreInfo;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
-import ru.kryuch.krtg.searcher.entity.IgnoreEntity;
 import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
-import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 import ru.kryuch.krtg.searcher.util.SendResult;
 
-import java.lang.annotation.Target;
-import java.util.Collection;
 import java.util.List;
 
 @Mapper(
@@ -31,6 +26,7 @@ public abstract class ChatMapper implements TMapper <ChatEntity, ChatInfo> {
     TgAccountRepository tgAccountRepository;
 
     @Mapping(target = "status", source = "status.type")
+    @Mapping(target = "tgId", source = "id")
     public abstract ChatEntity toEntity(ChatInfo info);
 
     @Mapping(target = "status", expression = "java(ChatStatus.getChatStatus(entity.getStatus()))")

@@ -18,22 +18,24 @@
         </tr>
 
         <th:block th:each="item, iter : ${items}">
-            <tr th:attr="data-chat-id=${item.id}, data-chat-name=${item.name}"
+            <tr th:attr="data-chat-id=${item.chatId}, data-chat-name=${item.name}"
                 th:class="${'chatstatus' + (item.status != null ? item.status : 0)}">
 
                 <td>
-                    <input type="checkbox" name="check[]" th:attr="data-chat-id=${item.id}"/>
+                    <input type="checkbox" name="check[]" th:attr="data-chat-id=${item.chatId}"/>
                 </td>
                 <td>
                     <span th:text="${item.username}">Username</span>
                 </td>
                 <td>
                     <span th:text="${item.id}">Id</span>
+                    <br>
+                    <span th:text="${item.chatId}">ChatId</span>
                 </td>
                 <td class="chattitle">
-                    <a th:href="@{/chat/{id}(id=${item.id})}"
+                    <a th:href="@{/chat/{id}(id=${item.chatId})}"
                        class="chat-preview-link"
-                       th:data-chat-id="${item.id}"
+                       th:data-chat-id="${item.chatId}"
                        th:data-chat-name="${item.name}"
                        th:text="${item.name}">
                         Заголовок
@@ -41,7 +43,7 @@
                 </td>
                 <td>
                     <div class="chat-avatar"
-                         th:data-chat-id="${item.id}"
+                         th:data-chat-id="${item.chatId}"
                          th:data-chat-name="${item.name}"
                          style="cursor: pointer; display: inline-block;">
                         <img th:if="${item.avatar != null}"

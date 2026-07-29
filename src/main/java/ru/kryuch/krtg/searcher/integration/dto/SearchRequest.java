@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 
@@ -22,7 +23,7 @@ public class SearchRequest {
     PersonalChatType botType;
     PersonalChatType groupType;
     Boolean excludeStatusFlag;
-    List<Long> excludeChatIds;
+    List<ChatKey> excludeChats;
     Integer messagesCount;
     List <Integer> tgAccounts;
 }

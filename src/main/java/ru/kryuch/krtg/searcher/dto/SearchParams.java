@@ -22,7 +22,7 @@ public class SearchParams {
     PersonalChatType botType = PersonalChatType.PERSONAL;
     PersonalChatType groupType = PersonalChatType.PERSONAL;
     Boolean excludeStatusFlag = true;
-    List<Long> excludeChatIds = new ArrayList<>();
+    List<ChatKey> excludeChats = new ArrayList<>();
     Integer messagesCount = 0;
     List <Integer> tgAccountIds = new ArrayList<>();
 }

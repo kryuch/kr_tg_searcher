@@ -45,7 +45,7 @@ public class VacancyService {
                         .filter(item -> Objects.nonNull(item.getTg()))
                         .map(item -> UserUtil.normalizeUsername(item.getTg())).collect(Collectors.toSet());
 
-        Set<String> existingTg = chatRepository.findExistingUsername(tgSet);
+        Set<String> existingTg = null;//chatRepository.findExistingUsername(tgSet);
 
         vacancyInfoList.forEach(vacancyInfo -> enrich(newTg, vacancyInfo, term, existingTg));
 

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
+import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.integration.dto.FolderChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
@@ -25,6 +26,7 @@ public class FolderChatService {
     private final FolderRepository folderRepository;
     private final FolderMapper folderMapper;
     private final TelegramPythonClient telegramPythonClient;
+    private final ChatHelper chatHelper;
 
 
     public Map<Long, List<FolderInfo>> getFoldersByChatIds(List<Long> chatIds) {
@@ -67,13 +69,15 @@ public class FolderChatService {
             folderChatRepository.deleteAll(folderChatEntities);
         }
 
+        Map <Long, Long> chatUserMap = chatHelper.getChatUserMap(chatIds);
+
         telegramPythonClient.updateFolder(
                 UpdateFolderRequest.builder()
                         .items(
                                 folderChatEntities.stream().map(item ->
                                         FolderChatIdsRequestItem.builder()
                                                 .folderId(folderEntity.getId())
-                                                .id(item.getChatId())
+                                                .id(chatUserMap.get(item.getChatId()))
                                                 .tgAccountId(folderEntity.getTgId())
                                                 .build()
                                 ).toList()

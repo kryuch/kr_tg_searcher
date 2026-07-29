@@ -1,5 +1,6 @@
 package ru.kryuch.krtg.searcher.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,7 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.kryuch.krtg.searcher.service.ChatService;
+import ru.kryuch.krtg.searcher.helper.ExportHelper;
+import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatSynchronizationService;
 import ru.kryuch.krtg.searcher.service.TgAccountService;
 
@@ -19,7 +21,8 @@ import java.util.List;
 @RequestMapping("/synchr")
 public class SynchrController {
 
-    private final ChatService chatServiceImpl;
+    private final ExportHelper exportHelper;
+    private final ChatExportService chatExportService;
     private final TgAccountService tgAccountService;
     private final ChatSynchronizationService chatSynchronizationService;
 
@@ -38,6 +41,12 @@ public class SynchrController {
         chatSynchronizationService.synchronize(tgAccountIds);
         redirectAttributes.addFlashAttribute("successMessage", "Синхронизация выполнена");
         return "redirect:/synchr/";
+    }
+
+    @PostMapping(value = "/export")
+    public void export(@RequestParam("tgAccountIds") List<Integer> tgAccountIds, HttpServletResponse response) {
+
+        exportHelper.export(chatExportService.exportByTgIds(tgAccountIds), response);
     }
 
 }

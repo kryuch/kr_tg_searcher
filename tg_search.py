@@ -23,6 +23,16 @@ def prepare_search_params(data):
     """
     Подготавливает параметры поиска из запроса.
     """
+    # Обрабатываем excludeChats в словарь {tgAccountId: set(userIds)}
+    exclude_chats = {}
+    for item in data.get('excludeChats', []):
+        tg_account_id = item.get('tgAccountId')
+        user_id = item.get('userId')
+        if tg_account_id is not None and user_id is not None:
+            if tg_account_id not in exclude_chats:
+                exclude_chats[tg_account_id] = set()
+            exclude_chats[tg_account_id].add(user_id)
+
     return {
         'term': data.get('term', 'Java'),
         'lastMessage': data.get('lastMessage', '').strip(),
@@ -30,14 +40,18 @@ def prepare_search_params(data):
         'minDiffDaysCount': data.get('minDiffDaysCount', 7),
         'botType': data.get('botType', 'PERSONAL'),
         'groupType': data.get('groupType', 'PERSONAL'),
-        'excludeChatIds': data.get('excludeChatIds', []),
+        'excludeChats': exclude_chats,  # <-- теперь словарь {tgAccountId: set(userIds)}
         'messagesCount': data.get('messagesCount', 0) or 0
     }
 
-
-async def search_chats(client, params):
+async def search_chats(client, params, account_id):
     """
-    Поиск чатов по параметрам
+    Поиск чатов по параметрам с учётом исключений для конкретного аккаунта.
+
+    Args:
+        client: Telethon клиент
+        params: параметры поиска
+        account_id: ID аккаунта (для фильтрации исключений)
     """
     term = params.get('term', 'Java')
     last_message = params.get('lastMessage', '').strip()
@@ -45,8 +59,12 @@ async def search_chats(client, params):
     min_diff_days_count = params.get('minDiffDaysCount', 7)
     bot_type = params.get('botType', 'PERSONAL')
     group_type = params.get('groupType', 'PERSONAL')
-    exclude_chat_ids = set(params.get('excludeChatIds', []))
+    exclude_chats = params.get('excludeChats', {})
     messages_count = params.get('messagesCount', 0)
+
+    # Получаем список исключённых ID для этого аккаунта
+    exclude_ids = exclude_chats.get(account_id, set())
+    print(f"🔵 Исключения для аккаунта {account_id}: {len(exclude_ids)} чатов")
 
     result = []
     me = await client.get_me()
@@ -55,7 +73,8 @@ async def search_chats(client, params):
         if len(result) >= max_found_count:
             break
 
-        if d.id in exclude_chat_ids:
+        # Проверяем исключения для этого аккаунта
+        if d.id in exclude_ids:
             continue
 
         # Фильтр по ботам
@@ -117,9 +136,6 @@ async def search_chats(client, params):
                         if phone:
                             username = phone
 
-                    # ============================================================
-                    # ПОЛУЧАЕМ АВАТАР
-                    # ============================================================
                     avatar = await get_avatar(client, d.entity)
 
                     chat_info = {
@@ -148,9 +164,8 @@ async def search_chats(client, params):
             print(f"Ошибка в чате {d.name}: {e}")
             continue
 
-    print(f"🔵 Поиск завершён. Найдено чатов: {len(result)}")
+    print(f"🔵 Поиск завершён для аккаунта {account_id}. Найдено чатов: {len(result)}")
     return result
-
 
 async def get_chats_info(client, chat_ids):
     """

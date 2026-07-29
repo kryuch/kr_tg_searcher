@@ -19,13 +19,13 @@ public class NewContactService {
         Set<String> result = new HashSet<>();
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("@(\\w+)");
         java.util.regex.Matcher matcher = pattern.matcher(text);
-
+/*
         while (matcher.find()) {
             String username = "@" + matcher.group(1);
             if (!chatRepository.existsByUsername(username) && !ignoreRepository.existsByUsername(matcher.group(1))) {
                 result.add(username);
             }
-        }
+        }*/
         return result;
     }
 

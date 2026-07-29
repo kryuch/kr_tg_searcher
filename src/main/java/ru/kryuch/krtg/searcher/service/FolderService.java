@@ -57,6 +57,9 @@ public class FolderService {
         createTargetFolder(tgAccountId);
 
         if (forceFlag) {
+            folderChatRepository.deleteByFolderIdIn(
+                    folderRepository.findIdsByTgId(tgAccountId)
+            );
             folderRepository.deleteByTgId(tgAccountId);
         }
 
