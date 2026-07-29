@@ -18,6 +18,9 @@ public interface FolderRepository extends CrudRepository<FolderEntity, Integer> 
         return (folderEntities.size() > 0) ? Optional.of(folderEntities.get(0)) : Optional.empty();
     }
 
+    @Query("SELECT f.id FROM FolderEntity f WHERE f.tgId = :tgId")
+    List<Integer> findIdsByTgId(@Param("tgId") Integer tgId);
+
     @Modifying
     @Query("DELETE FROM FolderEntity t where tgId = :tgId")
     void deleteByTgId(@Param("tgId") Integer tgId);

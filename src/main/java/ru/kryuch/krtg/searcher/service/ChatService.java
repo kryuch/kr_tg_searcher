@@ -2,9 +2,6 @@ package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.util.Streamable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.kryuch.krtg.searcher.config.SettingConfig;
@@ -13,25 +10,20 @@ import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.MessagesHistory;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
+import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
-import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
-import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
+import ru.kryuch.krtg.searcher.mapper.ChatKeyMapper;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
-import ru.kryuch.krtg.searcher.mapper.SearchMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
-import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
-import ru.kryuch.krtg.searcher.repository.FolderRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -45,6 +37,7 @@ public class ChatService {
     private final VacancyService vacancyService;
     private final SettingService settingService;
     private final ChatHelper chatHelper;
+    private final ChatKeyMapper chatKeyMapper;
 
 
 /*
@@ -63,7 +56,7 @@ public class ChatService {
             log.info("Поиск чатов");
 
             if (searchParams.getExcludeStatusFlag()) {
-                searchParams.setExcludeChatIds(chatRepository.findIdsByStatusGreaterThan(0));
+                searchParams.setExcludeChats(chatKeyMapper.fromEntityList(chatRepository.findKeysByStatusGreaterThan(0)));
             }
 
             String targetFolderTitle = settingService.getValueByCode(SettingConfig.TARGET_FOLDER_SETTING_CODE);
@@ -71,15 +64,18 @@ public class ChatService {
 
             List<Long> chatIds = chatInfos.stream().map(ChatInfo::getId).toList();
 
-            Map<Long, ChatEntity> chatsMap = chatHelper.getChatMap(chatIds);
+            Map<ChatKey, ChatEntity> chatsMap = chatHelper.getChatMap(chatIds);
 
             Map<Long, List<FolderInfo>> foldersMap = (withFolderFlag) ? folderChatService.getFoldersByChatIds(chatIds) : null;
 
             List<ChatInfo> result = chatInfos.stream()
                     .map(item -> {
 
-                        if (chatsMap.containsKey(item.getId())) {
-                            item.setStatus(ChatStatus.getChatStatus(chatsMap.get(item.getId()).getStatus()));
+                        ChatKey chatKey = new ChatKey(item.getId(), item.getTgAccountId());
+
+                        if (chatsMap.containsKey(chatKey)) {
+                            item.setStatus(ChatStatus.getChatStatus(chatsMap.get(chatKey).getStatus()));
+                            item.setChatId(chatsMap.get(chatKey).getId());
                         }
                         if (withFolderFlag) {
                             item.setFolders(foldersMap.get(item.getId()));
@@ -131,24 +127,12 @@ public class ChatService {
         return true;
     }
 
-    public Map<Long, String> getNamesByIds(List<Long> chatIds) {
-        Map<Long, String> names =
-                Streamable.of(chatRepository.findAllById(chatIds)).stream()
-                        .filter(item -> item != null && item.getId() != null && item.getName() != null)
-                        .collect(Collectors.toMap(ChatEntity::getId, ChatEntity::getName));
+    public Set<String> getUsernamesByTg(List <Integer> tgIds) {
+        return chatRepository.findEnrichedByStatusesAndTgIds(List.of(0, 1, 2, 4), tgIds).stream().map(item -> item.getUser().getUsername()).collect(Collectors.toSet());
+    }
 
-        List<Long> emptyIds =
-                chatIds.stream()
-                        .filter(item -> !names.containsKey(item) || names.get(item) == null || names.get(item).isEmpty())
-                        .toList();
-
-        if (!CollectionUtils.isEmpty(emptyIds)) {
-            //        telegramMessagingGateway.findChatsByIds(new ChatIdsRequest(emptyIds)).stream().forEach(item -> {
-            ///          names.put(item.getId(), item.getName());
-            //     });
-        }
-
-        return names;
+    public Set<String> getUsernamesByIds(List<Long> chatIds) {
+        return chatRepository.findEnrichedByIds(chatIds).stream().map(item -> item.getUser().getUsername()).collect(Collectors.toSet());
     }
 
 }

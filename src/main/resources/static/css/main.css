@@ -1098,3 +1098,13 @@ button.save#filter {
 .tgaccount_true #auth{
     display: none;
 }
+
+.tgmultiselect .ms-options {
+    z-index: 1;
+    position: relative;
+}
+
+form.synchr button.save {
+    width: 256px;
+    height: 32px;
+}

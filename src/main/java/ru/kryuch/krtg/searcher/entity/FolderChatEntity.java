@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "krtg_folder_chat")
+@Table(name = "krrg_folder_chat")
 @Getter
 @Setter
 @NoArgsConstructor

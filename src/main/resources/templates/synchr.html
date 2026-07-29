@@ -1,5 +1,5 @@
 <div class="icontent">
-    <form action="#" th:action="@{/synchr/action}" class="edit-form form-horizontal" method="post">
+    <form action="#" th:action="@{/synchr/action}" class="edit-form form-horizontal synchr" method="post">
         <table class="list">
             <tbody>
 
@@ -9,6 +9,7 @@
                 </td>
                 <td>
                     <button class="save" type="submit">Выполнить синхронизацию</button>
+                    <button class="save export" type="submit">Экспорт</button>
                 </td>
             </tr>
             <tr>
@@ -25,6 +26,14 @@
             </tr>
             </tbody>
         </table>
-
+        <script>
+            jQuery(document).ready(function () {
+                jQuery("button.export").on("click", function () {
+                    var url =  jQuery("form.synchr").attr("action").replace("action", "export");
+                    console.log(url);
+                    jQuery("form.synchr").attr("action", url);
+                })
+            })
+        </script>
     </form>
 </div>
