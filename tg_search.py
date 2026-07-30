@@ -18,12 +18,17 @@ async def get_avatar(client, entity):
         print(f"Avatar error: {e}")
     return None
 
-
 def prepare_search_params(data):
     """
     Подготавливает параметры поиска из запроса.
     """
-    # Обрабатываем excludeChats в словарь {tgAccountId: set(userIds)}
+    last_message = data.get('lastMessage')
+    last_message = last_message.strip() if last_message else ''
+
+    term = data.get('term', 'Java')
+    term = term.strip() if term else 'Java'
+
+    # Обрабатываем excludeChats
     exclude_chats = {}
     for item in data.get('excludeChats', []):
         tg_account_id = item.get('tgAccountId')
@@ -34,13 +39,13 @@ def prepare_search_params(data):
             exclude_chats[tg_account_id].add(user_id)
 
     return {
-        'term': data.get('term', 'Java'),
-        'lastMessage': data.get('lastMessage', '').strip(),
-        'maxFoundCount': data.get('maxFoundCount', 10),
-        'minDiffDaysCount': data.get('minDiffDaysCount', 7),
+        'term': term,
+        'lastMessage': last_message,
+        'maxFoundCount': data.get('maxFoundCount', 10) or 10,
+        'minDiffDaysCount': data.get('minDiffDaysCount', 7) or 7,
         'botType': data.get('botType', 'PERSONAL'),
         'groupType': data.get('groupType', 'PERSONAL'),
-        'excludeChats': exclude_chats,  # <-- теперь словарь {tgAccountId: set(userIds)}
+        'excludeChats': exclude_chats,
         'messagesCount': data.get('messagesCount', 0) or 0
     }
 

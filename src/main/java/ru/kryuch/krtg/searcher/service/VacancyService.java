@@ -8,6 +8,8 @@ import ru.kryuch.krtg.searcher.dto.VacancyInfo;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
+import ru.kryuch.krtg.searcher.repository.TgUserRepository;
+import ru.kryuch.krtg.searcher.repository.UserRepository;
 import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class VacancyService {
-    private final ChatRepository chatRepository;
+    private final TgUserRepository tgUserRepository;
     private final SettingService settingService;
     private final IgnoreRepository ignoreRepository;
 
@@ -45,7 +47,7 @@ public class VacancyService {
                         .filter(item -> Objects.nonNull(item.getTg()))
                         .map(item -> UserUtil.normalizeUsername(item.getTg())).collect(Collectors.toSet());
 
-        Set<String> existingTg = null;//chatRepository.findExistingUsername(tgSet);
+        Set<String> existingTg = tgUserRepository.findExistingUsername(tgSet);
 
         vacancyInfoList.forEach(vacancyInfo -> enrich(newTg, vacancyInfo, term, existingTg));
 
@@ -74,6 +76,4 @@ public class VacancyService {
             }
         }
     }
-
-
 }

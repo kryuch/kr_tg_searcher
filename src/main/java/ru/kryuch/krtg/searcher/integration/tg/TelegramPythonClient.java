@@ -7,6 +7,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.kryuch.krtg.searcher.config.TelegramSettingsResolver;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
+import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
@@ -155,11 +156,11 @@ public class TelegramPythonClient {
         );
     }
 
-    public PythonMessagesResponse getChatPreview(Long chatId, Integer tgAccountId, Integer limit) {
+    public PythonMessagesResponse getChatPreview(ChatKey chatKey, Integer limit) {
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUri(buildUri("/api/chat-preview/"))
-                .queryParam("chatId", chatId)
-                .queryParam("accountId", tgAccountId);
+                .queryParam("chatId", chatKey.getUserId())
+                .queryParam("accountId", chatKey.getTgAccountId());
 
         if (limit != null && limit > 0) {
             builder.queryParam("limit", limit);
@@ -171,7 +172,7 @@ public class TelegramPythonClient {
                 ),
                 String.format(
                         "Failed to get chat preview %s",
-                        chatId
+                        chatKey
                 )
         );
     }

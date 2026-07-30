@@ -22,8 +22,9 @@ public class ChatHelper {
 
     private final TgUserRepository tgUserRepository;
 
-    public Integer getChatTgAccountId(Long chatId) {
-        return chatRepository.findById(chatId).get().getTgId();
+    public ChatKey getChatKey(Long chatId) {
+        ChatEntity chatEntity = chatRepository.findById(chatId).get();
+        return new ChatKey(chatEntity.getUser().getId(), chatEntity.getTgId());
     }
 
     public Map<ChatKey, ChatEntity> getChatMap(List<Long> userIds) {
