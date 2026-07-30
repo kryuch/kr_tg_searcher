@@ -16,6 +16,7 @@ import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.helper.ExportHelper;
+import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.FolderChatService;
@@ -88,7 +89,7 @@ public class ChatController {
             SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
-        List<ChatInfo> chats;
+        List<ChatResponse> chats;
 
         if (Objects.nonNull(request.getBack())) {
 
@@ -110,8 +111,8 @@ public class ChatController {
         }
 
         String successMessage = chats.stream()
-                .filter(item -> item.getSendStatus().equals(SendMessageStatus.SUCCESS))
-                .map(ChatInfo::getName)
+                .filter(item -> item.getStatus().equals(SendMessageStatus.SUCCESS))
+                .map(ChatResponse::getUsername)
                 .collect(Collectors.joining(", "));
 
         if (!successMessage.isEmpty()) {
@@ -122,7 +123,7 @@ public class ChatController {
         }
 
         String errorMessage = chats.stream()
-                .filter(item -> !item.getSendStatus().equals(SendMessageStatus.SUCCESS))
+                .filter(item -> !item.getStatus().equals(SendMessageStatus.SUCCESS))
                 .map(item -> item.getName() + " (" + item.getComment() + ") ")
                 .collect(Collectors.joining(", "));
 

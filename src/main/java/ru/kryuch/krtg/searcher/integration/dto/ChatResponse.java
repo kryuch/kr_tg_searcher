@@ -16,12 +16,10 @@ public class ChatResponse {
     String avatar;
     Long id;
     Boolean actual = true;
-    ChatStatus status = ChatStatus.SIMPLE;
+    SendMessageStatus status;
     List<FolderInfo> folders;
     Boolean hasTargetFolder;
 
-
-    SendMessageStatus sendStatus;
     String comment;
 
     List<Message> messages;

@@ -32,17 +32,16 @@ public abstract class ChatMapper implements TMapper <ChatEntity, ChatInfo> {
     @Mapping(target = "status", expression = "java(ChatStatus.getChatStatus(entity.getStatus()))")
     public abstract ChatInfo fromEntity(ChatEntity entity);
 
-
+    @Mapping(target = "status", ignore = true)
     public abstract ChatInfo fromResponse(ChatResponse response);
 
     public abstract List <ChatInfo> fromResponse(List <ChatResponse> response);
 
     @Mapping(target = "name", source = "username")
     @Mapping(target = "id", source = "numericId")
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "sendStatus", expression = "java(getSendStatus(result))")
+    @Mapping(target = "status", expression = "java(getSendStatus(result))")
     @Mapping(target = "comment", source = "error")
-    public abstract ChatInfo fromSendResult(SendResult result);
+    public abstract ChatResponse fromSendResult(SendResult result);
 
     @Mapping(target = "status", ignore = true)
     public abstract ChatEntity mergeToEntity(ChatInfo model, @MappingTarget ChatEntity entity);
