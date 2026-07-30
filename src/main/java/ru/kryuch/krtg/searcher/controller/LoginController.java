@@ -15,9 +15,5 @@ public class LoginController {
     public String showLoginForm() {
         return "login";
     }
-/*
-    @PostMapping("/")
-    public String handleLogin() {
-        return "redirect:/chat/";
-    }*/
+
 }
