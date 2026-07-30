@@ -1,0 +1,1 @@
+package ru.kryuch.krtg.searcher.dto;import lombok.Data;import lombok.EqualsAndHashCode;import lombok.RequiredArgsConstructor;@Data@EqualsAndHashCode@RequiredArgsConstructorpublic class ChatKey {    private final Long userId;    private final Integer tgAccountId;}
