@@ -17,6 +17,7 @@ import ru.kryuch.krtg.searcher.mapper.ChatKeyMapper;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
+import ru.kryuch.krtg.searcher.type.PersonalChatType;
 
 import java.util.Collections;
 import java.util.List;
@@ -128,7 +129,19 @@ public class ChatService {
     }
 
     public Set<String> getUsernamesByTg(List <Integer> tgIds) {
-        return chatRepository.findEnrichedByStatusesAndTgIds(List.of(0, 1, 2, 4), tgIds).stream().map(item -> item.getUser().getUsername()).collect(Collectors.toSet());
+        SearchParams searchParams =
+                SearchParams.builder()
+                        .botType(PersonalChatType.PERSONAL)
+                        .term(settingService.getValueByCode(SettingConfig.TERM_SETTING_CODE))
+                        .groupType(PersonalChatType.PERSONAL)
+                        .tgAccountIds(tgIds)
+                        .messagesCount(0)
+                        .maxFoundCount(1024)
+                        .excludeChats(chatKeyMapper.fromEntityList(chatRepository.findKeysByStatusEqual(3)))
+                        .build();
+
+        List<ChatInfo> chats = telegramMessagingGateway.searchChats(searchParams);
+        return chats.stream().map(item -> item.getUsername()).collect(Collectors.toSet());
     }
 
     public Set<String> getUsernamesByIds(List<Long> chatIds) {

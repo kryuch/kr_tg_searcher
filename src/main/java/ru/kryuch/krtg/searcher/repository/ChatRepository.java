@@ -12,8 +12,8 @@ import java.util.List;
 
 public interface ChatRepository extends CrudRepository<ChatEntity, Long> {
 
-    @Query("SELECT c.user.id FROM ChatEntity c WHERE c.status > :status")
-    List<Long> findUserIdsByStatusGreaterThan(@Param("status") Integer status);
+    @Query("SELECT c.user.id as userId, c.tgId as tgAccountId FROM ChatEntity c WHERE c.status = :status")
+    List<ChatKeyProjection> findKeysByStatusEqual(@Param("status") Integer status);
 
     @Query("SELECT c.user.id as userId, c.tgId as tgAccountId FROM ChatEntity c WHERE c.status > :status")
     List<ChatKeyProjection> findKeysByStatusGreaterThan(@Param("status") Integer status);
