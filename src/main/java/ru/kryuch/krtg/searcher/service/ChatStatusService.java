@@ -3,6 +3,7 @@ package ru.kryuch.krtg.searcher.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
+import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
@@ -13,6 +14,7 @@ public class ChatStatusService {
 
     private final ChatRepository chatRepository;
     private final ChatMapper chatMapper;
+    private final ChatHelper chatHelper;
 
 
     public void processSendResult(ChatInfo chat) {
@@ -26,8 +28,6 @@ public class ChatStatusService {
                     chat.setStatus(ChatStatus.SEND_ERROR);
         }
 
-        chatRepository.save(
-                chatMapper.toEntity(chat)
-        );
+        chatHelper.createNewChat(chat);
     }
 }

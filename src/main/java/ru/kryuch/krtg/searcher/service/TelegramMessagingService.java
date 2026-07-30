@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
+import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
@@ -27,6 +28,7 @@ public class TelegramMessagingService {
     private final ChatMapper chatMapper;
     private final SettingService settingService;
     private final ChatStatusService chatStatusService;
+    private final ChatHelper chatHelper;
 
     private static final String FIRST_MESSAGE = "first_message";
 
@@ -46,7 +48,9 @@ public class TelegramMessagingService {
 
     public List<ChatInfo> registerAndSend(SendMessageParam sendMessageParam, Set<String> chats) {
         List<ChatInfo> chatDtos = telegramMessagingGateway.sendMessage(sendMessageParam, chats, true);
-        chatRepository.saveAll(chatMapper.toEntityList(chatDtos));
+        chatDtos.stream().forEach(chatDto -> {
+            chatHelper.createNewChat(chatDto);
+        });
         return chatDtos;
     }
 
