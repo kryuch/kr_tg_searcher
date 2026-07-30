@@ -12,20 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.LocalTime;
 
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
-public class LogFilter extends OncePerRequestFilter {
 
-    @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain chain)
-            throws ServletException, IOException {
+public class LogFilter {
 
-        System.out.println(
-                LocalTime.now() + " FILTER " + request.getRequestURI());
-
-        chain.doFilter(request, response);
-    }
 }
