@@ -9,6 +9,7 @@ import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.projection.ChatKeyProjection;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatRepository extends CrudRepository<ChatEntity, Long> {
 
@@ -23,6 +24,9 @@ public interface ChatRepository extends CrudRepository<ChatEntity, Long> {
 
     @Query("SELECT c FROM ChatEntity c WHERE c.user.id IN :userIds")
     List<ChatEntity> findAllByUserIds(@Param("userIds") List<Long> userIds);
+
+    @Query("SELECT c FROM ChatEntity c WHERE c.user.id = :userId AND c.tgId = :tgId")
+    Optional<ChatEntity> findByUserIdAndTgId(@Param("userId") Long userId, @Param("tgId") Integer tgId);
 
     @EntityGraph(attributePaths = {"user"})
     @Query("SELECT c FROM ChatEntity c WHERE c.id IN :ids")

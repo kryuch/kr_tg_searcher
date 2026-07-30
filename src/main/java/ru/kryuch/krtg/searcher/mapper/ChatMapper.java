@@ -26,7 +26,7 @@ public abstract class ChatMapper implements TMapper <ChatEntity, ChatInfo> {
     TgAccountRepository tgAccountRepository;
 
     @Mapping(target = "status", source = "status.type")
-    @Mapping(target = "tgId", source = "id")
+    @Mapping(target = "tgId", source = "tgAccountId")
     public abstract ChatEntity toEntity(ChatInfo info);
 
     @Mapping(target = "status", expression = "java(ChatStatus.getChatStatus(entity.getStatus()))")

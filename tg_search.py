@@ -17,17 +17,10 @@ async def get_avatar(client, entity):
     except Exception as e:
         print(f"Avatar error: {e}")
     return None
-
 def prepare_search_params(data):
     """
     Подготавливает параметры поиска из запроса.
     """
-    last_message = data.get('lastMessage')
-    last_message = last_message.strip() if last_message else ''
-
-    term = data.get('term', 'Java')
-    term = term.strip() if term else 'Java'
-
     # Обрабатываем excludeChats
     exclude_chats = {}
     for item in data.get('excludeChats', []):
@@ -38,11 +31,17 @@ def prepare_search_params(data):
                 exclude_chats[tg_account_id] = set()
             exclude_chats[tg_account_id].add(user_id)
 
+    term = data.get('term')
+    term = term.strip() if term else 'Java'
+
+    last_message = data.get('lastMessage')
+    last_message = last_message.strip() if last_message else ''
+
     return {
         'term': term,
         'lastMessage': last_message,
         'maxFoundCount': data.get('maxFoundCount', 10) or 10,
-        'minDiffDaysCount': data.get('minDiffDaysCount', 7) or 7,
+        'minDiffDaysCount': data.get('minDiffDaysCount', 0) if data.get('minDiffDaysCount') is not None else 0,
         'botType': data.get('botType', 'PERSONAL'),
         'groupType': data.get('groupType', 'PERSONAL'),
         'excludeChats': exclude_chats,

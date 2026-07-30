@@ -15,7 +15,9 @@ public interface TgUserRepository extends CrudRepository<TgUserEntity, Long> {
 
     boolean existsByUsername(String username);
 
-    Optional<ChatEntity> findByName(String name);
+    Optional<TgUserEntity> findByName(String name);
+
+    Optional<TgUserEntity> findByUsername(String name);
 
 
     default Set<String> findExistingUsername(Set<String> usernames) {
