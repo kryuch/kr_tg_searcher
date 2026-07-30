@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
+import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
@@ -17,9 +18,9 @@ public class ChatStatusService {
     private final ChatHelper chatHelper;
 
 
-    public void processSendResult(ChatInfo chat) {
-
-        switch(chat.getSendStatus()) {
+    public void processSendResult(ChatResponse chat) {
+/*
+        switch(chat.getStatus()) {
 
             case SUCCESS ->
                     chat.setStatus(ChatStatus.SIMPLE);
@@ -27,7 +28,7 @@ public class ChatStatusService {
             case ERROR ->
                     chat.setStatus(ChatStatus.SEND_ERROR);
         }
-
-        chatHelper.createNewChat(chat);
+*/
+        chatHelper.createNewChat(chatMapper.fromResponse(chat));
     }
 }

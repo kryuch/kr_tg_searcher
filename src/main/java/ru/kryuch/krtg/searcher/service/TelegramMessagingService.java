@@ -9,6 +9,7 @@ import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem;
+import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 
@@ -33,7 +34,7 @@ public class TelegramMessagingService {
     private static final String FIRST_MESSAGE = "first_message";
 
 
-    public List<ChatInfo> sendToChats(String message, boolean clearPrevious, List<Long> ids) {
+    public List<ChatResponse> sendToChats(String message, boolean clearPrevious, List<Long> ids) {
 
         return telegramMessagingGateway.sendMessage(
                 message,
@@ -46,21 +47,21 @@ public class TelegramMessagingService {
         );
     }
 
-    public List<ChatInfo> registerAndSend(SendMessageParam sendMessageParam, Set<String> chats) {
-        List<ChatInfo> chatDtos = telegramMessagingGateway.sendMessage(sendMessageParam, chats, true);
+    public List<ChatResponse> registerAndSend(SendMessageParam sendMessageParam, Set<String> chats) {
+        List<ChatResponse> chatDtos = telegramMessagingGateway.sendMessage(sendMessageParam, chats, true);
         chatDtos.stream().forEach(chatDto -> {
-            chatHelper.createNewChat(chatDto);
+            chatHelper.createNewChat(chatMapper.fromResponse(chatDto));
         });
         return chatDtos;
     }
 
-    public List<ChatInfo> createNewContacts(String text, Integer tgId) {
+    public List<ChatResponse> createNewContacts(String text, Integer tgId) {
         SendMessageParam sendMessageParam =
                 SendMessageParam.builder().message(
                         settingService.getByCode(FIRST_MESSAGE).getValue())
                         .tgAccountId(tgId)
                         .build();
-        List<ChatInfo> chats =
+        List<ChatResponse> chats =
                 registerAndSend(sendMessageParam, newContactService.contacts(text));
         chats.forEach(chatStatusService::processSendResult);
         return chats;
