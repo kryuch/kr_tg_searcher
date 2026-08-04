@@ -22,6 +22,10 @@ public interface FolderChatRepository
     List<FolderChatEntity> findByFolder_IdIn(List<Integer> folderIds);
 
     @Modifying
+    @Query(value = "DELETE FROM krtg_folder_chat WHERE folder_id IN (SELECT id FROM krrg_folders WHERE tg_id = :tgId)", nativeQuery = true)
+    int deleteByTgIdNative(@Param("tgId") Integer tgId);
+
+    @Modifying
     @Query("DELETE FROM FolderChatEntity f WHERE f.folder.id IN :folderIds")
     void deleteByFolderIdIn(@Param("folderIds") List<Integer> folderIds);
 

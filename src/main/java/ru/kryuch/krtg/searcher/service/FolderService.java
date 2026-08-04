@@ -1,6 +1,8 @@
 package ru.kryuch.krtg.searcher.service;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +48,9 @@ public class FolderService {
 
     private String targetFolderTitle;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @PostConstruct
     protected void postConstruct() {
 
@@ -57,10 +62,17 @@ public class FolderService {
         createTargetFolder(tgAccountId);
 
         if (forceFlag) {
-            folderChatRepository.deleteByFolderIdIn(
-                    folderRepository.findIdsByTgId(tgAccountId)
-            );
+            log.info("Удаление чатов из папки {} и самой папки", tgAccountId);
+
+            List<Integer> foundFolderIds = folderRepository.findIdsByTgId(tgAccountId);
+            log.info("Подзапрос нашел папки для tgId {}: {}", tgAccountId, foundFolderIds);
+
+            // 1. Удаляем связи
+            int deletedChats = folderChatRepository.deleteByTgIdNative(tgAccountId);
+            log.info("Удалено связей в krtg_folder_chat: {}", deletedChats);
+            // 2. Удаляем папки
             folderRepository.deleteByTgId(tgAccountId);
+          //  log.info("Удалено папок: {}", deletedFolders);
         }
 
         List<FolderInfo> folders = telegramPythonClient.findAllFolders(tgAccountId);
