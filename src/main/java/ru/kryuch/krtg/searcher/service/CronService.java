@@ -18,6 +18,7 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.entity.UserEntity;
+import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 import ru.kryuch.krtg.searcher.repository.UserRepository;
@@ -42,6 +43,7 @@ public class CronService {
     private final UserRepository userRepository;
     private final TelegramMessagingService telegramMessagingService;
     private final TgAccountRepository tgAccountRepository;
+    private final ChatHelper chatHelper;
 
 
     private static final long CRON_DELAY = 120_000;
@@ -165,14 +167,14 @@ public class CronService {
                 "Найдено {} чатов: {}",
                 chats.size(),
                 chats.stream()
-                        .map(ChatInfo::getName)
+                        .map(item -> item.getUsername() + "(" + item.getId()+")")
                         .collect(Collectors.joining(", "))
         );
 
         List <ChatResponse> chatResponses = telegramMessagingService.sendToChats(
                 settingAccessService.getValueByCode(SettingConfig.CRON_NEWMESSAGE_SETTING_CODE, userId),
                 false,
-                chats.stream().map(ChatInfo::getId).toList()
+                chatHelper.getChatIdsByChatInfo(chats)
         );
 
         log.info("Сообщение отправлено в " + chatResponses.stream().map(ChatResponse::getName).collect(Collectors.joining(", ")));

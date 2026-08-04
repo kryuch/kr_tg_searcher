@@ -10,6 +10,7 @@
                 <td>
                     <button class="save" type="submit">Выполнить синхронизацию</button>
                     <button class="save export" type="submit">Экспорт</button>
+                    <button class="save bugfix" type="submit">Исправить ошибки</button>
                 </td>
             </tr>
             <tr>
@@ -30,6 +31,12 @@
             jQuery(document).ready(function () {
                 jQuery("button.export").on("click", function () {
                     var url =  jQuery("form.synchr").attr("action").replace("action", "export");
+                    console.log(url);
+                    jQuery("form.synchr").attr("action", url);
+                })
+
+                jQuery("button.bugfix").on("click", function () {
+                    var url =  jQuery("form.synchr").attr("bugfix").replace("action", "bugfix");
                     console.log(url);
                     jQuery("form.synchr").attr("action", url);
                 })

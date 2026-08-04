@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.repository;
 
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +12,7 @@ import ru.kryuch.krtg.searcher.projection.ChatKeyProjection;
 import java.util.List;
 import java.util.Optional;
 
-public interface ChatRepository extends CrudRepository<ChatEntity, Long> {
+public interface ChatRepository extends CrudRepository<ChatEntity, Long>, JpaSpecificationExecutor<ChatEntity> {
 
     @Query("SELECT c.user.id as userId, c.tgId as tgAccountId FROM ChatEntity c WHERE c.status = :status")
     List<ChatKeyProjection> findKeysByStatusEqual(@Param("status") Integer status);

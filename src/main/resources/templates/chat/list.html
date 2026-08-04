@@ -119,13 +119,13 @@
                 fetch('/chat/status/folder?' + params.toString(), {
                     method: 'POST'
                 })
-                    .then(function(response) {
+                    .then(function (response) {
                         if (!response.ok) {
                             throw new Error("HTTP " + response.status);
                         }
                         return response.json();
                     })
-                    .then(function(success) {
+                    .then(function (success) {
                         if (success) {
                             var span = row.querySelector('.folderspan');
                             var td = span.parentElement;
@@ -142,18 +142,22 @@
                             } else {
                                 td.className = 'foldertitle_false';
                                 // Удаляем targetFolder
-                                var folders = span.textContent.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s && s !== targetFolder; });
+                                var folders = span.textContent.split(',').map(function (s) {
+                                    return s.trim();
+                                }).filter(function (s) {
+                                    return s && s !== targetFolder;
+                                });
                                 span.textContent = folders.join(', ');
                             }
                         } else {
                             alert('Ошибка при сохранении статуса папки');
                         }
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         console.error('Ошибка:', error);
                         alert('Ошибка при сохранении статуса папки');
                     })
-                    .finally(function() {
+                    .finally(function () {
                         btn.innerText = originalText;
                     });
             });
@@ -184,24 +188,33 @@
                 fetch('/chat/status/update?' + params.toString(), {
                     method: 'POST'
                 })
-                    .then(function(response) {
+                    .then(function (response) {
                         if (!response.ok) {
                             throw new Error("HTTP " + response.status);
                         }
                         return response.json();
                     })
-                    .then(function(success) {
+                    .then(function (success) {
                         if (success) {
-                            row.className = 'chatstatus' + status;
+                            // Добавляем класс текущей строке
+                            var statusClass = 'chatstatus' + status;
+                            row.className = statusClass;
+
+                            // Проверяем следующий tr
+                            var nextRow = row.nextElementSibling;
+                            if (nextRow && nextRow.classList.contains('chatpremessages')) {
+                                // Добавляем (не заменяем) класс к следующей строке
+                                nextRow.classList.add(statusClass);
+                            }
                         } else {
                             alert('Ошибка при сохранении статуса');
                         }
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         console.error('Ошибка:', error);
                         alert('Ошибка при сохранении статуса');
                     })
-                    .finally(function() {
+                    .finally(function () {
                         btn.innerText = originalText;
                     });
             });

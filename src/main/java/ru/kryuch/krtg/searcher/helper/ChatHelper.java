@@ -2,6 +2,7 @@ package ru.kryuch.krtg.searcher.helper;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
@@ -9,8 +10,11 @@ import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.entity.TgUserEntity;
 import ru.kryuch.krtg.searcher.entity.UserEntity;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
+import ru.kryuch.krtg.searcher.projection.ChatKeyProjection;
+import ru.kryuch.krtg.searcher.projection.ChatKeyProjectionImpl;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.repository.TgUserRepository;
+import ru.kryuch.krtg.searcher.specification.ChatSpecification;
 
 import java.util.List;
 import java.util.Map;
@@ -90,5 +94,15 @@ public class ChatHelper {
         }
 
         return new ChatKey(chatInfo.getId(), chatInfo.getTgAccountId());
+    }
+
+    public List <Long> getChatIdsByChatInfo(List <ChatInfo> chatInfo) {
+        List <ChatKeyProjection> keys =
+                chatInfo.stream()
+                        .map(item -> (ChatKeyProjection)(new ChatKeyProjectionImpl(item.getId(), item.getTgAccountId())))
+                        .toList();
+
+        Specification<ChatEntity> spec = ChatSpecification.hasKeys(keys);
+        return chatRepository.findAll(spec).stream().map(ChatEntity::getId).toList();
     }
 }

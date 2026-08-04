@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.kryuch.krtg.searcher.helper.ExportHelper;
+import ru.kryuch.krtg.searcher.service.ChatBugfixService;
 import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatSynchronizationService;
 import ru.kryuch.krtg.searcher.service.TgAccountService;
@@ -23,6 +24,7 @@ public class SynchrController {
 
     private final ExportHelper exportHelper;
     private final ChatExportService chatExportService;
+    private final ChatBugfixService chatBugfixService;
     private final TgAccountService tgAccountService;
     private final ChatSynchronizationService chatSynchronizationService;
 
@@ -45,8 +47,14 @@ public class SynchrController {
 
     @PostMapping(value = "/export")
     public void export(@RequestParam("tgAccountIds") List<Integer> tgAccountIds, HttpServletResponse response) {
-
         exportHelper.export(chatExportService.exportByTgIds(tgAccountIds), response);
     }
 
+    @PostMapping(value = "/bugfix")
+    public String bugfix(@RequestParam("tgAccountIds") List<Integer> tgAccountIds, RedirectAttributes redirectAttributes) {
+        chatBugfixService.action(tgAccountIds);
+        redirectAttributes.addFlashAttribute("successMessage", "Исправление ошибок выполнен");
+        return "redirect:/synchr/";
+    }
 }
+
