@@ -5,13 +5,18 @@ import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
+import ru.kryuch.krtg.searcher.helper.ChatHelper;
+import ru.kryuch.krtg.searcher.integration.dto.FolderChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
 import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
 import ru.kryuch.krtg.searcher.repository.FolderRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,41 +25,68 @@ public class FolderChatService {
     private final FolderChatRepository folderChatRepository;
     private final FolderRepository folderRepository;
     private final FolderMapper folderMapper;
-    private final SettingService settingService;
     private final TelegramPythonClient telegramPythonClient;
+    private final ChatHelper chatHelper;
 
 
-//    private final String TARGET_FOLDER_TITLE = "folder";
-
-    public List<FolderInfo> getFoldersByChatId(Long chatId) {
-        return folderChatRepository.findByChat_Id(chatId).stream()
-                .map(item -> item.getFolder())
-                .map(item -> folderMapper.fromEntity(item))
-                .toList();
-    }
-
-    public boolean addLinksToTarget(List <Long> chatIds, Boolean status) {
-        chatIds.forEach(item -> this.addLinkToTarget(item, status));
-        return true;
-    }
-
-    public boolean addLinkToTarget(Long chatId, Boolean status) {
-        FolderEntity folderEntity = folderRepository.findAllByTarget(true).get(0);
-        Boolean isExists = folderChatRepository.existsByFolder_IdAndChat_Id(folderEntity.getId(), chatId);
-
-        if (status != isExists) {
-            FolderChatEntity folderChatEntity = new FolderChatEntity(folderEntity.getId(), chatId);
-
-            if (status) {
-                folderChatRepository.save(folderChatEntity);
-            }
-            else {
-                folderChatRepository.delete(folderChatEntity);
-            }
-
-            UpdateFolderRequest request = new UpdateFolderRequest(folderEntity.getId(), List.of(chatId), status);
-            telegramPythonClient.updateFolder(request);
+    public Map<Long, List<FolderInfo>> getFoldersByChatIds(List<Long> chatIds) {
+        if (chatIds == null || chatIds.isEmpty()) {
+            return new HashMap<>();
         }
+
+        return folderChatRepository.findByChatIdsGrouped(chatIds)
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().stream()
+                                .map(FolderChatEntity::getFolder)
+                                .map(folderMapper::fromEntity)
+                                .collect(Collectors.toList())
+                ));
+    }
+
+    public boolean updateLinksToTarget(List<Long> chatIds, Boolean status) {
+        FolderEntity folderEntity = folderRepository.findTargetFolder()
+                .orElseThrow(() ->
+                        new IllegalStateException("Не настроена целевая папка"));
+
+        Map<Long, Boolean> existingLinks = folderChatRepository.existsByFolderIdAndChatIds(folderEntity.getId(), chatIds);
+
+        List<FolderChatEntity> folderChatEntities =
+                chatIds.stream()
+                        .filter(chatId -> existingLinks.getOrDefault(chatId, false) != status)
+                        .map(item -> new FolderChatEntity(folderEntity.getId(), item))
+                        .toList();
+
+        if (folderChatEntities.isEmpty()) {
+            return true;
+        }
+
+        if (status) {
+            folderChatRepository.saveAll(folderChatEntities);
+        } else {
+            folderChatRepository.deleteAll(folderChatEntities);
+        }
+
+        Map <Long, Long> chatUserMap = chatHelper.getChatUserMap(chatIds);
+
+        telegramPythonClient.updateFolder(
+                UpdateFolderRequest.builder()
+                        .items(
+                                folderChatEntities.stream().map(item ->
+                                        FolderChatIdsRequestItem.builder()
+                                                .folderId(folderEntity.getId())
+                                                .id(chatUserMap.get(item.getChatId()))
+                                                .tgAccountId(folderEntity.getTgId())
+                                                .build()
+                                ).toList()
+                        )
+                        .addOperationFlag(status)
+                        .build()
+        );
+
         return true;
     }
+
 }

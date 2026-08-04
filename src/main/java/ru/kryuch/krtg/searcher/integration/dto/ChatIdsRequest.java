@@ -9,5 +9,5 @@ import java.util.List;
 @AllArgsConstructor
 public class ChatIdsRequest {
 
-    private List<Long> chatIds;
+    private List<ChatIdsRequestItem> chatIds;
 }

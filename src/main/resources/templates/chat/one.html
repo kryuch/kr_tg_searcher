@@ -3,6 +3,7 @@
     <table>
         <tr>
             <td class="sendmessage">
+                <div class="tgmultiselectcontainer" th:insert="tgmultiselect.html :: div"></div>
                 <input type="text" id="message" name="message" th:value="${message}">
                 <input type="hidden" id="back" name="back" th:value="${id}">
                 <button type="submit" class="save" id="sendMessageBtn">Отправить</button>

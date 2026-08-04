@@ -7,13 +7,24 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.kryuch.krtg.searcher.config.TelegramSettingsResolver;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
+import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
+import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
+import ru.kryuch.krtg.searcher.dto.VacancyInfo;
+import ru.kryuch.krtg.searcher.dto.VerifyTgCodeParam;
 import ru.kryuch.krtg.searcher.exception.TelegramClientException;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
+import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.integration.dto.CreateFolderRequest;
+import ru.kryuch.krtg.searcher.integration.dto.CreateFolderResponse;
+import ru.kryuch.krtg.searcher.integration.dto.InitRequest;
+import ru.kryuch.krtg.searcher.integration.dto.RequestCodeResponse;
+import ru.kryuch.krtg.searcher.integration.dto.SearchRequest;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByConcatUsername;
 import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByContactId;
 import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
+import ru.kryuch.krtg.searcher.integration.dto.VerifyCodeResponse;
 import ru.kryuch.krtg.searcher.util.PythonMessagesResponse;
 import ru.kryuch.krtg.searcher.util.SendResponse;
 
@@ -30,11 +41,26 @@ public class TelegramPythonClient {
     private final RestTemplate restTemplate;
     private final TelegramSettingsResolver settings;
 
-    public List<FolderInfo> findAllFolders() {
+    public void init(InitRequest initRequest) {
+        String response = execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/init"),
+                        initRequest,
+                        String.class
+                ),
+                "Failed to init"
+        );
+    }
+
+    public List<FolderInfo> findAllFolders(Integer tgAccountId) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUri(buildUri("/api/folders"))
+                .queryParam("accountId", tgAccountId);
 
         FolderInfo[] response = execute(
                 () -> restTemplate.getForObject(
-                        buildUri("/api/folders"),
+                        builder.build().toUri(),
                         FolderInfo[].class
                 ),
                 "Failed to get folders"
@@ -46,11 +72,15 @@ public class TelegramPythonClient {
     }
 
 
-    public List<ChatInfo> findAllChats() {
+    public List<ChatInfo> findAllChats(Integer tgAccountId) {
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUri(buildUri("/api/chats/all"))
+                .queryParam("accountId", tgAccountId);
 
         ChatInfo[] response = execute(
                 () -> restTemplate.getForObject(
-                        buildUri("/api/chats/all"),
+                        builder.build().toUri(),
                         ChatInfo[].class
                 ),
                 "Failed to get chats"
@@ -76,12 +106,13 @@ public class TelegramPythonClient {
                 : List.of(response);
     }
 
-    public List<ChatInfo> searchChats(SearchParams params) {
-        ChatInfo[] response = execute(
+    public List<ChatResponse> searchChats(SearchRequest request) {
+        log.info("TelegramPythonClient::searchChats (request = {}", request);
+        ChatResponse[] response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/search"),
-                        params,
-                        ChatInfo[].class
+                        request,
+                        ChatResponse[].class
                 ),
                 "Failed to search chats"
         );
@@ -92,6 +123,7 @@ public class TelegramPythonClient {
     }
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByConcatUsername request) {
+        log.info("TelegramPythonClient::sendBulkMessages (request = %s", request);
         return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
@@ -113,9 +145,22 @@ public class TelegramPythonClient {
         );
     }
 
-    public PythonMessagesResponse getChatPreview(Long chatId, Integer limit) {
+    public CreateFolderResponse createFolder(CreateFolderRequest request) {
+        return execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/folders/create"),
+                        request,
+                        CreateFolderResponse.class
+                ),
+                "Failed to create folder"
+        );
+    }
+
+    public PythonMessagesResponse getChatPreview(ChatKey chatKey, Integer limit) {
         UriComponentsBuilder builder = UriComponentsBuilder
-                .fromUri(buildUri("/api/chat-preview/" + chatId));
+                .fromUri(buildUri("/api/chat-preview/"))
+                .queryParam("chatId", chatKey.getUserId())
+                .queryParam("accountId", chatKey.getTgAccountId());
 
         if (limit != null && limit > 0) {
             builder.queryParam("limit", limit);
@@ -127,7 +172,40 @@ public class TelegramPythonClient {
                 ),
                 String.format(
                         "Failed to get chat preview %s",
-                        chatId
+                        chatKey
+                )
+        );
+    }
+
+    public RequestCodeResponse sendCode(Integer tgAccountId) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromUri(buildUri("/api/session/request_code"))
+                .queryParam("accountId", tgAccountId);
+
+        return execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/session/request_code"),
+                        tgAccountId,
+                        RequestCodeResponse.class
+                ),
+                String.format(
+                        "Failed to get code %s",
+                        tgAccountId
+                )
+        );
+    }
+
+    public VerifyCodeResponse verify(VerifyTgCodeParam verifyTgCodeParam) {
+
+        return execute(
+                () ->restTemplate.postForObject(
+                        buildUri("/api/session/verify_code"),
+                        verifyTgCodeParam,
+                        VerifyCodeResponse.class
+                ),
+                String.format(
+                        "Failed to verify code %s",
+                        verifyTgCodeParam.getTgAccountId()
                 )
         );
     }

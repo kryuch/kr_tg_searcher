@@ -3,9 +3,10 @@ package ru.kryuch.krtg.searcher.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -14,21 +15,27 @@ public class ChatExportService {
 
     private final ChatService chatService;
 
-    public String export(List<Long> chatIds) {
-     
-            log.info("Export {}", chatIds);
+    public String exportByChatIds(List<Long> chatIds) {
 
-            StringBuilder content = new StringBuilder();
+        log.info("Export {} chats", chatIds.size());
 
-            Map<Long, String> names = chatService.getNamesByIds(chatIds);
+        if (chatIds == null || chatIds.isEmpty()) {
+            return "";
+        }
 
-            chatIds.stream().forEach(item -> {
-                content.append(names.get(item));
-                content.append("\n");
-            });
-
-            return content.toString();
-
-
+        return chatService.getUsernamesByIds(chatIds).stream().collect(Collectors.joining("\n"));
     }
+
+    public String exportByTgIds(List<Integer> tgIds) {
+
+        log.info("Export {} tg ", tgIds.size());
+
+        if (CollectionUtils.isEmpty(tgIds)) {
+            return "";
+        }
+
+        return chatService.getUsernamesByTg(tgIds).stream().collect(Collectors.joining("\n"));
+    }
+
+
 }

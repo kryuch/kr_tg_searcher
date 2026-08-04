@@ -1,0 +1,35 @@
+<div>
+    <div class="tgformcontainer" th:insert="tg/add.html :: div">
+    </div>
+    <script th:src="@{/js/auth.js}"></script>
+    <div class="authform">
+        <table class="list">
+            <tr>
+                <td>
+                    <label for="code">Код</label>
+                </td>
+                <td>
+                    <input type="text" id="code" placeholder="Введите код из Telegram">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="password">Пароль (2FA)</label>
+                </td>
+                <td>
+                    <input type="password" id="password" placeholder="Пароль двухфакторной аутентификации (если есть)">
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button id="receiveCode" class="save" type="submit">Отправить код</button>
+                    <button id="verifyCode" class="save" type="submit">Подтвердить код</button>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Контейнер для сообщений -->
+        <div id="authMessage" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
+    </div>
+</div>

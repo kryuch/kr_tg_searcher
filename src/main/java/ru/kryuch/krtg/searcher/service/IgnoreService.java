@@ -1,7 +1,6 @@
 package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,36 +10,38 @@ import ru.kryuch.krtg.searcher.mapper.IgnoreMapper;
 import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class IgnoreService {
 
-    private final IgnoreRepository ignoreRepository;
-    private final IgnoreMapper ignoreMapper;
+    private final IgnoreAccessService ignoreAccessService;
 
     @Transactional
     public IgnoreInfo update(IgnoreInfo ignoreInfo) {
-        IgnoreInfo oldValue = get(ignoreInfo.getId());
-        oldValue.setUsername(ignoreInfo.getUsername());
-        return ignoreMapper.fromEntity(ignoreRepository.save(ignoreMapper.toEntity(oldValue)));
+    //    ignoreAccessService.update(ignoreInfo);
+        return null;
     }
 
-    @Transactional(readOnly = true)
     public List<IgnoreInfo> getAll() {
-        return ignoreMapper.fromEntityList(Streamable.of(ignoreRepository.findAll()).toList());
+        return ignoreAccessService.getAll();
     }
 
-    @Transactional(readOnly = true)
     public IgnoreInfo get(Long id) {
-        return ignoreMapper.fromEntity(ignoreRepository.findById(id).orElse(new IgnoreEntity()));
+        return ignoreAccessService.get(id);
     }
 
     public void add(IgnoreInfo ignoreInfo) {
-        ignoreRepository.save(ignoreMapper.toEntity(ignoreInfo));
+        ignoreAccessService.add(ignoreInfo);
+    }
+
+    @Transactional
+    public void addList(List <IgnoreInfo> dtos) {
+        ignoreAccessService.add(dtos);
     }
 
     public void remove(Long ignoreId) {
-        ignoreRepository.deleteById(ignoreId);
+        ignoreAccessService.delete(ignoreId);
     }
 }

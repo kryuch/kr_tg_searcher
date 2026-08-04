@@ -7,6 +7,7 @@
             <th id="id" class="table-id">Id</th>
             <th id="name" class="table-name">Имя</th>
             <th id="avatar" class="table-avatar">Аватар</th>
+            <th id="tgAccount" class="table-folders">Аккаунт</th>
             <th id="folders" class="table-folders">Папки</th>
             <th class="table-setting"></th>
         </tr>
@@ -17,22 +18,24 @@
         </tr>
 
         <th:block th:each="item, iter : ${items}">
-            <tr th:attr="data-chat-id=${item.id}, data-chat-name=${item.name}"
+            <tr th:attr="data-chat-id=${item.chatId}, data-chat-name=${item.name}"
                 th:class="${'chatstatus' + (item.status != null ? item.status : 0)}">
 
                 <td>
-                    <input type="checkbox" name="check[]" th:attr="data-chat-id=${item.id}"/>
+                    <input type="checkbox" name="check[]" th:attr="data-chat-id=${item.chatId}"/>
                 </td>
                 <td>
                     <span th:text="${item.username}">Username</span>
                 </td>
                 <td>
                     <span th:text="${item.id}">Id</span>
+                    <br>
+                    <span th:text="${item.chatId}">ChatId</span>
                 </td>
                 <td class="chattitle">
-                    <a th:href="@{/chat/{id}(id=${item.id})}"
+                    <a th:href="@{/chat/{id}(id=${item.chatId})}"
                        class="chat-preview-link"
-                       th:data-chat-id="${item.id}"
+                       th:data-chat-id="${item.chatId}"
                        th:data-chat-name="${item.name}"
                        th:text="${item.name}">
                         Заголовок
@@ -40,7 +43,7 @@
                 </td>
                 <td>
                     <div class="chat-avatar"
-                         th:data-chat-id="${item.id}"
+                         th:data-chat-id="${item.chatId}"
                          th:data-chat-name="${item.name}"
                          style="cursor: pointer; display: inline-block;">
                         <img th:if="${item.avatar != null}"
@@ -52,16 +55,19 @@
                         </div>
                     </div>
                 </td>
+                <td>
+                    <span class="tgAccount" th:text="${item.tgAccount}">tgAccount</span>
+                </td>
                 <td th:class="${'foldertitle_' + (item.hasTargetFolder)}">
                     <span class="folderspan" th:text="${item.folderTitles}">Folders</span>
                 </td>
-                <td class="settingbuttons">
+                <td class="settingbuttons" th:classappend="${'foldertitle_' + (item.hasTargetFolder)}">
                     <a href="#" class="btn-restore btn-status" data-status="1">Отказ</a>
                     <a href="#" class="btn-send btn-status" data-status="2">--</a>
                     <a href="#" class="btn-remove btn-status" data-status="3">Не HR</a>
 
                     <a href="#" class="btn-add btn-folder" data-status="1">В папку</a>
-                    <a href="#" class="btn-remove btn-folder" data-status="0">Из папки</a>
+                    <a href="#" id="fromFolder" class="btn-remove btn-folder" data-status="0">Из папки</a>
                 </td>
             </tr>
             <tr class="chatpremessages">
@@ -113,13 +119,13 @@
                 fetch('/chat/status/folder?' + params.toString(), {
                     method: 'POST'
                 })
-                    .then(function(response) {
+                    .then(function (response) {
                         if (!response.ok) {
                             throw new Error("HTTP " + response.status);
                         }
                         return response.json();
                     })
-                    .then(function(success) {
+                    .then(function (success) {
                         if (success) {
                             var span = row.querySelector('.folderspan');
                             var td = span.parentElement;
@@ -136,18 +142,22 @@
                             } else {
                                 td.className = 'foldertitle_false';
                                 // Удаляем targetFolder
-                                var folders = span.textContent.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s && s !== targetFolder; });
+                                var folders = span.textContent.split(',').map(function (s) {
+                                    return s.trim();
+                                }).filter(function (s) {
+                                    return s && s !== targetFolder;
+                                });
                                 span.textContent = folders.join(', ');
                             }
                         } else {
                             alert('Ошибка при сохранении статуса папки');
                         }
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         console.error('Ошибка:', error);
                         alert('Ошибка при сохранении статуса папки');
                     })
-                    .finally(function() {
+                    .finally(function () {
                         btn.innerText = originalText;
                     });
             });
@@ -178,24 +188,33 @@
                 fetch('/chat/status/update?' + params.toString(), {
                     method: 'POST'
                 })
-                    .then(function(response) {
+                    .then(function (response) {
                         if (!response.ok) {
                             throw new Error("HTTP " + response.status);
                         }
                         return response.json();
                     })
-                    .then(function(success) {
+                    .then(function (success) {
                         if (success) {
-                            row.className = 'chatstatus' + status;
+                            // Добавляем класс текущей строке
+                            var statusClass = 'chatstatus' + status;
+                            row.className = statusClass;
+
+                            // Проверяем следующий tr
+                            var nextRow = row.nextElementSibling;
+                            if (nextRow && nextRow.classList.contains('chatpremessages')) {
+                                // Добавляем (не заменяем) класс к следующей строке
+                                nextRow.classList.add(statusClass);
+                            }
                         } else {
                             alert('Ошибка при сохранении статуса');
                         }
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         console.error('Ошибка:', error);
                         alert('Ошибка при сохранении статуса');
                     })
-                    .finally(function() {
+                    .finally(function () {
                         btn.innerText = originalText;
                     });
             });

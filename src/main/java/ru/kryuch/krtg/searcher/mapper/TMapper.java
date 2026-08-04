@@ -1,5 +1,6 @@
 package ru.kryuch.krtg.searcher.mapper;
 
+import org.mapstruct.MappingTarget;
 import ru.kryuch.krtg.searcher.dto.IgnoreInfo;
 import ru.kryuch.krtg.searcher.dto.Setting;
 import ru.kryuch.krtg.searcher.entity.IgnoreEntity;
@@ -12,7 +13,11 @@ public interface TMapper<TEntity, TDto> {
 
     List<TDto> fromEntityList(Collection<TEntity> entity);
 
-    TDto fromEntity(TEntity entity);
+    List<TEntity> toEntityList(Collection<TDto> entity);
 
+    TDto fromEntity(TEntity entity);
+ 
     TEntity toEntity(TDto info);
+
+    TEntity mergeToEntity(TDto model, @MappingTarget TEntity entity);
 }

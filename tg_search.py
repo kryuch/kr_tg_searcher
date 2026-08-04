@@ -1,21 +1,61 @@
 import asyncio
+import base64
 from datetime import datetime
+from io import BytesIO
 from telethon.errors import ChatAdminRequiredError, ChannelPrivateError, UserIdInvalidError
 
-async def search_chats(client, params):
-    """
-    Поиск чатов по параметрам
 
-    params: {
-        'term': str,                 # ключевое слово
-        'lastMessage': str,          # текст последнего сообщения (если пусто - не фильтровать)
-        'maxFoundCount': int,        # максимальное количество чатов
-        'minDiffDaysCount': int,     # минимальное количество дней без сообщений
-        'botType': str,              # PERSONAL, NOT_PERSONAL, ALL
-        'groupType': str,            # PERSONAL, NOT_PERSONAL, ALL
-        'excludeChatIds': list,      # список ID чатов для исключения
-        'messagesCount': int         # количество последних сообщений для каждого чата (0 - не добавлять)
+async def get_avatar(client, entity):
+    """Асинхронное получение аватара в base64."""
+    try:
+        photo = await client.get_profile_photos(entity, limit=1)
+        if photo:
+            buffer = BytesIO()
+            await client.download_media(photo[0], file=buffer)
+            if buffer.getvalue():
+                return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    except Exception as e:
+        print(f"Avatar error: {e}")
+    return None
+def prepare_search_params(data):
+    """
+    Подготавливает параметры поиска из запроса.
+    """
+    # Обрабатываем excludeChats
+    exclude_chats = {}
+    for item in data.get('excludeChats', []):
+        tg_account_id = item.get('tgAccountId')
+        user_id = item.get('userId')
+        if tg_account_id is not None and user_id is not None:
+            if tg_account_id not in exclude_chats:
+                exclude_chats[tg_account_id] = set()
+            exclude_chats[tg_account_id].add(user_id)
+
+    term = data.get('term')
+    term = term.strip() if term else 'Java'
+
+    last_message = data.get('lastMessage')
+    last_message = last_message.strip() if last_message else ''
+
+    return {
+        'term': term,
+        'lastMessage': last_message,
+        'maxFoundCount': data.get('maxFoundCount', 10) or 10,
+        'minDiffDaysCount': data.get('minDiffDaysCount', 0) if data.get('minDiffDaysCount') is not None else 0,
+        'botType': data.get('botType', 'PERSONAL'),
+        'groupType': data.get('groupType', 'PERSONAL'),
+        'excludeChats': exclude_chats,
+        'messagesCount': data.get('messagesCount', 0) or 0
     }
+
+async def search_chats(client, params, account_id):
+    """
+    Поиск чатов по параметрам с учётом исключений для конкретного аккаунта.
+
+    Args:
+        client: Telethon клиент
+        params: параметры поиска
+        account_id: ID аккаунта (для фильтрации исключений)
     """
     term = params.get('term', 'Java')
     last_message = params.get('lastMessage', '').strip()
@@ -23,8 +63,12 @@ async def search_chats(client, params):
     min_diff_days_count = params.get('minDiffDaysCount', 7)
     bot_type = params.get('botType', 'PERSONAL')
     group_type = params.get('groupType', 'PERSONAL')
-    exclude_chat_ids = set(params.get('excludeChatIds', []))
+    exclude_chats = params.get('excludeChats', {})
     messages_count = params.get('messagesCount', 0)
+
+    # Получаем список исключённых ID для этого аккаунта
+    exclude_ids = exclude_chats.get(account_id, set())
+    print(f"🔵 Исключения для аккаунта {account_id}: {len(exclude_ids)} чатов")
 
     result = []
     me = await client.get_me()
@@ -33,18 +77,18 @@ async def search_chats(client, params):
         if len(result) >= max_found_count:
             break
 
-        # Исключаем чаты из списка
-        if d.id in exclude_chat_ids:
+        # Проверяем исключения для этого аккаунта
+        if d.id in exclude_ids:
             continue
 
-        # Фильтр по ботам (3 варианта)
+        # Фильтр по ботам
         is_bot = hasattr(d.entity, 'bot') and d.entity.bot
         if bot_type == 'PERSONAL' and is_bot:
             continue
         elif bot_type == 'NOT_PERSONAL' and not is_bot:
             continue
 
-        # Фильтр по группам/каналам (3 варианта)
+        # Фильтр по группам/каналам
         is_group = (hasattr(d.entity, 'broadcast') and d.entity.broadcast) or \
                    (hasattr(d.entity, 'megagroup') and d.entity.megagroup)
 
@@ -53,19 +97,16 @@ async def search_chats(client, params):
         elif group_type == 'NOT_PERSONAL' and not is_group:
             continue
 
-        # Фильтр по давности (максимально защищённый)
+        # Фильтр по давности
         if min_diff_days_count and min_diff_days_count > 0:
             try:
-                # Проверяем, есть ли сообщение и дата
                 if d.message is None or d.message.date is None:
-                    # Нет сообщений — пропускаем чат
                     continue
 
                 last_date = d.message.date.replace(tzinfo=None)
                 now = datetime.now()
                 days_ago = (now - last_date).days
 
-                # Убеждаемся, что days_ago не None и сравниваем
                 if days_ago is not None and days_ago < min_diff_days_count:
                     continue
             except Exception as e:
@@ -76,8 +117,6 @@ async def search_chats(client, params):
         try:
             async for m in client.iter_messages(d.id, search=term, limit=1):
                 if m.text and term.lower() in m.text.lower():
-
-                    # Проверяем последнее сообщение (если задан lastMessage)
                     if last_message:
                         found_in_chat = False
                         try:
@@ -95,20 +134,21 @@ async def search_chats(client, params):
                         if not found_in_chat:
                             continue
 
-                    # Получаем username или телефон
                     username = getattr(d.entity, 'username', None)
                     if not username:
                         phone = getattr(d.entity, 'phone', None)
                         if phone:
                             username = phone
 
+                    avatar = await get_avatar(client, d.entity)
+
                     chat_info = {
                         'id': d.id,
                         'name': d.name,
-                        'username': username
+                        'username': username,
+                        'avatar': avatar
                     }
 
-                    # Добавляем последние сообщения, если messages_count > 0
                     if messages_count > 0:
                         messages = []
                         async for msg in client.iter_messages(d.id, limit=messages_count):
@@ -128,9 +168,8 @@ async def search_chats(client, params):
             print(f"Ошибка в чате {d.name}: {e}")
             continue
 
-    print(f"🔵 Поиск завершён. Найдено чатов: {len(result)}")
+    print(f"🔵 Поиск завершён для аккаунта {account_id}. Найдено чатов: {len(result)}")
     return result
-
 
 async def get_chats_info(client, chat_ids):
     """
@@ -159,10 +198,13 @@ async def get_chats_info(client, chat_ids):
                 if phone:
                     username = phone
 
+            avatar = await get_avatar(client, entity)
+
             results.append({
                 'id': chat_id,
                 'username': username,
-                'name': name
+                'name': name,
+                'avatar': avatar
             })
 
             print(f"✅ Получена информация о чате {chat_id}: {name} (username: {username})")
@@ -172,6 +214,7 @@ async def get_chats_info(client, chat_ids):
                 'id': chat_id,
                 'username': None,
                 'name': None,
+                'avatar': None,
                 'error': str(e)
             })
             print(f"❌ Ошибка: чат {chat_id} не найден")
@@ -181,6 +224,7 @@ async def get_chats_info(client, chat_ids):
                 'id': chat_id,
                 'username': None,
                 'name': None,
+                'avatar': None,
                 'error': f"Нет доступа: {str(e)}"
             })
             print(f"⚠️ Нет доступа к чату {chat_id}")
@@ -190,6 +234,7 @@ async def get_chats_info(client, chat_ids):
                 'id': chat_id,
                 'username': None,
                 'name': None,
+                'avatar': None,
                 'error': str(e)
             })
             print(f"❌ Ошибка при получении чата {chat_id}: {e}")

@@ -1,4 +1,5 @@
 <table class="filtercontainericontent" id="filtercontainericontent">
+    <script th:src="@{/js/chatsfilter.js}"></script>
     <tr class="filter" id="filterparams">
         <td class="colid"></td>
         <td class="col">
@@ -12,13 +13,15 @@
             </div>
         </td>
         <td class="col limit">
-            <label>Максимум результатов:</label>
+            <label>Максимум чатов:</label>
             <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount"
                    class="1col active form-control"/>
+
+            <div class="tgmultiselectcontainer" th:insert="tgmultiselect.html :: div"></div>
         </td>
         <td class="col">
             <div class="filterchatblock">
-                <label>Не писали больше чем (в днях):</label>
+                <label>Не писали больше чем (д):</label>
                 <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}" name="minDiffDaysCount"
                        class="1col active form-control"/>
 
@@ -48,233 +51,22 @@
         </td>
         <td colspan="2">
             <button class="save" id="filter" type="submit">Фильтровать</button>
-            <script>
-                $(document).ready(function () {
-                    var action = "/chat/search";
-
-                    $("#filter").click(function (e) {
-                        e.preventDefault();
-
-                        var formData = {
-                            term: $("#term").val(),
-                            maxFoundCount: $("#maxFoundCount").val(),
-                            minDiffDaysCount: $("#minDiffDaysCount").val(),
-                            excludeStatusFlag: $("#excludeStatusFlag").is(":checked"),
-                            botType: $("#botType").val(),
-                            lastMessage: $("#lastMessage").val(),
-                            groupType: $("#groupType").val(),
-                            messagesCount: $("#messagesCount").val()
-                        };
-
-                        console.log("Отправляемые данные:", formData);
-
-                        $.ajax({
-                            url: action,
-                            type: "GET",
-                            data: formData,
-                            success: function (response) {
-                                console.log("Ответ от сервера:", response);
-                                $(".icontent").remove();
-                                $(".econtent").html(response);
-
-                                var titleOnlyFlag = jQuery("table.list").hasClass("onlychatheaders");
-                                var messagesCount = Number($("#messagesCount").val());
-
-                                if (messagesCount > 0 && titleOnlyFlag) {
-                                    jQuery("table.list").removeClass("onlychatheaders")
-                                }
-                                if (messagesCount == 0 && !titleOnlyFlag) {
-                                    jQuery("table.list").addClass("onlychatheaders")
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error("Ошибка:", error);
-                            }
-                        });
-                    });
-                });
-            </script>
         </td>
     </tr>
     <tr class="message">
         <td colspan="2">
             <a href="javascript:void(0)" id="checkAll">Выделить все</a>
             <a href="javascript:void(0)" id="uncheckAll">Снять выделение</a>
-            <script>
-                $("#checkAll").click(function (e) {
-                    e.preventDefault();
-                    $('.icontent table.list input[type="checkbox"]').prop('checked', true);
-                });
-
-                $("#uncheckAll").click(function (e) {
-                    e.preventDefault();
-                    $('.icontent table.list input[type="checkbox"]').prop('checked', false);
-                });
-            </script>
         </td>
         <td colSpan="2">
             <span>Сообщение</span>
-            <input type="text" name="message" id="message">
-
+            <input type="text" name="message" id="message" />
+            <input type="checkbox" name="clearPrevious" id="clearPrevious" /> Очитить историю
             <button class="save massaction" id="sendMessage" type="submit">Послать сообщение</button>
             <button class="save massaction" id="export" type="submit">Экспортировать</button>
             <button class="save massaction" id="toFolder" type="submit">В папку</button>
             <button class="save massaction" id="fromFolder" type="submit">Из папки</button>
 
-            <script>
-                $("#toFolder").click(function (e) {
-                    e.preventDefault();
-
-                    var selectedChats = [];
-
-                    $('input[name="check[]"]:checked').each(function () {
-                        var chatId = $(this).data('chat-id');
-                        if (chatId) {
-                            selectedChats.push(chatId);
-                        }
-                    });
-
-                    if (selectedChats.length === 0) {
-                        alert('Выберите хотя бы один чат');
-                        return;
-                    }
-
-                    var form = $('<form>', {
-                        action: '/chat/toFolder',
-                        method: 'POST'
-                    });
-
-                    selectedChats.forEach(function (chatId) {
-                        $('<input>', {
-                            type: 'hidden',
-                            name: 'chatIds',
-                            value: chatId
-                        }).appendTo(form);
-                    });
-
-                    $('body').append(form);
-                    form.submit();
-                });
-                $("#fromFolder").click(function (e) {
-                    e.preventDefault();
-
-                    var selectedChats = [];
-
-                    $('input[name="check[]"]:checked').each(function () {
-                        var chatId = $(this).data('chat-id');
-                        if (chatId) {
-                            selectedChats.push(chatId);
-                        }
-                    });
-
-                    if (selectedChats.length === 0) {
-                        alert('Выберите хотя бы один чат');
-                        return;
-                    }
-
-                    var form = $('<form>', {
-                        action: '/chat/fromFolder',
-                        method: 'POST'
-                    });
-
-                    selectedChats.forEach(function (chatId) {
-                        $('<input>', {
-                            type: 'hidden',
-                            name: 'chatIds',
-                            value: chatId
-                        }).appendTo(form);
-                    });
-
-                    $('body').append(form);
-                    form.submit();
-                });
-                $("#sendMessage").click(function (e) {
-                    e.preventDefault();
-
-                    var selectedChats = [];
-
-                    $('input[name="check[]"]:checked').each(function () {
-                        var chatId = $(this).data('chat-id');
-                        if (chatId) {
-                            selectedChats.push(chatId);
-                        }
-                    });
-
-                    var message = $("#message").val().trim();
-
-                    if (selectedChats.length === 0) {
-                        alert('Выберите хотя бы один чат');
-                        return;
-                    }
-
-                    if (!message) {
-                        alert('Введите текст сообщения');
-                        return;
-                    }
-
-                    var form = $('<form>', {
-                        action: '/chat/send',
-                        method: 'POST'
-                    });
-
-                    selectedChats.forEach(function (chatId) {
-                        $('<input>', {
-                            type: 'hidden',
-                            name: 'chatIds',
-                            value: chatId
-                        }).appendTo(form);
-                    });
-
-                    $('<input>', {
-                        type: 'hidden',
-                        name: 'message',
-                        value: message
-                    }).appendTo(form);
-
-                    $('body').append(form);
-                    form.submit();
-                });
-                $("#export").click(function (e) {
-                    e.preventDefault();
-
-                    var selectedChats = [];
-                    $('input[name="check[]"]:checked').each(function () {
-                        var chatId = $(this).data('chat-id');
-                        if (chatId) {
-                            selectedChats.push(parseInt(chatId));
-                        }
-                    });
-
-                    if (selectedChats.length === 0) {
-                        alert('Выберите хотя бы один чат');
-                        return;
-                    }
-
-                    var $btn = $(this);
-                    var originalText = $btn.text();
-                    $btn.text('Экспорт...').prop('disabled', true);
-
-                    // Создаём форму для скачивания файла
-                    var form = $('<form>', {
-                        action: '/chat/export',
-                        method: 'POST'
-                    });
-
-                    $.each(selectedChats, function (i, chatId) {
-                        $('<input>', {
-                            type: 'hidden',
-                            name: 'chatIds',
-                            value: chatId
-                        }).appendTo(form);
-                    });
-
-                    $('body').append(form);
-                    form.submit();
-                    form.remove();
-
-                    $btn.text(originalText).prop('disabled', false);
-                });
-            </script>
         </td>
         <td>
             <label>Добавить сообщения</label>
