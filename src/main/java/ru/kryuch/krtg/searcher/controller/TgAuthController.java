@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import ru.kryuch.krtg.searcher.service.TgAccountService;
 @RestController
 @RequestMapping("/tg/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class TgAuthController {
 
     private final TelegrammAuthService telegrammAuthService;
@@ -33,8 +35,11 @@ public class TgAuthController {
     }
 
     @PostMapping("/verify")
+    @ResponseBody
     public VerifyCodeResponse verifyCode(@RequestBody VerifyTgCodeParam param) {
-        return telegrammAuthService.verify(param);
+        VerifyCodeResponse verifyCodeResponse = telegrammAuthService.verify(param);
+        log.info(verifyCodeResponse.toString());
+        return verifyCodeResponse;
     }
 
 }

@@ -256,6 +256,7 @@ async def verify_code_with_new_client(
 
         if await client.is_user_authorized():
             return {
+                "success": true,
                 "status": "success",
                 "message": "Аккаунт уже авторизован"
             }
@@ -271,6 +272,7 @@ async def verify_code_with_new_client(
         )
 
         return {
+            "success": true,
             "status": "success"
         }
 

@@ -60,7 +60,7 @@ async def search_chats(client, params, account_id):
     term = params.get('term', 'Java')
     last_message = params.get('lastMessage', '').strip()
     max_found_count = params.get('maxFoundCount', 10)
-    min_diff_days_count = params.get('minDiffDaysCount', 7)
+    min_diff_days_count = params.get('minDiffDaysCount', 0)
     bot_type = params.get('botType', 'PERSONAL')
     group_type = params.get('groupType', 'PERSONAL')
     exclude_chats = params.get('excludeChats', {})

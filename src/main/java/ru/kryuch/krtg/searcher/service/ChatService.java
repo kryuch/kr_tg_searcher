@@ -78,6 +78,10 @@ public class ChatService {
                             item.setStatus(ChatStatus.getChatStatus(chatsMap.get(chatKey).getStatus()));
                             item.setChatId(chatsMap.get(chatKey).getId());
                         }
+                        else {
+                            item.setStatus(ChatStatus.SIMPLE);
+                            item.setChatId(chatHelper.createNewChatAndReturnId(item));
+                        }
                         if (withFolderFlag) {
                             item.setFolders(foldersMap.get(item.getId()));
                             item.setHasTargetFolder(
