@@ -18,10 +18,14 @@ public class TgAccountService {
     private final TelegramPythonClient telegramPythonClient;
 
     public void init() {
-        List <TgAccountInfo> accouts = getAll();
+        List<TgAccountInfo> accouts = getAll();
         if (!CollectionUtils.isEmpty(accouts)) {
             telegramPythonClient.init(new InitRequest(accouts));
         }
+    }
+
+    public void init(TgAccountInfo tgAccountInfo) {
+        telegramPythonClient.init(new InitRequest(List.of(tgAccountInfo)));
     }
 
     public List<TgAccountInfo> getAll() {
