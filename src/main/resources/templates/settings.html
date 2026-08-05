@@ -4,6 +4,7 @@
         <div id="tabs">
             <ul>
                 <li><a href="#tabs-cron">Крон</a></li>
+                <li><a href="#tabs-folder">Папка</a>
                 <li><a href="#tabs-other">Прочее</a></li>
             </ul>
             <div id="tabs-cron">
@@ -14,41 +15,15 @@
                         <th id="rate" class="table-description"> Значение</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody></tbody>
+                    <th:block th:each="view, iter : ${views}">
                     <tr>
-                        <td>Использование</td>
-                        <td id="cron_enable">
-                            <input type="checkbox" id="cron_enable_value"/>
+                        <td><span th:text="${view.title}">Заголовок</span></td>
+                        <td th:id="${view.code}">
+                            <input th:if="${view.isCheckbox}" type="checkbox" id="${view.code}_value"/>
                         </td>
                     </tr>
-                    <tr>
-                        <td>Строка времени</td>
-                        <td id="cron_time"></td>
-                    </tr>
-                    <tr>
-                        <td>Шаблон поиска</td>
-                        <td id="term"></td>
-                    </tr>
-                    <tr>
-                        <td>Число чатов в одной операции крона</td>
-                        <td id="cron_chats_count"></td>
-                    </tr>
-                    <tr>
-                        <td>После игнора</td>
-                        <td id="max_day"></td>
-                    </tr>
-                    <tr>
-                        <td>Последнее сообщение</td>
-                        <td id="cron_lastmessage"></td>
-                    </tr>
-                    <tr>
-                        <td>Новое сообщение</td>
-                        <td id="cron_newmessage"></td>
-                    </tr>
-                    <tr>
-                        <td>Последний запуск</td>
-                        <td id="cron_lastrun"></td>
-                    </tr>
+                    </th:block>
                     </tbody>
                 </table>
             </div>
