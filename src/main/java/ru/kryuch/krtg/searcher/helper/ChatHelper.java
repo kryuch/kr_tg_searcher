@@ -82,18 +82,28 @@ public class ChatHelper {
 
     @Transactional
     public ChatKey createNewChat(ChatInfo chatInfo) {
+        ChatEntity chatEntity = __createNewChat(chatInfo);
+        return new ChatKey(chatInfo.getId(), chatInfo.getTgAccountId());
+    }
+
+    @Transactional
+    public Long createNewChatAndReturnId(ChatInfo chatInfo) {
+        return __createNewChat(chatInfo).getId();
+    }
+
+    public ChatEntity __createNewChat(ChatInfo chatInfo) {
         Optional <TgUserEntity> tgUserEntity = tgUserRepository.findById(chatInfo.getId());
         TgUserEntity user = (tgUserEntity.isEmpty()) ?
-            tgUserRepository.save(TgUserEntity.builder().username(chatInfo.getUsername()).id(chatInfo.getId()).build()): tgUserEntity.get();
+                tgUserRepository.save(TgUserEntity.builder().username(chatInfo.getUsername()).id(chatInfo.getId()).build()): tgUserEntity.get();
 
         Optional <ChatEntity> chatEntityOptional = chatRepository.findByUserIdAndTgId(chatInfo.getId(), chatInfo.getTgAccountId());
         if (chatEntityOptional.isEmpty())  {
             ChatEntity chatEntity = chatMapper.toEntity(chatInfo);
             chatEntity.setUser(user);
-            chatRepository.save(chatEntity);
+            return chatRepository.save(chatEntity);
         }
 
-        return new ChatKey(chatInfo.getId(), chatInfo.getTgAccountId());
+        return chatEntityOptional.get();
     }
 
     public List <Long> getChatIdsByChatInfo(List <ChatInfo> chatInfo) {
