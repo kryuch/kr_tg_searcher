@@ -1,0 +1,307 @@
+<questions>
+    <question>
+        <title>Для чего нужны классы LinkedHashMap и TreeHashMap? Чем они лучше обычного и в каких задачах их стоит применять?</title>
+        <groups>
+            <group>HashMap</group>
+        </groups>
+        <short><b>LinkedHashMap</b> сохраняет порядок вставки элементов (или порядок доступа), что делает его идеальным для реализации LRU-кэшей. <b>TreeMap</b> (а не <code>TreeHashMap</code>) хранит элементы отсортированными по ключам (или по компаратору), что полезно для задач, требующих упорядоченного доступа (диапазоны, навигационные операции). Обычный <code>HashMap</code> не гарантирует порядка, но быстрее в операциях <code>get</code> и <code>put</code>.</short>
+        <long>
+            <b>Сравнение HashMap, LinkedHashMap и TreeMap:</b>
+            <ul>
+                <li><b><code>LinkedHashMap</code>:</b> Наследник <code>HashMap</code>. Использует двусвязный список для поддержания порядка вставки или доступа. Идеален для <b>LRU-кэшей</b> (настройка <code>accessOrder</code>). Чуть медленнее обычного <code>HashMap</code> из-за поддержки порядка.</li>
+                <li><b><code>TreeMap</code>:</b> Реализует <code>NavigableMap</code> и хранит элементы отсортированными по ключам (естественный порядок или через <code>Comparator</code>). Полезен для операций с диапазонами (<code>subMap</code>, <code>headMap</code>). Операции <b>O(log n)</b> из-за красно-чёрного дерева.</li>
+                <li><b><code>HashMap</code>:</b> Не гарантирует порядка, но обеспечивает <b>O(1)</b> в среднем для <code>get</code> и <code>put</code>. Самый быстрый и используемый по умолчанию.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Из-за чего могут возникнуть коллизии в HashMap?</title>
+        <groups>
+            <group>HashMap</group>
+        </groups>
+        <short>Коллизии в HashMap возникают, когда два разных ключа имеют <b>одинаковый хэш-код</b> (после применения дополнительного хэширования) или когда хэш-функция возвращает одинаковые значения для разных ключей. Это приводит к тому, что оба ключа попадают в одну корзину (bucket), что может снизить производительность до O(n) в худшем случае.</short>
+        <long>
+            <b>Причины коллизий:</b>
+            <ul>
+                <li><b>Плохая реализация <code>hashCode()</code>:</b> Если хэш-код возвращает одинаковые значения для разных объектов (например, всегда 0), все элементы попадают в одну корзину.</li>
+                <li><b>Ограниченное количество корзин:</b> При малом размере массива (capacity) вероятность коллизий возрастает (принцип "рождения" из-за конечного числа корзин).</li>
+                <li><b>Одинаковый хэш-код:</b> Два разных объекта могут иметь одинаковый хэш-код (например, строки "Aa" и "BB" в Java имеют одинаковый <code>hashCode()</code>).</li>
+                <li><b>Распределение данных:</b> Если ключи часто дают одинаковый индекс (<code>hash % capacity</code>), коллизии неизбежны.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какие типы ссылок существуют в Java? В чем их отли</title>
+        <groups>
+            <group>Java Core</group>
+        </groups>
+        <short>В Java существует четыре типа ссылок: <b>Strong (сильная)</b> — обычная ссылка, не даёт GC удалить объект; <b>Soft (мягкая)</b> — удаляется GC только при нехватке памяти (полезно для кэшей); <b>Weak (слабая)</b> — удаляется при следующем проходе GC (используется в WeakHashMap); <b>Phantom (фантомная)</b> — позволяет узнать, что объект был удалён, но не предотвращает сборку.</short>
+        <long>
+            <b>Типы ссылок в Java:</b>
+            <ul>
+                <li><b>Strong Reference (сильная):</b> Обычная ссылка. Пока существует, объект не может быть удалён GC. <code>Object obj = new Object();</code></li>
+                <li><b>Soft Reference (мягкая):</b> GC может удалить объект только при нехватке памяти (перед <code>OutOfMemoryError</code>). Используется для кэшей, которые можно восстановить. <code>SoftReference&lt;Object&gt; ref = new SoftReference&lt;&gt;(obj);</code></li>
+                <li><b>Weak Reference (слабая):</b> Удаляется при следующем проходе GC. Используется в <code>WeakHashMap</code> для предотвращения утечек памяти. <code>WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(obj);</code></li>
+                <li><b>Phantom Reference (фантомная):</b> Объект может быть удалён в любой момент, но ссылка позволяет узнать, что объект был удалён (через <code>ReferenceQueue</code>). Используется для постобработки. <code>PhantomReference&lt;Object&gt; ref = new PhantomReference&lt;&gt;(obj, queue);</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Зачем нужен HashMap, если есть Hashtable?</title>
+        <groups>
+            <group>HashMap</group>
+        </groups>
+        <short><b>HashMap</b> является более современной и быстрой реализацией, чем <b>Hashtable</b>. <code>Hashtable</code> синхронизирован (потокобезопасен), что делает его медленнее. <code>HashMap</code> не синхронизирован, но позволяет использовать <code>null</code> в качестве ключа и значения, в отличие от <code>Hashtable</code>. Для потокобезопасности в современных приложениях используется <code>ConcurrentHashMap</code>.</short>
+        <long>
+            <b>Различия HashMap и Hashtable:</b>
+            <ul>
+                <li><b><code>HashMap</code>:</b> Не синхронизирован (не потокобезопасен), что даёт более высокую производительность в однопоточных сценариях. Позволяет хранить <code>null</code> в качестве ключа и значения. Появился в Java 1.2.</li>
+                <li><b><code>Hashtable</code>:</b> Синхронизирован (потокобезопасен), что снижает производительность. Не позволяет использовать <code>null</code> в качестве ключа или значения. Устаревший класс, появился в Java 1.0.</li>
+                <li><b>Рекомендация:</b> Использовать <code>HashMap</code> для однопоточных приложений и <code>ConcurrentHashMap</code> для многопоточных. <code>Hashtable</code> считается устаревшим и его использование не рекомендуется.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какой класс называют Immutable? Как создать?</title>
+        <groups>
+            <group>Java Core</group>
+        </groups>
+        <short><b>Immutable (неизменяемый)</b> класс — это класс, объект которого не может быть изменён после создания. Все поля такого класса должны быть <code>final</code>, не должно быть сеттеров, а изменяемые поля (коллекции, даты) должны защищаться копированием. Примеры: <code>String</code>, <code>Integer</code>, <code>LocalDate</code>.</short>
+        <long>
+            <b>Правила создания Immutable класса:</b>
+            <ul>
+                <li>Объявить класс как <code>final</code> (чтобы запретить наследование).</li>
+                <li>Сделать все поля <code>private final</code>.</li>
+                <li>Не предоставлять сеттеры.</li>
+                <li>Если поле является изменяемым (например, <code>Date</code> или <code>List</code>), в конструкторе создавать его глубокую копию, а в геттере возвращать копию.</li>
+                <li>Убедиться, что методы класса не изменяют состояние объекта.</li>
+                <li>Переопределить <code>toString()</code>, <code>equals()</code>, <code>hashCode()</code> (опционально).</li>
+            </ul>
+            <b>Пример:</b> <code>public final class Person { private final String name; private final Date dob; /* конструктор, геттеры с копированием */ }</code>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем строки (String) отличаются от остальных классов? Почему их принято создавать без использования "new"</title>
+        <groups>
+            <group>Java Core</group>
+        </groups>
+        <short><code>String</code> является <b>иммутабельным</b> классом и хранится в специальном <b>пуле строк (String Pool)</b>. Создание через литерал (<code>"text"</code>) использует пул и возвращает существующий объект, если такой уже есть. Использование <code>new String("text")</code> создаёт новый объект в куче (heap), обходя пул. Поэтому предпочтительнее использовать литералы для экономии памяти и производительности.</short>
+        <long>
+            <b>Отличия String:</b>
+            <ul>
+                <li><b>Иммутабельность:</b> <code>String</code> является неизменяемым (immutable). Любое изменение строки создаёт новый объект.</li>
+                <li><b>Пул строк (String Pool):</b> Литералы строк хранятся в специальном пуле, что позволяет переиспользовать объекты.</li>
+                <li><b><code>new String()</code>:</b> Создаёт новый объект в куче, даже если такая же строка уже есть в пуле. Поэтому использование <code>new String()</code> считается анти-паттерном.</li>
+                <li><b>Эффективность:</b> Благодаря пулу и интернированию строки экономят память и ускоряют сравнение (при сравнении ссылок через <code>==</code> для литералов).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое пул строк/String pool?</title>
+        <groups>
+            <group>Java Core</group>
+        </groups>
+        <short><b>String Pool (пул строк)</b> — это специальная область памяти в <b>куче (heap)</b>, в которой хранятся строковые литералы (например, <code>"Hello"</code>). При создании новой строки через литерал JVM сначала проверяет, есть ли такая строка в пуле. Если есть — возвращается ссылка на существующий объект. Если нет — создаётся новый объект и помещается в пул. Это позволяет экономить память и ускорять сравнение строк.</short>
+        <long>
+            <b>Как работает String Pool:</b>
+            <ul>
+                <li><b>Литералы:</b> Все строковые литералы (<code>"text"</code>) автоматически помещаются в пул.</li>
+                <li><b>Интернирование:</b> Метод <code>intern()</code> позволяет явно поместить строку в пул.</li>
+                <li><b>Экономия памяти:</b> Если одна и та же строка используется многократно, в пуле хранится только один объект.</li>
+                <li><b>Расположение:</b> До Java 7 пул находился в PermGen, с Java 7 — в обычной куче (heap), что позволило избежать <code>OutOfMemoryError</code> в PermGen.</li>
+                <li><b>Важно:</b> Строки, созданные через <code>new String("text")</code>, не попадают в пул автоматически (если не вызвать <code>intern()</code>).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое Error и Exception?</title>
+        <groups>
+            <group>Exception</group>
+        </groups>
+        <short><b>Error</b> — это серьёзные ошибки, которые не должны обрабатываться в приложении (например, <code>OutOfMemoryError</code>, <code>StackOverflowError</code>). Они указывают на проблемы с JVM или системой. <b>Exception</b> — это исключительные ситуации, которые могут быть обработаны приложением (например, <code>IOException</code>, <code>SQLException</code>).</short>
+        <long>
+            <b>Различия Error и Exception:</b>
+            <ul>
+                <li><b><code>Error</code>:</b> Проблемы, возникающие на уровне JVM или системы (например, нехватка памяти, сбой в системе). Обычно не могут быть обработаны приложением. Не рекомендуется перехватывать <code>Error</code> или его подклассы.</li>
+                <li><b><code>Exception</code>:</b> Исключительные ситуации, которые могут быть предвидены и обработаны (например, файл не найден, сетевой сбой). Делится на <b>Checked</b> (проверяемые) и <b>Unchecked</b> (непроверяемые) исключения.</li>
+                <li><b>Checked:</b> Наследники <code>Exception</code>, кроме <code>RuntimeException</code>. Должны быть обработаны или проброшены (<code>throws</code>).</li>
+                <li><b>Unchecked:</b> <code>RuntimeException</code> и его наследники. Могут не обрабатываться явно (например, <code>NullPointerException</code>, <code>IllegalArgumentException</code>).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем отличаются обрабатываемые и необрабатываемые исключения?</title>
+        <groups>
+            <group>Exception</group>
+        </groups>
+        <short><b>Обрабатываемые (Checked)</b> исключения — это наследники <code>Exception</code> (кроме <code>RuntimeException</code>). Они должны быть обработаны (блок <code>try-catch</code>) или объявлены в сигнатуре метода (<code>throws</code>). <b>Необрабатываемые (Unchecked)</b> — это <code>RuntimeException</code> и его наследники. Их обработка не обязательна, они обычно возникают из-за ошибок программирования (<code>NullPointerException</code>, <code>ArrayIndexOutOfBoundsException</code>).</short>
+        <long>
+            <b>Различия Checked и Unchecked:</b>
+            <ul>
+                <li><b>Checked (обрабатываемые):</b>
+                    <ul>
+                        <li>Должны быть обработаны явно (<code>try-catch</code>) или проброшены (<code>throws</code>).</li>
+                        <li>Примеры: <code>IOException</code>, <code>SQLException</code>, <code>FileNotFoundException</code>.</li>
+                        <li>Используются для ситуаций, которые могут возникнуть по внешним причинам (ввод-вывод, сеть).</li>
+                    </ul>
+                </li>
+                <li><b>Unchecked (необрабатываемые):</b>
+                    <ul>
+                        <li>Не требуют явной обработки или объявления.</li>
+                        <li>Примеры: <code>NullPointerException</code>, <code>IllegalArgumentException</code>, <code>ArithmeticException</code>.</li>
+                        <li>Обычно указывают на ошибки программирования (логические ошибки, некорректные входные данные).</li>
+                    </ul>
+                </li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Ошибка OutOfMemoryError. Когда возникает, как поймать и пофиксить?</title>
+        <groups>
+            <group>Exception</group>
+        </groups>
+        <short><b>OutOfMemoryError</b> возникает, когда JVM не может выделить память для нового объекта из-за нехватки памяти в куче (heap) или в других областях (Metaspace, PermGen). Поймать ошибку можно с помощью <code>try-catch</code>, но это не рекомендуется, так как состояние приложения может быть нестабильным. Исправление: увеличить размер кучи (<code>-Xmx</code>), оптимизировать код (избегать утечек памяти, использовать кэши с умом), или использовать анализ heap dump для выявления утечек.</short>
+        <long>
+            <b>Причины OutOfMemoryError:</b>
+            <ul>
+                <li><b>Heap exhaustion:</b> Создаётся слишком много объектов, которые не освобождаются (утечки памяти).</li>
+                <li><b>Утечки в коллекциях:</b> Ссылки на объекты не удаляются из коллекций (например, статические коллекции).</li>
+                <li><b>Большие объекты:</b> Попытка загрузить в память слишком большой массив или файл.</li>
+                <li><b>Переполнение Metaspace/PermGen:</b> Слишком много загруженных классов (например, при использовании рефлексии).</li>
+            </ul>
+            <b>Диагностика и исправление:</b>
+            <ol>
+                <li><b>Анализ heap dump:</b> Использовать инструменты (VisualVM, Eclipse MAT, JProfiler) для поиска утечек.</li>
+                <li><b>Увеличение памяти:</b> Изменить параметры JVM (<code>-Xmx2048m</code>).</li>
+                <li><b>Оптимизация кода:</b> Использовать <code>SoftReference</code> для кэшей, избегать статических коллекций, освобождать ресурсы в <code>finally</code>.</li>
+                <li><b>Проверка на утечки:</b> Использовать профилировщики для мониторинга использования памяти.</li>
+            </ol>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое лямбда выражение? Чем его можно заменить?</title>
+        <groups>
+            <group>Function</group>
+        </groups>
+        <short><b>Lambda-выражение</b> — это анонимная функция, которая может быть передана как аргумент в метод или сохранена в переменную. Она используется для реализации функциональных интерфейсов (например, <code>Function</code>, <code>Predicate</code>). Лямбду можно заменить <b>анонимным классом</b>, <b>методом-ссылкой</b> (<code>ClassName::method</code>) или <b>обычным методом</b>.</short>
+        <long>
+            <b>Lambda-выражение:</b>
+            <ul>
+                <li><b>Синтаксис:</b> <code>(параметры) -> выражение</code> или <code>(параметры) -> { блок кода; }</code>.</li>
+                <li><b>Пример:</b> <code>list.forEach(item -> System.out.println(item));</code></li>
+                <li><b>Основное назначение:</b> Реализация функциональных интерфейсов (<code>@FunctionalInterface</code>).</li>
+            </ul>
+            <b>Чем можно заменить лямбду:</b>
+            <ul>
+                <li><b>Анонимный класс:</b> <code>list.forEach(new Consumer&lt;String&gt;() { public void accept(String s) { ... } });</code></li>
+                <li><b>Метод-ссылка (Method Reference):</b> <code>list.forEach(System.out::println);</code></li>
+                <li><b>Обычный метод:</b> Вынести логику в отдельный метод и вызвать его.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое функциональный интерфейс? Примеры</title>
+        <groups>
+            <group>Function</group>
+        </groups>
+        <short><b>Функциональный интерфейс</b> — это интерфейс, который содержит <b>ровно один абстрактный метод</b>. Он может содержать также методы <code>default</code> и <code>static</code>. Используется в лямбда-выражениях и метод-ссылках. Аннотируется <code>@FunctionalInterface</code> для проверки компилятором. Примеры: <code>Consumer</code>, <code>Function</code>, <code>Predicate</code>, <code>Supplier</code>, <code>Runnable</code>, <code>Callable</code>.</short>
+        <long>
+            <b>Примеры функциональных интерфейсов:</b>
+            <ul>
+                <li><b><code>Consumer&lt;T&gt;</code>:</b> Принимает аргумент, ничего не возвращает. <code>accept(T t)</code></li>
+                <li><b><code>Function&lt;T,R&gt;</code>:</b> Принимает аргумент, возвращает результат. <code>apply(T t)</code></li>
+                <li><b><code>Predicate&lt;T&gt;</code>:</b> Принимает аргумент, возвращает <code>boolean</code>. <code>test(T t)</code></li>
+                <li><b><code>Supplier&lt;T&gt;</code>:</b> Ничего не принимает, возвращает результат. <code>get()</code></li>
+                <li><b><code>Runnable</code>:</b> Ничего не принимает, ничего не возвращает. <code>run()</code></li>
+                <li><b><code>Callable&lt;V&gt;</code>:</b> Ничего не принимает, возвращает результат и может бросить исключение. <code>call()</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем отличаются методы map() и flatMap() в Stream?</title>
+        <groups>
+            <group>Function</group>
+        </groups>
+        <short><b><code>map()</code></b> преобразует каждый элемент стрима с помощью функции и возвращает стрим с результатами (один вход → один выход). <b><code>flatMap()</code></b> используется, когда функция возвращает стрим (или коллекцию). <code>flatMap()</code> «разворачивает» результат и объединяет все элементы в один стрим (один вход → много выходов или ноль).</short>
+        <long>
+            <b>Различия map() и flatMap():</b>
+            <ul>
+                <li><b><code>map(Function&lt;T,R&gt;)</code>:</b> Применяет функцию к каждому элементу, возвращая стрим с результатами. Количество элементов не меняется. Например, <code>list.stream().map(String::toUpperCase)</code>.</li>
+                <li><b><code>flatMap(Function&lt;T, Stream&lt;R&gt;&gt;)</code>:</b> Применяет функцию, которая возвращает стрим, и затем объединяет все эти стримы в один. Количество элементов может измениться. Например, <code>list.stream().flatMap(s -> Stream.of(s.split(" ")))</code>.</li>
+                <li><b>Пример:</b> <code>List&lt;List&lt;String&gt;&gt;</code> → <code>flatMap</code> превращает в <code>Stream&lt;String&gt;</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое Set? Когда он лучше, чем ArrayList и почему используется реже?</title>
+        <groups>
+            <group>коллекции</group>
+        </groups>
+        <short><b>Set</b> — это коллекция, которая <b>не содержит дубликатов</b> (уникальные элементы). Он реализован через <code>HashMap</code> (в случае <code>HashSet</code>). <code>Set</code> лучше, чем <code>ArrayList</code>, когда нужна <b>уникальность</b> или <b>быстрый поиск</b> (<code>contains</code> работает за O(1) для HashSet). Используется реже, так как не гарантирует порядок и не поддерживает доступ по индексу.</short>
+        <long>
+            <b>Особенности Set:</b>
+            <ul>
+                <li><b>Уникальность:</b> Не хранит дубликаты (проверка через <code>equals()</code> и <code>hashCode()</code>).</li>
+                <li><b>Производительность:</b> <code>HashSet</code> даёт O(1) для <code>add</code>, <code>remove</code>, <code>contains</code>.</li>
+                <li><b>Порядок:</b> <code>HashSet</code> не гарантирует порядок, <code>LinkedHashSet</code> сохраняет порядок вставки, <code>TreeSet</code> сортирует элементы.</li>
+                <li><b>Когда лучше:</b> Когда нужна уникальность или частые проверки существования элемента.</li>
+                <li><b>Почему реже используется:</b> Многие задачи требуют упорядоченных данных и доступа по индексу, что даёт <code>List</code>. <code>Set</code> используется в специфических сценариях: множества, исключение дубликатов, быстрый поиск.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>ArrayList и LinkedList. Что быстрее взять если 1 млн добавляем в начало, середину, конец</title>
+        <groups>
+            <group>коллекции</group>
+        </groups>
+        <short><b>ArrayList</b> быстрее при <b>добавлении в конец</b> (амортизированное O(1)) и <b>доступе по индексу</b> (O(1)). <b>LinkedList</b> быстрее при <b>добавлении в начало</b> (O(1)) и <b>удалении из начала</b> (O(1)). Вставка в середину для обоих имеет сложность O(n), но у <code>LinkedList</code> она потенциально быстрее при наличии итератора (O(1) для самого добавления, но O(n) для поиска позиции).</short>
+        <long>
+            <b>Сравнение ArrayList и LinkedList:</b>
+            <ul>
+                <li><b>Добавление в конец (add):</b> <code>ArrayList</code> — O(1) амортизированно, <code>LinkedList</code> — O(1).</li>
+                <li><b>Добавление в начало (addFirst):</b> <code>ArrayList</code> — O(n) (сдвиг всех элементов), <code>LinkedList</code> — O(1).</li>
+                <li><b>Добавление в середину (add(index)):</b> <code>ArrayList</code> — O(n) (сдвиг), <code>LinkedList</code> — O(n) (поиск позиции) + O(1) (вставка).</li>
+                <li><b>Доступ по индексу (get):</b> <code>ArrayList</code> — O(1), <code>LinkedList</code> — O(n).</li>
+                <li><b>Память:</b> <code>ArrayList</code> занимает меньше памяти (хранит только массив), <code>LinkedList</code> — больше из-за хранения ссылок на следующий и предыдущий элементы.</li>
+                <li><b>Рекомендация:</b> В 95% случаев используйте <code>ArrayList</code>. <code>LinkedList</code> оправдан только при частых вставках/удалениях в начале или середине при наличии итератора.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое QUEUE и Deque? Как устроены внутри, для каких задач нужны?</title>
+        <groups>
+            <group>коллекции</group>
+        </groups>
+        <short><b>Queue (очередь)</b> — это коллекция, работающая по принципу <b>FIFO</b> (First-In-First-Out). Элементы добавляются в конец, извлекаются из начала. <b>Deque (двунаправленная очередь)</b> позволяет добавлять и извлекать элементы с обоих концов. Реализации: <code>LinkedList</code> (как Queue и Deque), <code>ArrayDeque</code> (быстрее для стека/очереди), <code>PriorityQueue</code> (приоритетная очередь).</short>
+        <long>
+            <b>Queue и Deque:</b>
+            <ul>
+                <li><b><code>Queue</code> (очередь):</b> FIFO. Методы: <code>add()</code>/<code>offer()</code> (добавление), <code>remove()</code>/<code>poll()</code> (извлечение), <code>element()</code>/<code>peek()</code> (просмотр).</li>
+                <li><b><code>Deque</code> (двунаправленная очередь):</b> Позволяет работать с обоими концами. Методы: <code>addFirst()</code>, <code>addLast()</code>, <code>removeFirst()</code>, <code>removeLast()</code>.</li>
+                <li><b>Реализации:</b>
+                    <ul>
+                        <li><b><code>ArrayDeque</code>:</b> Реализован на основе массива (кольцевой буфер). Быстрее <code>LinkedList</code> для стека/очереди.</li>
+                        <li><b><code>LinkedList</code>:</b> Реализован как двусвязный список. Может работать как Queue и Deque.</li>
+                        <li><b><code>PriorityQueue</code>:</b> Приоритетная очередь (элементы извлекаются по приоритету, а не по порядку добавления).</li>
+                    </ul>
+                </li>
+                <li><b>Задачи:</b> Очереди (FIFO) для задач (Task Queue), стеки (LIFO) через <code>Deque</code>, буферизация данных, планировщики, обход графов (BFS).</li>
+            </ul>
+        </long>
+    </question>
+</questions>
