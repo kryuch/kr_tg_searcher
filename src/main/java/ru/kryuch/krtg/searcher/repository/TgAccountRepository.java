@@ -16,4 +16,6 @@ public interface TgAccountRepository extends BaseAccessRepository<TgAccountEntit
     @Modifying
     @Query("UPDATE TgAccountEntity t set t.isAuth = true WHERE id = :id")
     void setAuth(@Param("id") Integer id);
+
+    List <TgAccountEntity> findAllByUserId(Integer userId);
 }
