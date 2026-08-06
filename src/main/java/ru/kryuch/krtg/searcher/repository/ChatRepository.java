@@ -82,4 +82,9 @@ public interface ChatRepository extends CrudRepository<ChatEntity, Long>, JpaSpe
             @Param("tgIds") List<Integer> tgIds
     );
 
+    @Query("SELECT c FROM ChatEntity c WHERE c.user.id IN :users AND c.tgId IN :tgIds")
+    List<ChatEntity> findByUserIdsAndTgIds(
+            @Param("users") List<Long> users,
+            @Param("tgIds") List<Integer> tgIds
+    );
 }
