@@ -19,6 +19,8 @@ public interface TgUserRepository extends CrudRepository<TgUserEntity, Long> {
 
     Optional<TgUserEntity> findByUsername(String name);
 
+    @Query("select u from TgUserEntity u where lower(u.username) in :usernames")
+    Set <TgUserEntity> findAllByUsernameIn(Set<String> usernames);
 
     default Set<String> findExistingUsername(Set<String> usernames) {
         if (usernames == null || usernames.isEmpty()) {
