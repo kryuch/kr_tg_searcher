@@ -1,0 +1,43 @@
+(HashMap) Для чего нужны классы LinkedHashMap и TreeHashMap? Чем они лучше обычного и в каких задачах их стоит применять?
+(HashMap) Из-за чего могут возникнуть коллизии в HashMap?
+(Java Core) Какие типы ссылок существуют в Java? В чем их отли
+(HashMap) Зачем нужен HashMap, если есть Hashtable?
+(Java Core) Какой класс называют Immutable? Как создать?
+(Java Core) Чем строки (String) отличаются от остальных классов? Почему их принято создавать без использования "new"
+(Java Core) Что такое пул строк/String pool?
+(Exception) Что такое Error и Exception?
+(Exception) Чем отличаются обрабатываемые и необрабатываемые исключения?
+(Exception) Ошибка OutOfMemoryError. Когда возникает, как поймать и пофиксить?
+(Function) Что такое лямбда выражение? Чем его можно заменить?
+(Function) Что такое функциональный интерфейс? Примеры
+(Function) Чем отличаются методы map() и flatMap() в Stream?
+(коллекции) Что такое Set? Когда он лучше, чем ArrayList и почему используется реже?
+(коллекции) ArrayList и LinkedList. Что быстрее взять если 1 млн добавляем в начало, середину, конец
+(коллекции) Что такое QUEUE и Dequeu? Как устроены внутри, для каких задач нужны?
+
+(СУБД) Что такое нормализация и денормализация базы данных? Какие виды бывают?
+(СУБД) Что такое кластерный и некласторный индексы?
+(СУБД) Поднято 5 инстантов и мы хотим ограничить что данные в разные инстансы приходили, как это сделать?
+(СУБД) Что такое партиционирование и шардирование?
+(СУБД) Что такое хранимая процедура?
+(СУБД) Что такое sql инъекция?
+(СУБД) Что такое Statement/PrepareStatement/CallableStatement?
+(PostgreSQL) Как понять, хороший SQL-запрос или плохой? На что смотреть в плане выполнения?
+(изоляция) что такое свойства ACID и какие есть альтернативы?
+(изоляция) какие бывают уровни изоляции и какие аномалии предотвращает каждая?
+(GB) Какие есть алгоритмы сборки мусора?
+(потоки) Как устроен внутри AtomicInteger, что обеспечивает атомарность?
+(Java Core) Для чего нужны разные виды ссылок? Когда используют?
+(Паттерны) Что такое GoF?
+(Паттерны) Что такое DDD(Domain-Driven Design)?
+(Hibernate) Что Hibernate Criteria API?
+(Тестирование) В чем отличие модульного и интеграционного тестирования?
+(Тестирование) В чем отличие JUnit и Mockito?
+(микросервисы) Что такое RASP?
+
+ Java Core OOP, Concurrency/Multithreading, Stream API, Generics, Collections, JVM performance (profiling and monitoring)
+- Framework Spring, , JUnit, Mockito
+- Database, PostgreSQL, Redis, Liquibase, Design Patterns, GoF, RASP, SOLID, Message broker, Kafka, Integration RESTfull, CI/CD, Jenkins, Bitbucket, Dependency Mechanism, Build automation, Maven, Gradle, DevOps, Docker, Kubernetes(K8s)
+Желательные:
+- Database, Ingate, ClickHouse, Cassandra, MongoDB, Design Patterns, Microservices, DDD(Domain-Driven Design), Integration, GraphQL, gRPC, Avro, SOAP, DevOps, OpenShift, Monitoring and observability, ELK (Elasticsearch, Logstash, Kibana)
+

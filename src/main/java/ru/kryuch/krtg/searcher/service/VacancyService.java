@@ -5,11 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.MessagesHistory;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
+import ru.kryuch.krtg.searcher.helper.ChatAccessHelper;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
-import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
-import ru.kryuch.krtg.searcher.repository.TgUserRepository;
-import ru.kryuch.krtg.searcher.repository.UserRepository;
 import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
@@ -22,9 +20,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class VacancyService {
-    private final TgUserRepository tgUserRepository;
     private final SettingService settingService;
     private final IgnoreRepository ignoreRepository;
+    private final ChatAccessHelper chatAccessHelper;
 
     private static final String VACANCY_TERM_SETTING = "text_in_vacancy";
 
@@ -45,9 +43,10 @@ public class VacancyService {
         Set<String> tgSet =
                 vacancyInfoList.stream()
                         .filter(item -> Objects.nonNull(item.getTg()))
-                        .map(item -> UserUtil.normalizeUsername(item.getTg())).collect(Collectors.toSet());
+                        .map(item -> UserUtil.normalizeUsername(item.getTg()).toLowerCase())
+                        .collect(Collectors.toSet());
 
-        Set<String> existingTg = tgUserRepository.findExistingUsername(tgSet);
+        Set<String> existingTg = chatAccessHelper.findUniqUsername(tgSet, false);
 
         vacancyInfoList.forEach(vacancyInfo -> enrich(newTg, vacancyInfo, term, existingTg));
 

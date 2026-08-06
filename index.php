@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>Справочник по технологиям</title>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="/src/main/resources/static/js/jquery.min.js"></script>
+    <script src="/src/main/resources/static/js/jquery-ui.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 1000px; margin: 0 auto; background: #f8f9fa; }
         .group-accordion { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 20px; }
