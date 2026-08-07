@@ -10,10 +10,12 @@ server:
   port: 8080
 
 spring:
-  # Отключаем H2 (больше не нужен)
+  liquibase:
+    enabled: false  # Отключаем автоконфигурацию!
+
   h2:
     console:
-      enabled: false  # <-- отключаем H2 консоль
+      enabled: false
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -21,9 +23,6 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
-  # ============================================================
-  # НОВАЯ КОНФИГУРАЦИЯ ДЛЯ POSTGRESQL
-  # ============================================================
   datasource:
     url: jdbc:postgresql://localhost:5432/krrg
     driver-class-name: org.postgresql.Driver
@@ -31,21 +30,21 @@ spring:
     password: H.hbr2123
 
   jpa:
+    defer-datasource-initialization: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate  # <-- Меняем none на validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
- #   show-sql: true  # <-- опционально, для отладки SQL
     properties:
       hibernate:
-        format_sql: true  # <-- опционально, красивое форматирование SQL
+        format_sql: true
         jdbc:
           lob:
             non_contextual_creation: true
 
-  # ============================================================
-  # ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ (опционально)
-  # ============================================================
   sql:
     init:
-      mode: always  # <-- выполняет schema.sql и data.sql при старте
-      continue-on-error: false
+      mode: never  # Отключаем, чтобы не мешал Liquibase
+
+#logging:
+ # level:
+  #  liquibase: DEBUG

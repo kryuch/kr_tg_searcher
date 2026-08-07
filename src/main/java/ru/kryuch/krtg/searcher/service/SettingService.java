@@ -67,6 +67,8 @@ public class SettingService {
         settingAccessService.setFirstValueByCode("cron_enable", "0");
         settingAccessService.setFirstValueByCode("ignore_if_not_found", "0");
         settingAccessService.setFirstValueByCode("cron_chats_count", "32");
+        settingAccessService.setFirstValueByCode("folder_enable", "0");
+        settingAccessService.setFirstValueByCode("add_to_folder", "0");
     }
 
 }

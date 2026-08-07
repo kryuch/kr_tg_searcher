@@ -28,19 +28,19 @@ public class FolderChatEntity {
     private Integer folderId;
 
     @Id
-    @Column(name = "chat_id")
-    private Long chatId;
+    @Column(name = "chat_user_id")
+    private Long chatUserId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id", insertable = false, updatable = false)
     private FolderEntity folder;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_id", insertable = false, updatable = false)
-    private ChatEntity chat;
+    @JoinColumn(name = "chat_user_id", insertable = false, updatable = false)
+    private TgUserEntity chatUser;
 
-    public FolderChatEntity(Integer folderId, Long chatId) {
+    public FolderChatEntity(Integer folderId, Long chatUserId) {
         this.folderId = folderId;
-        this.chatId = chatId;
+        this.chatUserId = chatUserId;
     }
 }

@@ -144,7 +144,7 @@ public class ChatController {
             SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
-        folderChatService.updateLinksToTarget(request.getChatIds(), true);
+        folderChatService.updateLinksToTarget(request.getChatIds(),request.getTgAccountId(), true);
         String successMessage = "Чаты добавлены в папку";
 
         redirectAttributes.addFlashAttribute(
@@ -160,7 +160,7 @@ public class ChatController {
             SendMessageParam request,
             RedirectAttributes redirectAttributes) {
 
-        folderChatService.updateLinksToTarget(request.getChatIds(), false);
+        folderChatService.updateLinksToTarget(request.getChatIds(), request.getTgAccountId(),false);
         String successMessage = "Чаты добавлены в папку";
 
         redirectAttributes.addFlashAttribute(
