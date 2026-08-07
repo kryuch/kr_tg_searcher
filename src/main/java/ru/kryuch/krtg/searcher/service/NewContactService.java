@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.helper.ChatAccessHelper;
 import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class NewContactService {
 
@@ -25,7 +27,7 @@ public class NewContactService {
                 result.add(matcher.group(1));
             }
         }
-
+        log.info("NewContactService::contacts (result={}", result);
         return chatAccessHelper.findUniqUsername(result, true);
     }
 
