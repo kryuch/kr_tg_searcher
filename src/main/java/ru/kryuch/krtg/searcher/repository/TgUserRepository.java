@@ -37,4 +37,26 @@ public interface TgUserRepository extends CrudRepository<TgUserEntity, Long> {
                 .map(item -> item.toLowerCase())
                 .collect(Collectors.toSet());
     }
+
+    default Set<String> findNoExistingUsername(Set<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) {
+            return Set.of();
+        }
+
+        // Приводим все имена к нижнему регистру
+        Set<String> lowerCaseUsernames = usernames.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        // Находим существующие username в базе
+        Set<String> existingUsernames = findAllByUsernameIn(lowerCaseUsernames).stream()
+                .map(TgUserEntity::getUsername)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        // Возвращаем те, которых нет в базе
+        return lowerCaseUsernames.stream()
+                .filter(username -> !existingUsernames.contains(username))
+                .collect(Collectors.toSet());
+    }
 }

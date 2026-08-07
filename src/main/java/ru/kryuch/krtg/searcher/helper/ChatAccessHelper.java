@@ -27,6 +27,7 @@ public class ChatAccessHelper {
 
 
     public Set<String> findUniqUsername(Set<String> usernames, boolean uniqFlag) {
+
         Set <TgUserEntity> tgUserEntities = tgUserRepository.findAllByUsernameIn(usernames);
 
         List<ChatEntity> chats = chatRepository.findByUserIdsAndTgIds(
@@ -38,11 +39,19 @@ public class ChatAccessHelper {
 
         Set <Long> existingUserIds = chats.stream().map(item -> item.getUser().getId()).collect(Collectors.toSet());
         log.info("ChatAccessHelper::findUniqUsername (existingUserIds={}", existingUserIds);
-        return
+
+        Set<String> result =
                 tgUserEntities.stream()
                         .filter(item -> existingUserIds.contains(item.getId()) != uniqFlag)
                         .map(item -> UserUtil.normalizeUsername(item.getUsername()).toLowerCase())
                         .collect(Collectors.toSet());
+
+        log.info("ChatAccessHelper::findUniqUsername (result={}", result);
+        if (uniqFlag) {
+            result.addAll(tgUserRepository.findNoExistingUsername(usernames));
+            log.info("ChatAccessHelper::findUniqUsername (result={}", result);
+        }
+        return result;
     }
 
 

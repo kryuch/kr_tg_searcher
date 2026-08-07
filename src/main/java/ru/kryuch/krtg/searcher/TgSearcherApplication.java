@@ -14,7 +14,7 @@ public class TgSearcherApplication {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
         String password1 = "H.hbr2123";
-        String password2 = "user123";
+        String password2 = "Iu3Os1e_9r2";
 
         System.out.println("admin password: " + password1);
         System.out.println("admin hash: " + encoder.encode(password1));
