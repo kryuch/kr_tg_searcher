@@ -123,7 +123,7 @@ public class FolderService {
                     .collect(Collectors.groupingBy(
                             link -> link.getFolder().getId(),
                             Collectors.mapping(
-                                    link -> link.getChat().getId(),
+                                    link -> link.getChatUserId(),
                                     Collectors.toSet()
                             )
                     ));

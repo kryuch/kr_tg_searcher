@@ -3,6 +3,7 @@ package ru.kryuch.krtg.searcher.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -26,6 +27,8 @@ import ru.kryuch.krtg.searcher.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+
+    @Lazy
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Bean
@@ -90,7 +93,7 @@ public class SecurityConfig {
 
         return configuration.getAuthenticationManager();
     }
-
+/*
     @Bean
     public AuthenticationSuccessHandler successHandler() {
         SimpleUrlAuthenticationSuccessHandler handler = new SimpleUrlAuthenticationSuccessHandler();
@@ -98,7 +101,7 @@ public class SecurityConfig {
         handler.setAlwaysUseDefaultTargetUrl(true);
         return handler;
     }
-
+*/
     @Bean
     public AuthenticationFailureHandler failureHandler() {
         return new SimpleUrlAuthenticationFailureHandler("/login?error");
