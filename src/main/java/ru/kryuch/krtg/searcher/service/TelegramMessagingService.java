@@ -1,8 +1,10 @@
 package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.kryuch.krtg.searcher.config.SettingConfig;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
@@ -14,6 +16,8 @@ import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
+import ru.kryuch.krtg.searcher.type.ChatStatus;
+import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +27,7 @@ import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TelegramMessagingService {
 
     private final TelegramMessagingGateway telegramMessagingGateway;
@@ -49,6 +54,7 @@ public class TelegramMessagingService {
     }
 
     public List<ChatResponse> registerAndSend(SendMessageParam sendMessageParam, Set<String> chats) {
+        log.info("TelegramMessagingService::registerAndSend (sendMessageParam={}, chats = {}", sendMessageParam, chats);
         List<ChatResponse> chatDtos = telegramMessagingGateway.sendMessage(sendMessageParam, chats, true);
 
         chatDtos.stream().forEach(chatDto -> {

@@ -5,6 +5,8 @@
             <ul>
                 <li><a href="#tabs-cron">Крон</a></li>
                 <li><a href="#tabs-folder">Папка</a></li>
+                <li><a href="#tabs-ai">ИИ</a></li>
+                <li><a href="#tabs-resume">Резюме</a></li>
                 <li><a href="#tabs-other">Прочее</a></li>
             </ul>
 
@@ -70,7 +72,56 @@
 
         <script>
             jQuery(function () {
-                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder"], function (index, field) {
+                // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+
+                /**
+                 * Обновляет состояние полей на вкладке
+                 */
+                function updateTabFieldsState(tabId, checkboxId, dataField) {
+                    var isEnabled = jQuery(checkboxId).prop("checked");
+                    var rows = jQuery(tabId + " tbody tr");
+
+                    rows.each(function () {
+                        var $row = jQuery(this);
+                        var hasCheckbox = $row.find(checkboxId).length > 0;
+
+                        if (hasCheckbox) {
+                            return;
+                        }
+
+                        if (isEnabled) {
+                            $row.css("opacity", "1");
+                            $row.find("input, textarea").prop("readonly", false).prop("disabled", false);
+                            $row.find("select, button").prop("disabled", false);
+                            $row.css("cursor", "default");
+                        } else {
+                            $row.css("opacity", "0.5");
+                            // Используем readonly + стили для имитации disabled
+                            $row.find("input, textarea").prop("readonly", true).prop("disabled", false);
+                            $row.find("select, button").prop("disabled", true);
+                            $row.css("cursor", "not-allowed");
+                            // Добавляем стиль как у disabled
+                            $row.find("input, textarea").css("background-color", "#e9ecef");
+                            $row.find("input, textarea").css("color", "#6c757d");
+                        }
+                    });
+                }
+                /**
+                 * Инициализирует поведение вкладки с чекбоксом-переключателем
+                 */
+                function initTabWithToggle(tabId, checkboxId, dataField) {
+                    updateTabFieldsState(tabId, checkboxId, dataField);
+
+                    jQuery(checkboxId).on("change", function () {
+                        jQuery("input[data=" + dataField + "]").val(jQuery(checkboxId).prop("checked") ? "1" : "0");
+                        updateTabFieldsState(tabId, checkboxId, dataField);
+                    });
+                }
+
+                // === ИНИЦИАЛИЗАЦИЯ ВКЛАДОК ===
+
+                // 1. Обработка полей с переносом значения в td
+                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder", "ai_model", "ai_api_key"], function (index, field) {
                     var input = jQuery("input[data=" + field + "]");
                     var td = input.parent();
                     jQuery("td#" + field).html(td.html());
@@ -78,28 +129,59 @@
                     td.remove();
                 })
 
+                // 2. Обработка полей с отображением значения как текст
                 jQuery.each(["term", "max_day", "cron_lastrun"], function (index, field) {
                     var value = jQuery("input[data=" + field + "]").val();
                     jQuery("td#" + field).html(value);
                 })
 
-                jQuery("input[data=cron_lastrun]").parents("tr").hide();
-                jQuery("input[data=cron_enable]").parents("tr").hide();
+                // 3. Скрытие служебных строк
+                jQuery.each(["cron_lastrun", "cron_enable", "folder_enable", "add_to_folder", "ai_enable"], function (index, field) {
+                    jQuery("input[data=" + field + "]").parents("tr").hide();
+                })
 
-                jQuery("#cron_enable_value").prop("checked", Number(jQuery("input[data=cron_enable]").val()) == 1);
-                jQuery("#folder_enable_value").prop("checked", Number(jQuery("input[data=folder_enable]").val()) == 1);
-                jQuery("#add_to_folder_value").prop("checked", Number(jQuery("input[data=add_to_folder]").val()) == 1);
+                // 4. Инициализация jQuery UI Tabs
                 jQuery("#tabs").tabs();
 
-                jQuery("#cron_enable_value").on("click", function() {
-                    jQuery("input[data=cron_enable]").val((jQuery("#cron_enable_value").prop("checked")) ? "1" : "0");
+                // 5. Установка начальных состояний чекбоксов
+                jQuery.each(["cron_enable", "folder_enable", "add_to_folder", "ai_enable"], function (index, field) {
+                    jQuery("#" + field + "_value").prop("checked", Number(jQuery("input[data=" + field + "]").val()) == 1);
+
+                    jQuery("#" + field + "_value").on("click", function () {
+                        jQuery("input[data=" + field + "]").val((jQuery("#" + field + "_value").prop("checked")) ? "1" : "0");
+                    });
                 })
-                jQuery("#folder_enable_value").on("click", function() {
-                    jQuery("input[data=folder_enable]").val((jQuery("#folder_enable_value").prop("checked")) ? "1" : "0");
-                })
-                jQuery("#add_to_folder_value").on("click", function() {
-                    jQuery("input[data=add_to_folder]").val((jQuery("#add_to_folder_value").prop("checked")) ? "1" : "0");
-                })
+
+                // === ВКЛАДКА РЕЗЮМЕ ===
+                var resumeInput = jQuery("input[data=resume]");
+                var resumeTd = jQuery("td#resume");
+
+                if (resumeInput.length && resumeTd.length) {
+                    var resumeValue = resumeInput.val() || "";
+                    var textarea = jQuery('<textarea id="resume_textarea" rows="10" cols="50" style="width: 100%;">' + resumeValue + '</textarea>');
+                    resumeTd.html(textarea);
+                    resumeInput.parents("tr").hide();
+                }
+
+                var saveButton = jQuery(".save");
+                var resumeTextarea = jQuery("#resume_textarea");
+
+                saveButton.on("click", function () {
+                    if (resumeTextarea.length && resumeInput.length) {
+                        resumeInput.val(resumeTextarea.val());
+                    }
+                });
+
+                resumeTextarea.on("change keyup input", function () {
+                    if (resumeInput.length) {
+                        resumeInput.val(resumeTextarea.val());
+                    }
+                });
+
+                // === ИНИЦИАЛИЗАЦИЯ ВКЛАДОК С ПЕРЕКЛЮЧАТЕЛЯМИ ===
+                initTabWithToggle("#tabs-cron", "#cron_enable_value", "cron_enable");
+                initTabWithToggle("#tabs-ai", "#ai_enable_value", "ai_enable");
+                initTabWithToggle("#tabs-folder", "#folder_enable_value", "folder_enable");
             });
         </script>
     </form>

@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FolderChatService {
 
     private final FolderChatRepository folderChatRepository;
@@ -47,6 +49,8 @@ public class FolderChatService {
     }
 
     public boolean updateLinksToTarget(List<Long> chatUserIds, Integer tgId, Boolean status) {
+        log.info("FolderChatService::updateLinksToTarget (chatUserIds={}, tg={}, status={}", chatUserIds, tgId, status.toString());
+
         FolderEntity folderEntity = folderRepository.findTargetFolder(tgId)
                 .orElseThrow(() ->
                         new IllegalStateException("Не настроена целевая папка"));
@@ -59,6 +63,7 @@ public class FolderChatService {
                         .map(item -> new FolderChatEntity(folderEntity.getId(), item))
                         .toList();
 
+        log.info("FolderChatService::updateLinksToTarget (folderChatEntities.size={}", folderChatEntities.size());
         if (folderChatEntities.isEmpty()) {
             return true;
         }

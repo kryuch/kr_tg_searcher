@@ -86,12 +86,23 @@ function applyFilter() {
         }
     }
 
-    fetch('/chat/search?' + params.toString())
-        .then(response => response.text())
-        .then(html => {
-            document.querySelector('.econtent').innerHTML = html;
-        })
-        .catch(err => console.error('Ошибка фильтрации:', err));
+    jQuery.ajax({
+        url: '/chat/search',
+        type: "POST",
+        data: formData,
+        timeout: 0,
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(csrfHeader, csrfToken);
+        },
+        success: function (response) {
+            jQuery(".econtent").html(response);
+            hideLoading($btn);
+        },
+        error: function (xhr, status, error) {
+            console.error(status, error);
+            hideLoading($btn);
+        }
+    })
 }
 
 // ============================================================
@@ -202,7 +213,7 @@ function formSubmit(url, func, button) {
 
     // Скрываем спиннер через некоторое время (форма отправлена, но ответ ещё не пришёл)
     // Спиннер скроется после загрузки страницы
-    setTimeout(function() {
+    setTimeout(function () {
         if (button) {
             hideLoading(button);
         }
@@ -323,8 +334,12 @@ jQuery(document).ready(function () {
         // AJAX запрос
         jQuery.ajax({
             url: action,
-            type: "GET",
+            type: "POST",
             data: formData,
+            timeout: 0,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            },
             success: function (response) {
                 console.log("📥 Ответ от сервера:", response);
 
@@ -359,7 +374,7 @@ jQuery(document).ready(function () {
 
     // Если страница перезагрузилась после отправки формы,
     // убираем все спиннеры
-    $('button').each(function() {
+    $('button').each(function () {
         var $btn = $(this);
         if ($btn.data('original-text')) {
             hideLoading($btn);

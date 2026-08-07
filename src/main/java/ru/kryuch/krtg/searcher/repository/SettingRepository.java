@@ -1,8 +1,6 @@
 package ru.kryuch.krtg.searcher.repository;
 
-import org.springframework.data.repository.CrudRepository;
 import ru.kryuch.krtg.searcher.entity.SettingEntity;
-import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
 
 import java.util.List;
 

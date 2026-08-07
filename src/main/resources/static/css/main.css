@@ -1105,10 +1105,26 @@ button.save#filter {
 
 .tgmultiselect .ms-options {
     z-index: 1;
-    position: relative;
+  /*  position: relative;*/
 }
 
 form.synchr button.save {
     width: 256px;
     height: 32px;
+}
+
+.description .description-full {
+    font-size: small;
+}
+
+.description .description-short {
+    font-size: small;
+}
+
+.vacancies tr.answer {
+    display: none;
+}
+
+.vacancies .answer textarea {
+    font-size: small;
 }

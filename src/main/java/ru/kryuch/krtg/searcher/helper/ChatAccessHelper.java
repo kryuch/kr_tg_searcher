@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.helper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class ChatAccessHelper {
 
@@ -25,6 +27,7 @@ public class ChatAccessHelper {
 
 
     public Set<String> findUniqUsername(Set<String> usernames, boolean uniqFlag) {
+
         Set <TgUserEntity> tgUserEntities = tgUserRepository.findAllByUsernameIn(usernames);
 
         List<ChatEntity> chats = chatRepository.findByUserIdsAndTgIds(
@@ -32,13 +35,23 @@ public class ChatAccessHelper {
                 tgAccountRepository.findAllByUserId(getCurrentUserId()).stream().map(TgAccountEntity::getId).toList()
         );
 
-        Set <Long> existingUserIds = chats.stream().map(item -> item.getUser().getId()).collect(Collectors.toSet());
+        log.info("ChatAccessHelper::findUniqUsername (chats={}", chats);
 
-        return
+        Set <Long> existingUserIds = chats.stream().map(item -> item.getUser().getId()).collect(Collectors.toSet());
+        log.info("ChatAccessHelper::findUniqUsername (existingUserIds={}", existingUserIds);
+
+        Set<String> result =
                 tgUserEntities.stream()
                         .filter(item -> existingUserIds.contains(item.getId()) != uniqFlag)
                         .map(item -> UserUtil.normalizeUsername(item.getUsername()).toLowerCase())
                         .collect(Collectors.toSet());
+
+        log.info("ChatAccessHelper::findUniqUsername (result={}", result);
+        if (uniqFlag) {
+            result.addAll(tgUserRepository.findNoExistingUsername(usernames));
+            log.info("ChatAccessHelper::findUniqUsername (result={}", result);
+        }
+        return result;
     }
 
 

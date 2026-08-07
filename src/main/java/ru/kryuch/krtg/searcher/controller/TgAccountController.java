@@ -24,8 +24,8 @@ public class TgAccountController {
         if (model.containsAttribute("successMessage")) {
             model.addAttribute("successMessage", model.getAttribute("successMessage"));
         }
-        if (model.containsAttribute("error")) {
-            model.addAttribute("error", model.getAttribute("error"));
+        if (model.containsAttribute("errorMessage")) {
+            model.addAttribute("errorMessage", model.getAttribute("errorMessage"));
         }
         model.addAttribute("items", tgAccountService.getAll());
         model.addAttribute("page", "tg/list");
@@ -64,7 +64,7 @@ public class TgAccountController {
     public String add(@Valid @ModelAttribute("tg") TgAccountInfo info, BindingResult result, Model model) {
         if (result.hasErrors()) {
             model.addAttribute("page", "tg/add");
-            model.addAttribute("error", result.getAllErrors().toString());
+            model.addAttribute("errorMessage", result.getAllErrors().toString());
             return "index";
         } else {
             tgAccountService.add(info);
