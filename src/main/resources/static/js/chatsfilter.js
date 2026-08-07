@@ -86,12 +86,19 @@ function applyFilter() {
         }
     }
 
-    fetch('/chat/search?' + params.toString())
-        .then(response => response.text())
-        .then(html => {
-            document.querySelector('.econtent').innerHTML = html;
-        })
-        .catch(err => console.error('Ошибка фильтрации:', err));
+    jQuery.ajax({
+        url: '/chat/search',
+        type: "POST",
+        data: formData,
+        timeout: 0,
+        success: function(response) {
+            jQuery(".econtent").html(response); hideLoading($btn);
+            },
+        error: function(xhr, status, error) {
+            console.error(status, error);
+            hideLoading($btn);
+        }
+    })
 }
 
 // ============================================================

@@ -58,7 +58,7 @@ public class ChatController {
         return "index";
     }
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     public String search(SearchParams searchParams, Model model) {
         model.addAttribute("items", chatService.search(searchParams, true));
         model.addAttribute("targetFolder", settingService.getValueByCode("folder"));
