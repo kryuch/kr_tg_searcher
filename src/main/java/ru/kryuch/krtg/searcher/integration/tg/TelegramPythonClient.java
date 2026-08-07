@@ -123,7 +123,7 @@ public class TelegramPythonClient {
     }
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByConcatUsername request) {
-        log.info("TelegramPythonClient::sendBulkMessages (request = %s", request);
+        log.info("TelegramPythonClient::sendBulkMessages (request = {})", request);
         return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
@@ -242,6 +242,7 @@ public class TelegramPythonClient {
     }
 
     public Map<String, Object> updateFolder(UpdateFolderRequest request) {
+        log.info("TelegramPythonClient::updateFolder (request = {})", request);
 
         Map<String, Object> response = execute(
                 () -> restTemplate.postForObject(
@@ -251,36 +252,7 @@ public class TelegramPythonClient {
                 ),
                 "Failed to get chats info"
         );
-
-        return response;/* == null
-                ? List.of()
-                : List.of(response);
-
-
-        UriComponentsBuilder builder = UriComponentsBuilder
-                .fromUri(buildUri("/api/folders/update"));
-
-        return execute(
-                () -> restTemplate.getForObject(
-                        builder.build().toUri(),
-                        PythonMessagesResponse.class
-                ),
-                String.format(
-                        "Failed to get chat preview %s",
-                        chatId
-                )
-        );
-
-
-
-        String url = getBaseUrl() + "/api/folders/update";
-
-        Map<String, Object> request = Map.of(
-                "folder_id", folderId,
-                "chat_ids", chatIds,
-                "add_to_folder", addToFolder
-        );
-
-        return restTemplate.postForObject(url, request, Map.class);*/
+        log.info("TelegramPythonClient::updateFolder (response = {})", response);
+        return response;
     }
 }

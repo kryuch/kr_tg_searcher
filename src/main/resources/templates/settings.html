@@ -4,68 +4,52 @@
         <div id="tabs">
             <ul>
                 <li><a href="#tabs-cron">Крон</a></li>
+                <li><a href="#tabs-folder">Папка</a></li>
                 <li><a href="#tabs-other">Прочее</a></li>
             </ul>
-            <div id="tabs-cron">
-                <table class="list">
-                    <thead>
-                    <tr id="header">
-                        <th class="table-alias">Параметр</th>
-                        <th id="rate" class="table-description"> Значение</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>Использование</td>
-                        <td id="cron_enable">
-                            <input type="checkbox" id="cron_enable_value"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Строка времени</td>
-                        <td id="cron_time"></td>
-                    </tr>
-                    <tr>
-                        <td>Шаблон поиска</td>
-                        <td id="term"></td>
-                    </tr>
-                    <tr>
-                        <td>Число чатов в одной операции крона</td>
-                        <td id="cron_chats_count"></td>
-                    </tr>
-                    <tr>
-                        <td>После игнора</td>
-                        <td id="max_day"></td>
-                    </tr>
-                    <tr>
-                        <td>Последнее сообщение</td>
-                        <td id="cron_lastmessage"></td>
-                    </tr>
-                    <tr>
-                        <td>Новое сообщение</td>
-                        <td id="cron_newmessage"></td>
-                    </tr>
-                    <tr>
-                        <td>Последний запуск</td>
-                        <td id="cron_lastrun"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+
+            <!-- Вкладки Крон и Папка в цикле -->
+            <th:block th:each="entry : ${views}">
+                <div th:id="${entry.key}">
+                    <table class="list">
+                        <thead>
+                        <tr id="header">
+                            <th class="table-alias">Параметр</th>
+                            <th id="rate" class="table-description">Значение</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <th:block th:each="view : ${entry.value}">
+                            <tr>
+                                <td class="settingcode"><span th:text="${view.title}">Заголовок</span></td>
+                                <td th:id="${view.code}">
+                                    <input th:if="${view.isCheckbox}"
+                                           type="checkbox"
+                                           th:id="${view.code} + '_value'"/>
+                                    <span th:unless="${view.isCheckbox}">
+                                            <!-- Здесь будет значение из items.settings -->
+                                        </span>
+                                </td>
+                            </tr>
+                        </th:block>
+                        </tbody>
+                    </table>
+                </div>
+            </th:block>
+
+            <!-- Вкладка Прочее (отдельно, как было) -->
             <div id="tabs-other">
                 <table class="list">
                     <thead>
                     <tr id="header">
                         <th class="table-alias">Параметр</th>
-                        <th id="rate" class="table-description"> Значение</th>
+                        <th id="rate" class="table-description">Значение</th>
                     </tr>
                     </thead>
                     <tbody>
-
                     <tr th:if="${items.settings.empty}">
-                        <td colspan="2"> Тут пусто</td>
+                        <td colspan="2">Тут пусто</td>
                     </tr>
-
                     <th:block th:each="item, iter : *{settings}">
                         <tr id="setting">
                             <td id="code">
@@ -81,12 +65,14 @@
                 </table>
             </div>
         </div>
+
         <button class="save" type="submit">Сохранить</button>
+
         <script>
             jQuery(function () {
-                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count"], function (index, field) {
-                    console.log(field);
-                    var td = jQuery("input[data=" + field + "]").parent();
+                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder"], function (index, field) {
+                    var input = jQuery("input[data=" + field + "]");
+                    var td = input.parent();
                     jQuery("td#" + field).html(td.html());
                     td.parent().hide();
                     td.remove();
@@ -101,12 +87,18 @@
                 jQuery("input[data=cron_enable]").parents("tr").hide();
 
                 jQuery("#cron_enable_value").prop("checked", Number(jQuery("input[data=cron_enable]").val()) == 1);
+                jQuery("#folder_enable_value").prop("checked", Number(jQuery("input[data=folder_enable]").val()) == 1);
+                jQuery("#add_to_folder_value").prop("checked", Number(jQuery("input[data=add_to_folder]").val()) == 1);
                 jQuery("#tabs").tabs();
 
                 jQuery("#cron_enable_value").on("click", function() {
-                    var checkFlag = jQuery("#cron_enable_value").prop("checked");
-                    console.log(checkFlag);
-                    jQuery("input[data=cron_enable]").val((checkFlag) ? "1" : "0");
+                    jQuery("input[data=cron_enable]").val((jQuery("#cron_enable_value").prop("checked")) ? "1" : "0");
+                })
+                jQuery("#folder_enable_value").on("click", function() {
+                    jQuery("input[data=folder_enable]").val((jQuery("#folder_enable_value").prop("checked")) ? "1" : "0");
+                })
+                jQuery("#add_to_folder_value").on("click", function() {
+                    jQuery("input[data=add_to_folder]").val((jQuery("#add_to_folder_value").prop("checked")) ? "1" : "0");
                 })
             });
         </script>
