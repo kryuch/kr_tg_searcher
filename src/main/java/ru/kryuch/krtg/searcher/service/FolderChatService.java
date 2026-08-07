@@ -34,7 +34,7 @@ public class FolderChatService {
             return new HashMap<>();
         }
 
-        return folderChatRepository.findByChatIdsGrouped(chatIds)
+        return folderChatRepository.findByChatUserIdsGrouped(chatIds)
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(
@@ -46,16 +46,16 @@ public class FolderChatService {
                 ));
     }
 
-    public boolean updateLinksToTarget(List<Long> chatIds, Boolean status) {
-        FolderEntity folderEntity = folderRepository.findTargetFolder()
+    public boolean updateLinksToTarget(List<Long> chatUserIds, Integer tgId, Boolean status) {
+        FolderEntity folderEntity = folderRepository.findTargetFolder(tgId)
                 .orElseThrow(() ->
                         new IllegalStateException("Не настроена целевая папка"));
 
-        Map<Long, Boolean> existingLinks = folderChatRepository.existsByFolderIdAndChatIds(folderEntity.getId(), chatIds);
+        Map<Long, Boolean> existingLinks = folderChatRepository.existsByFolderIdAndChatUserIds(folderEntity.getId(), chatUserIds);
 
         List<FolderChatEntity> folderChatEntities =
-                chatIds.stream()
-                        .filter(chatId -> existingLinks.getOrDefault(chatId, false) != status)
+                chatUserIds.stream()
+                        .filter(chatId -> existingLinks.getOrDefault(chatUserIds, false) != status)
                         .map(item -> new FolderChatEntity(folderEntity.getId(), item))
                         .toList();
 
@@ -69,7 +69,6 @@ public class FolderChatService {
             folderChatRepository.deleteAll(folderChatEntities);
         }
 
-        Map <Long, Long> chatUserMap = chatHelper.getChatUserMap(chatIds);
 
         telegramPythonClient.updateFolder(
                 UpdateFolderRequest.builder()
@@ -77,7 +76,7 @@ public class FolderChatService {
                                 folderChatEntities.stream().map(item ->
                                         FolderChatIdsRequestItem.builder()
                                                 .folderId(folderEntity.getId())
-                                                .id(chatUserMap.get(item.getChatId()))
+                                                .id(item.getChatUserId())
                                                 .tgAccountId(folderEntity.getTgId())
                                                 .build()
                                 ).toList()

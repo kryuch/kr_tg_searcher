@@ -3,10 +3,12 @@ package ru.kryuch.krtg.searcher.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
+import ru.kryuch.krtg.searcher.config.SettingConfig;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
+import ru.kryuch.krtg.searcher.helper.FolderHelper;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
 import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
@@ -30,8 +32,7 @@ public class TelegramMessagingService {
     private final SettingService settingService;
     private final ChatStatusService chatStatusService;
     private final ChatHelper chatHelper;
-
-    private static final String FIRST_MESSAGE = "first_message";
+    private final FolderHelper folderHelper;
 
 
     public List<ChatResponse> sendToChats(String message, boolean clearPrevious, List<Long> ids) {
@@ -49,16 +50,20 @@ public class TelegramMessagingService {
 
     public List<ChatResponse> registerAndSend(SendMessageParam sendMessageParam, Set<String> chats) {
         List<ChatResponse> chatDtos = telegramMessagingGateway.sendMessage(sendMessageParam, chats, true);
+
         chatDtos.stream().forEach(chatDto -> {
             chatHelper.createNewChat(chatMapper.fromResponse(chatDto));
         });
+
+        folderHelper.setToFolderAfterSending(sendMessageParam, chatDtos);
+
         return chatDtos;
     }
 
     public List<ChatResponse> createNewContacts(String text, Integer tgId) {
         SendMessageParam sendMessageParam =
                 SendMessageParam.builder().message(
-                        settingService.getByCode(FIRST_MESSAGE).getValue())
+                        settingService.getByCode(SettingConfig.FIRST_MESSAGE_SETTING_CODE).getValue())
                         .tgAccountId(tgId)
                         .build();
         List<ChatResponse> chats =
