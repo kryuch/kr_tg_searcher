@@ -13,8 +13,8 @@ public interface FolderRepository extends CrudRepository<FolderEntity, Integer> 
 
     List<FolderEntity> findAllByTarget(Boolean target);
 
-    default Optional<FolderEntity> findTargetFolder() {
-        List<FolderEntity> folderEntities = findAllByTarget(true);
+    default Optional<FolderEntity> findTargetFolder(Integer tgId) {
+        List<FolderEntity> folderEntities = findAllByTarget(true).stream().filter(item -> item.getTgId().equals(tgId)).toList();
         return (folderEntities.size() > 0) ? Optional.of(folderEntities.get(0)) : Optional.empty();
     }
 

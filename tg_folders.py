@@ -179,7 +179,7 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
                 })
 
         # Обновляем фильтр через сырой запрос (без clone_filter, который использует DialogFilter)
-        new_filter = InputDialogFilter(
+        new_filter = DialogFilter(
             id=folder.id,
             title=folder.title,
             pinned_peers=folder.pinned_peers,
@@ -192,13 +192,11 @@ async def update_chat_folders(client, folder_id, chat_ids, add_to_folder):
             bots=folder.bots,
             exclude_muted=folder.exclude_muted,
             exclude_read=folder.exclude_read,
-            exclude_archived=folder.exclude_archived
+            exclude_archived=folder.exclude_archived,
+            emoticon=getattr(folder, 'emoticon', None)
         )
 
-        await client._call(UpdateDialogFilterRequest(
-            id=folder.id,
-            filter=new_filter
-        ))
+        await client( UpdateDialogFilterRequest( id=folder.id, filter=new_filter ) )
 
         return {
             "success": True,

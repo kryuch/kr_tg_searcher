@@ -993,6 +993,10 @@ tr.filter td.col .ms-options-wrap {
     width: 1100px !important;
 }
 
+.settingcode {
+    width: 256px;
+}
+
 #directionForm textarea[name=text]
 {
     width: 512px;

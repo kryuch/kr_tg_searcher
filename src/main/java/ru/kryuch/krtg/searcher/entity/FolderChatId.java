@@ -17,5 +17,5 @@ import java.io.Serializable;
 public class FolderChatId implements Serializable {
 
     private Integer folderId;
-    private Long chatId;
+    private Long chatUserId;
 }

@@ -25,6 +25,6 @@ public class ChatStatusController {
 
     @PostMapping("/folder")
     public Boolean folder(@Param("chatId") Long chatId, @Param("username") String username, @Param("name") String name, Integer status) {
-        return folderChatService.updateLinksToTarget(List.of(chatId), status.equals(Integer.valueOf(1)));
+        return true;//folderChatService.updateLinksToTarget(List.of(chatId), status.equals(Integer.valueOf(1)));
     }
 }
