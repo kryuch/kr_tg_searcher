@@ -21,8 +21,6 @@ public class ChatStatusController {
 
     private final ChatService chatServiceImpl;
     private final FolderChatService folderChatService;
-  //  @Autowired
-   // private AiClient aiClient;
 
     @PostMapping("/update")
     public Boolean update(@Param("chatId") Long chatId, @Param("username") String username, @Param("name") String name, Integer status) {
@@ -33,10 +31,5 @@ public class ChatStatusController {
     public Boolean folder(@Param("chatId") Long chatId, @Param("username") String username, @Param("name") String name, Integer status) {
         return true;//folderChatService.updateLinksToTarget(List.of(chatId), status.equals(Integer.valueOf(1)));
     }
-/*
-    @GetMapping("/{chatId}/vacancy/answer/generate")
-    public String vacancyGenerateAnswer() {
-        AiClient ai = new AiClient("REMOVED_OPENROUTER_KEY ");
-        return ai.sendMessage("Чем отличаются Java Spring от Java Enterprise Edition?");
-    }*/
+
 }
