@@ -69,6 +69,10 @@ public class SettingService {
         settingAccessService.setFirstValueByCode("cron_chats_count", "32");
         settingAccessService.setFirstValueByCode("folder_enable", "0");
         settingAccessService.setFirstValueByCode("add_to_folder", "0");
+        settingAccessService.setFirstValueByCode("ai_enable", "0");
+        settingAccessService.setFirstValueByCode("ai_api_key", "");
+        settingAccessService.setFirstValueByCode("ai_model", "openrouter/free");
+        settingAccessService.setFirstValueByCode("resume", "");
     }
 
 }

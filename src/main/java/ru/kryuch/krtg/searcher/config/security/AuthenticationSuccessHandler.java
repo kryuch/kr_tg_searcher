@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.security;
+package ru.kryuch.krtg.searcher.config.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import ru.kryuch.krtg.searcher.config.SettingConfig;
+import ru.kryuch.krtg.searcher.service.AiGatewayService;
 import ru.kryuch.krtg.searcher.service.TgAccountService;
 
 import java.io.IOException;
@@ -15,6 +17,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private final AiGatewayService aiGatewayService;
     private final TgAccountService tgAccountService;
 
     @Override
@@ -24,8 +27,8 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
             Authentication authentication) throws IOException, ServletException {
 
         tgAccountService.init();
-
-        setDefaultTargetUrl("/chat/");
+        aiGatewayService.init();
+        setDefaultTargetUrl(SettingConfig.DEFAULT_URL);
         setAlwaysUseDefaultTargetUrl(true);
         super.onAuthenticationSuccess(request, response, authentication);
     }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.kryuch.krtg.searcher.config.SettingConfig;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
@@ -15,6 +16,8 @@ import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
+import ru.kryuch.krtg.searcher.type.ChatStatus;
+import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.util.List;
 import java.util.Objects;

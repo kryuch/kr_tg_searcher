@@ -129,7 +129,7 @@ public class ChatController {
 
         if (!errorMessage.isEmpty()) {
             redirectAttributes.addFlashAttribute(
-                    "error",
+                    "errorMessage",
                     "Сообщение отправлено в " + errorMessage
             );
         }

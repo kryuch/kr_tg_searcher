@@ -32,7 +32,7 @@ spring:
   jpa:
     defer-datasource-initialization: false
     hibernate:
-      ddl-auto: validate  # <-- Меняем none на validate
+      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
@@ -45,6 +45,8 @@ spring:
     init:
       mode: never  # Отключаем, чтобы не мешал Liquibase
 
-#logging:
- # level:
-  #  liquibase: DEBUG
+  ai:
+    openai:
+      api-key: dummy-key  # Временно, чтобы не падало при старте
+      chat:
+        enabled: false    # <-- ОТКЛЮЧАЕМ автоконфигурацию

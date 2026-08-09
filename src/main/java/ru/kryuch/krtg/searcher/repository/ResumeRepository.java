@@ -1,0 +1,1 @@
+package ru.kryuch.krtg.searcher.repository;import ru.kryuch.krtg.searcher.entity.ResumeEntity;public interface ResumeRepository extends BaseAccessRepository<ResumeEntity, Integer> {}
