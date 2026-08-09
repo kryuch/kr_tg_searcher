@@ -38,4 +38,6 @@ public class ChatStatusController {
     public String vacancyGenerateAnswer() {
        return ai.sendMessage("Чем отличаются Java Spring от Java Enterprise Edition?");
     }*/
+
+
 }
