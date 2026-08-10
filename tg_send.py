@@ -25,7 +25,7 @@ def group_chats_by_account(data, client=None):
             print(f"⚠️ Пропускаем чат {chat_id}: tgAccountId = None")
             continue
 
-        tg_account_id = str(tg_account_id_raw) if tg_account_id_raw is not None else None
+        tg_account_id = int(tg_account_id_raw) if tg_account_id_raw is not None else None
 
         if not chat_id:
             continue
@@ -166,7 +166,7 @@ async def process_and_send_messages(data, run_async_func, account_configs, execu
                 print(f"⚠️ Пропускаем чат {chat_id}: tgAccountId = None")
                 continue
 
-            tg_account_id = str(tg_account_id_raw)
+            tg_account_id = int(tg_account_id_raw)
             if chat_id:
                 if tg_account_id not in chats_by_account:
                     chats_by_account[tg_account_id] = []
