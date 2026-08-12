@@ -62,7 +62,7 @@ public class FolderService {
         createTargetFolder(tgAccountId);
 
         if (forceFlag) {
-            log.info("Удаление чатов из папки {} и самой папки", tgAccountId);
+            log.info("Удаление чатов из папки {}", tgAccountId);
 
             List<Integer> foundFolderIds = folderRepository.findIdsByTgId(tgAccountId);
             log.info("Подзапрос нашел папки для tgId {}: {}", tgAccountId, foundFolderIds);
@@ -70,9 +70,6 @@ public class FolderService {
             // 1. Удаляем связи
             int deletedChats = folderChatRepository.deleteByTgIdNative(tgAccountId);
             log.info("Удалено связей в krtg_folder_chat: {}", deletedChats);
-            // 2. Удаляем папки
-            folderRepository.deleteByTgId(tgAccountId);
-          //  log.info("Удалено папок: {}", deletedFolders);
         }
 
         List<FolderInfo> folders = telegramPythonClient.findAllFolders(tgAccountId);
@@ -194,8 +191,19 @@ public class FolderService {
                         .findFirst();
 
         if (folderInfo.isEmpty()) {
-            telegramPythonClient.createFolder(new CreateFolderRequest(tgAccountId, targetFolderTitle));
+      //      telegramPythonClient.createFolder(new CreateFolderRequest(tgAccountId, targetFolderTitle));
             log.info("createTargetFolder {} for accountId", targetFolderTitle, tgAccountId);
+        }
+
+        Optional <FolderEntity> folderEntity = folderRepository.findTargetFolder(tgAccountId);
+        if (folderEntity.isEmpty()) {
+            FolderEntity folder = new FolderEntity();
+            folder.setId(folderInfo.get().getId());
+            folder.setTarget(true);
+            folder.setTgId(tgAccountId);
+            folder.setTitle(targetFolderTitle);
+            FolderEntity saved = folderRepository.save(folder);
+            log.info("Saved folder: id={}, target={}, tgId={}", saved.getId(), saved.getTarget(), saved.getTgId());
         }
     }
 }
