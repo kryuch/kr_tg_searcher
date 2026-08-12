@@ -116,67 +116,63 @@ async def search_chats(client, params, account_id):
                 print(f"Ошибка фильтра давности для {d.name}: {e}")
                 continue
 
-        # ЕДИНЫЙ ЗАПРОС ДЛЯ ВСЕХ ПРОВЕРОК
-        # Определяем лимит: если нужно собрать сообщения - берем messages_count, иначе 1
-        limit_for_query = messages_count if messages_count > 0 else 1
-        found_term = False
-        messages = []
-        term_lower = term.lower()
-        last_msg_text = None
-
+        # Поиск по ключевому слову
         try:
-            async for msg in client.iter_messages(d.id, limit=limit_for_query):
-                # Проверяем наличие term в сообщении
-                if not found_term and msg.text and term_lower in msg.text.lower():
-                    found_term = True
+            async for m in client.iter_messages(d.id, search=term, limit=1):
+                if m.text and term.lower() in m.text.lower():
+                    if last_message:
+                        found_in_chat = False
+                        try:
+                            last_msg = None
+                            async for msg in client.iter_messages(d.id, limit=1):
+                                last_msg = msg
+                                break
 
-                # Сохраняем текст самого первого сообщения (это и есть последнее сообщение в чате)
-                if last_message and last_msg_text is None:
-                    last_msg_text = msg.text if msg.text else ''
+                            if last_msg and last_msg.text and last_message.lower() in last_msg.text.lower():
+                                found_in_chat = True
+                        except Exception as e:
+                            print(f"Ошибка при проверке lastMessage для {d.name}: {e}")
+                            continue
 
-                # Собираем сообщения если нужно
-                if messages_count > 0:
-                    if msg.date:
-                        messages.append({
-                            'value': msg.text if msg.text else '',
-                            'dateTime': msg.date.isoformat().replace('+00:00', ''),
-                            'ownerFlag': msg.sender_id == me.id
-                        })
+                        if not found_in_chat:
+                            continue
 
-            # Если term не найден - пропускаем чат
-            if not found_term:
-                print(f"⚠️ Term '{term}' не найден в чате {d.name} (аккаунт {account_id}), пропускаем")
-                continue
+                    username = getattr(d.entity, 'username', None)
+                    if not username:
+                        phone = getattr(d.entity, 'phone', None)
+                        if phone:
+                            username = phone
 
-            # Проверяем last_message (только самое последнее сообщение)
-            if last_message:
-                if last_msg_text is None:
-                    print(f"⚠️ В чате {d.name} нет сообщений для проверки last_message (аккаунт {account_id})")
-                    continue
-                if last_message.lower() not in last_msg_text.lower():
-                    print(f"⚠️ Last_message '{last_message}' не найден в последнем сообщении чата {d.name} (аккаунт {account_id})")
-                    continue
+                    # ============================================
+                    # ПРАВКА 1: УДАЛИТЬ avatar = await get_avatar
+                    # ============================================
+                    # avatar = await get_avatar(client, d.entity)
 
-            # Если нашли term, получаем username и формируем результат
-            username = getattr(d.entity, 'username', None)
-            if not username:
-                phone = getattr(d.entity, 'phone', None)
-                if phone:
-                    username = phone
+                    chat_info = {
+                        'id': d.id,
+                        'name': d.name,
+                        'username': username
+                        # ============================================
+                        # ПРАВКА 2: УДАЛИТЬ 'avatar': avatar
+                        # ============================================
+                        # 'avatar': avatar
+                    }
 
-            chat_info = {
-                'id': d.id,
-                'name': d.name,
-                'username': username
-            }
+                    if messages_count > 0:
+                        messages = []
+                        async for msg in client.iter_messages(d.id, limit=messages_count):
+                            if msg.date:
+                                messages.append({
+                                    'value': msg.text if msg.text else '',
+                                    'dateTime': msg.date.isoformat().replace('+00:00', ''),
+                                    'ownerFlag': msg.sender_id == me.id
+                                })
+                        messages.reverse()
+                        chat_info['messages'] = messages
 
-            if messages_count > 0:
-                messages.reverse()
-                chat_info['messages'] = messages
-
-            result.append(chat_info)
-            print(f"✅ Найдено: {d.name} (username: {username}) (аккаунт {account_id})")
-
+                    result.append(chat_info)
+                    print(f"✅ Найдено: {d.name} (username: {username})")
+                    break
         except Exception as e:
             print(f"Ошибка в чате {d.name}: {e}")
             continue
