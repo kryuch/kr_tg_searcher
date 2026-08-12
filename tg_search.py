@@ -120,9 +120,9 @@ async def search_chats(client, params, account_id):
         # Определяем лимит: если нужно собрать сообщения - берем messages_count, иначе 1
         limit_for_query = messages_count if messages_count > 0 else 1
         found_term = False
-        found_last_message = False
         messages = []
         term_lower = term.lower()
+        last_msg_text = None
 
         try:
             async for msg in client.iter_messages(d.id, limit=limit_for_query):
@@ -130,10 +130,9 @@ async def search_chats(client, params, account_id):
                 if not found_term and msg.text and term_lower in msg.text.lower():
                     found_term = True
 
-                # Проверяем last_message если задан
-                if last_message and not found_last_message:
-                    if msg.text and last_message.lower() in msg.text.lower():
-                        found_last_message = True
+                # Сохраняем текст самого первого сообщения (это и есть последнее сообщение в чате)
+                if last_message and last_msg_text is None:
+                    last_msg_text = msg.text if msg.text else ''
 
                 # Собираем сообщения если нужно
                 if messages_count > 0:
@@ -146,11 +145,17 @@ async def search_chats(client, params, account_id):
 
             # Если term не найден - пропускаем чат
             if not found_term:
+                print(f"⚠️ Term '{term}' не найден в чате {d.name} (аккаунт {account_id}), пропускаем")
                 continue
 
-            # Если last_message задан и не найден - пропускаем чат
-            if last_message and not found_last_message:
-                continue
+            # Проверяем last_message (только самое последнее сообщение)
+            if last_message:
+                if last_msg_text is None:
+                    print(f"⚠️ В чате {d.name} нет сообщений для проверки last_message (аккаунт {account_id})")
+                    continue
+                if last_message.lower() not in last_msg_text.lower():
+                    print(f"⚠️ Last_message '{last_message}' не найден в последнем сообщении чата {d.name} (аккаунт {account_id})")
+                    continue
 
             # Если нашли term, получаем username и формируем результат
             username = getattr(d.entity, 'username', None)
@@ -170,7 +175,7 @@ async def search_chats(client, params, account_id):
                 chat_info['messages'] = messages
 
             result.append(chat_info)
-            print(f"✅ Найдено: {d.name} (username: {username})")
+            print(f"✅ Найдено: {d.name} (username: {username}) (аккаунт {account_id})")
 
         except Exception as e:
             print(f"Ошибка в чате {d.name}: {e}")

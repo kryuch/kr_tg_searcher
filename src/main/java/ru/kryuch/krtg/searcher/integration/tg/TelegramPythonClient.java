@@ -153,6 +153,7 @@ public class TelegramPythonClient {
     }
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByContactId request) {
+        log.info("TelegramPythonClient::sendBulkMessages (request = {})", request);
         return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
