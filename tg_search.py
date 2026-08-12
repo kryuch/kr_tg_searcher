@@ -143,19 +143,13 @@ async def search_chats(client, params, account_id):
                         if phone:
                             username = phone
 
-                    # ============================================
-                    # ПРАВКА 1: УДАЛИТЬ avatar = await get_avatar
-                    # ============================================
-                    # avatar = await get_avatar(client, d.entity)
+                    # УДАЛЕНО: avatar = await get_avatar(client, d.entity)
 
                     chat_info = {
                         'id': d.id,
                         'name': d.name,
                         'username': username
-                        # ============================================
-                        # ПРАВКА 2: УДАЛИТЬ 'avatar': avatar
-                        # ============================================
-                        # 'avatar': avatar
+                        # УДАЛЕНО: 'avatar': avatar
                     }
 
                     if messages_count > 0:
