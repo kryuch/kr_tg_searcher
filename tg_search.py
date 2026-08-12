@@ -17,6 +17,8 @@ async def get_avatar(client, entity):
     except Exception as e:
         print(f"Avatar error: {e}")
     return None
+
+
 def prepare_search_params(data):
     """
     Подготавливает параметры поиска из запроса.
@@ -47,6 +49,7 @@ def prepare_search_params(data):
         'excludeChats': exclude_chats,
         'messagesCount': data.get('messagesCount', 0) or 0
     }
+
 
 async def search_chats(client, params, account_id):
     """
@@ -113,63 +116,69 @@ async def search_chats(client, params, account_id):
                 print(f"Ошибка фильтра давности для {d.name}: {e}")
                 continue
 
-        # Поиск по ключевому слову
+        # ЕДИНЫЙ ЗАПРОС ДЛЯ ВСЕХ ПРОВЕРОК
+        # Определяем лимит: если нужно собрать сообщения - берем messages_count, иначе 1
+        limit_for_query = messages_count if messages_count > 0 else 1
+        found_term = False
+        found_last_message = False
+        messages = []
+        term_lower = term.lower()
+
         try:
-            async for m in client.iter_messages(d.id, search=term, limit=1):
-                if m.text and term.lower() in m.text.lower():
-                    if last_message:
-                        found_in_chat = False
-                        try:
-                            last_msg = None
-                            async for msg in client.iter_messages(d.id, limit=1):
-                                last_msg = msg
-                                break
+            async for msg in client.iter_messages(d.id, limit=limit_for_query):
+                # Проверяем наличие term в сообщении
+                if not found_term and msg.text and term_lower in msg.text.lower():
+                    found_term = True
 
-                            if last_msg and last_msg.text and last_message.lower() in last_msg.text.lower():
-                                found_in_chat = True
-                        except Exception as e:
-                            print(f"Ошибка при проверке lastMessage для {d.name}: {e}")
-                            continue
+                # Проверяем last_message если задан
+                if last_message and not found_last_message:
+                    if msg.text and last_message.lower() in msg.text.lower():
+                        found_last_message = True
 
-                        if not found_in_chat:
-                            continue
+                # Собираем сообщения если нужно
+                if messages_count > 0:
+                    if msg.date:
+                        messages.append({
+                            'value': msg.text if msg.text else '',
+                            'dateTime': msg.date.isoformat().replace('+00:00', ''),
+                            'ownerFlag': msg.sender_id == me.id
+                        })
 
-                    username = getattr(d.entity, 'username', None)
-                    if not username:
-                        phone = getattr(d.entity, 'phone', None)
-                        if phone:
-                            username = phone
+            # Если term не найден - пропускаем чат
+            if not found_term:
+                continue
 
-                    avatar = await get_avatar(client, d.entity)
+            # Если last_message задан и не найден - пропускаем чат
+            if last_message and not found_last_message:
+                continue
 
-                    chat_info = {
-                        'id': d.id,
-                        'name': d.name,
-                        'username': username,
-                        'avatar': avatar
-                    }
+            # Если нашли term, получаем username и формируем результат
+            username = getattr(d.entity, 'username', None)
+            if not username:
+                phone = getattr(d.entity, 'phone', None)
+                if phone:
+                    username = phone
 
-                    if messages_count > 0:
-                        messages = []
-                        async for msg in client.iter_messages(d.id, limit=messages_count):
-                            if msg.date:
-                                messages.append({
-                                    'value': msg.text if msg.text else '',
-                                    'dateTime': msg.date.isoformat().replace('+00:00', ''),
-                                    'ownerFlag': msg.sender_id == me.id
-                                })
-                        messages.reverse()
-                        chat_info['messages'] = messages
+            chat_info = {
+                'id': d.id,
+                'name': d.name,
+                'username': username
+            }
 
-                    result.append(chat_info)
-                    print(f"✅ Найдено: {d.name} (username: {username})")
-                    break
+            if messages_count > 0:
+                messages.reverse()
+                chat_info['messages'] = messages
+
+            result.append(chat_info)
+            print(f"✅ Найдено: {d.name} (username: {username})")
+
         except Exception as e:
             print(f"Ошибка в чате {d.name}: {e}")
             continue
 
     print(f"🔵 Поиск завершён для аккаунта {account_id}. Найдено чатов: {len(result)}")
     return result
+
 
 async def get_chats_info(client, chat_ids):
     """

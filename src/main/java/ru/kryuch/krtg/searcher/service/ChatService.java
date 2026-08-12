@@ -9,13 +9,16 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.MessagesHistory;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
+import ru.kryuch.krtg.searcher.dto.TgUserAvatar;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
+import ru.kryuch.krtg.searcher.helper.TgUserHelper;
 import ru.kryuch.krtg.searcher.mapper.ChatKeyMapper;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
+import ru.kryuch.krtg.searcher.repository.TgUserRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 
@@ -38,6 +41,7 @@ public class ChatService {
     private final VacancyService vacancyService;
     private final SettingService settingService;
     private final ChatHelper chatHelper;
+    private final TgUserHelper tgUserHelper;
     private final ChatKeyMapper chatKeyMapper;
 
 
@@ -51,6 +55,16 @@ public class ChatService {
             return Collections.emptyList();
         }
     }*/
+
+    public List <TgUserAvatar> getAvatars(List <ChatKey> keys) {
+        log.info("ChatService :: getAvatars (keys-size = {}", keys.size());
+        List <TgUserAvatar> avatars = telegramMessagingGateway.getAvatars(keys);
+        for (TgUserAvatar avatar : avatars) {
+            tgUserHelper.updateAvatar(avatar);
+        }
+
+        return avatars;
+    }
 
     public List<ChatInfo> search(SearchParams searchParams, boolean withFolderFlag) {
         try {
@@ -73,6 +87,11 @@ public class ChatService {
                     .map(item -> {
 
                         ChatKey chatKey = new ChatKey(item.getId(), item.getTgAccountId());
+
+                        Optional <String> avatar = tgUserHelper.getAvatar(item.getId());
+                        if (avatar.isPresent()) {
+                            item.setAvatar(avatar.get());
+                        }
 
                         if (chatsMap.containsKey(chatKey)) {
                             item.setStatus(ChatStatus.getChatStatus(chatsMap.get(chatKey).getStatus()));

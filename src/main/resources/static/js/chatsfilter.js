@@ -319,6 +319,8 @@ jQuery(document).ready(function () {
 
                 // Скрываем спиннер после успешного ответа
                 hideLoading($btn);
+
+                loadMissingAvatars();
             },
             error: function (xhr, status, error) {
                 console.error("❌ Ошибка:", error);
