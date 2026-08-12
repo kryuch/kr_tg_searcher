@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 
 import java.util.ArrayList;
@@ -22,7 +23,10 @@ public class SearchParams {
     PersonalChatType botType = PersonalChatType.PERSONAL;
     PersonalChatType groupType = PersonalChatType.PERSONAL;
     Boolean excludeStatusFlag = true;
+
+    @ToString.Exclude
     List<ChatKey> excludeChats = new ArrayList<>();
+
     Integer messagesCount = 0;
     List <Integer> tgAccountIds = new ArrayList<>();
 }

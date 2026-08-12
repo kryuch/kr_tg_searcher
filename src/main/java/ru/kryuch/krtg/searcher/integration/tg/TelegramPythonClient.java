@@ -11,6 +11,7 @@ import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
+import ru.kryuch.krtg.searcher.dto.TgUserAvatar;
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
 import ru.kryuch.krtg.searcher.dto.VerifyTgCodeParam;
 import ru.kryuch.krtg.searcher.exception.TelegramClientException;
@@ -105,6 +106,23 @@ public class TelegramPythonClient {
                 ? List.of()
                 : List.of(response);
     }
+
+    public List<TgUserAvatar> getAvatars(List <ChatKey> request) {
+        log.info("TelegramPythonClient::getAvatars (request = {}", request);
+        TgUserAvatar[] response = execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/search/avatars"),
+                        request,
+                        TgUserAvatar[].class
+                ),
+                "Failed to search avatars"
+        );
+
+        return response == null
+                ? List.of()
+                : List.of(response);
+    }
+
 
     public List<ChatResponse> searchChats(SearchRequest request) {
         log.info("TelegramPythonClient::searchChats (request = {}", request);

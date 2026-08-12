@@ -29,4 +29,7 @@ public class TgUserEntity implements Serializable {
 
     private String name;
 
+    @Column(name = "avatar", columnDefinition = "TEXT")
+    private String avatar;
+
 }

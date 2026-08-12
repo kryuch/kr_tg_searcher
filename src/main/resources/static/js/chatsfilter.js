@@ -65,47 +65,6 @@ function hideLoading(button) {
     $('#loading-overlay').hide();
 }
 
-// ============================================================
-// Функции для работы с фильтрами (без изменений)
-// ============================================================
-
-function applyFilter() {
-    var formData = {
-        term: document.getElementById('term')?.value || '',
-        maxFoundCount: document.getElementById('maxFoundCount')?.value || '',
-        minDiffDaysCount: document.getElementById('minDiffDaysCount')?.value || '',
-        excludeStatusFlag: document.getElementById('excludeStatusFlag')?.checked || false,
-        excludeBotFlag: document.getElementById('excludeBotFlag')?.checked || false,
-        excludeGroupFlag: document.getElementById('excludeGroupFlag')?.checked || false
-    };
-
-    var params = new URLSearchParams();
-    for (var key in formData) {
-        if (formData[key] !== '' && formData[key] !== false) {
-            params.append(key, formData[key]);
-        }
-    }
-
-    jQuery.ajax({
-        url: '/chat/search',
-        type: "POST",
-        data: formData,
-        timeout: 0,
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader(csrfHeader, csrfToken);
-        },
-        success: function (response) {
-            jQuery(".econtent").html(response);
-            hideLoading($btn);
-        },
-        error: function (xhr, status, error) {
-            console.error(status, error);
-            hideLoading($btn);
-        }
-    })
-}
-
-// ============================================================
 // Сохранение параметров поиска в cookies
 // ============================================================
 
@@ -359,6 +318,8 @@ jQuery(document).ready(function () {
 
                 // Скрываем спиннер после успешного ответа
                 hideLoading($btn);
+
+                loadMissingAvatars();
             },
             error: function (xhr, status, error) {
                 console.error("❌ Ошибка:", error);

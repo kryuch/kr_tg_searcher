@@ -44,6 +44,8 @@
                 <td>
                     <div class="chat-avatar"
                          th:data-chat-id="${item.chatId}"
+                         th:data-user-id="${item.id}"
+                         th:data-tg-id="${item.tgAccountId}"
                          th:data-chat-name="${item.name}"
                          style="cursor: pointer; display: inline-block;">
                         <img th:if="${item.avatar != null}"
