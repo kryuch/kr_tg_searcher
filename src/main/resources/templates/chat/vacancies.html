@@ -3,7 +3,7 @@
         function generateAnswer(button) {
             var $btn = jQuery(button);
             var $row = $btn.closest('tr');
-            var $answerRow = $row.nextAll('.answer').first();  // класс answer
+            var $answerRow = $row.nextAll('.answer').first();
             var $textarea = $answerRow.find('textarea');
 
             if (!$textarea.length) {
@@ -60,11 +60,9 @@
                 return;
             }
 
-            // Ищем строку вакансии по ID head-${iter.index}
             var $vacancyRow = $row.prevAll('tr[id^="head-"]').first();
             var username = $vacancyRow.find('.tgvalue').text().trim();
 
-            // Если не нашли через .tgvalue, берем первую ячейку
             if (!username) {
                 username = $vacancyRow.find('td').first().text().trim();
             }
@@ -145,7 +143,7 @@
                     <span class="dt" th:text="${#temporals.format(item.dateTime, 'dd.MM.YYYY HH:mm')}">Datetime</span>
                 </td>
                 <td>
-                    <table border="1">
+                    <table border="1" class="owners">
                         <tr th:each="owner : ${item.owners}">
                             <td class="tgvalue" th:text="${owner.value}"></td>
                             <td th:text="${owner.type}"></td>
@@ -153,7 +151,7 @@
                     </table>
                 </td>
                 <td>
-                    <button id="generate-${iter.index}" class="save" type="submit" onclick="generateAnswer(this)">
+                    <button id="generate-${iter.index}" class="save generate" type="submit" onclick="generateAnswer(this)">
                         Генерировать ответ
                     </button>
                 </td>
@@ -181,23 +179,28 @@
         </th:block>
         </tbody>
     </table>
-</div>
+    <script>
+        document.querySelectorAll('.description-toggle').forEach(function(btn) {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                var shortSpan = document.getElementById(this.getAttribute('data-short'));
+                var fullSpan = document.getElementById(this.getAttribute('data-full'));
+                if (fullSpan.style.display === 'none') {
+                    shortSpan.style.display = 'none';
+                    fullSpan.style.display = 'inline';
+                    this.innerText = 'Свернуть';
+                } else {
+                    shortSpan.style.display = 'inline';
+                    fullSpan.style.display = 'none';
+                    this.innerText = 'Развернуть';
+                }
+            };
+        });
 
-<script>
-    document.querySelectorAll('.description-toggle').forEach(function (btn) {
-        btn.onclick = function (e) {
-            e.preventDefault();
-            var shortSpan = document.getElementById(this.getAttribute('data-short'));
-            var fullSpan = document.getElementById(this.getAttribute('data-full'));
-            if (fullSpan.style.display === 'none') {
-                shortSpan.style.display = 'none';
-                fullSpan.style.display = 'inline';
-                this.innerText = 'Свернуть';
-            } else {
-                shortSpan.style.display = 'inline';
-                fullSpan.style.display = 'none';
-                this.innerText = 'Развернуть';
+        jQuery.each(jQuery("table.owners"), function (key, value) {
+            if (jQuery(value).find("tr").length == 0) {
+                jQuery(value).parents(".vacancynull").find(".generate").hide();
             }
-        };
-    });
-</script>
+        })
+    </script>
+</div>

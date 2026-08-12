@@ -94,13 +94,13 @@
                             $row.find("input, textarea").prop("readonly", false).prop("disabled", false);
                             $row.find("select, button").prop("disabled", false);
                             $row.css("cursor", "default");
+                            $row.find("input, textarea").css("background-color", "");
+                            $row.find("input, textarea").css("color", "");
                         } else {
                             $row.css("opacity", "0.5");
-                            // Используем readonly + стили для имитации disabled
                             $row.find("input, textarea").prop("readonly", true).prop("disabled", false);
                             $row.find("select, button").prop("disabled", true);
                             $row.css("cursor", "not-allowed");
-                            // Добавляем стиль как у disabled
                             $row.find("input, textarea").css("background-color", "#e9ecef");
                             $row.find("input, textarea").css("color", "#6c757d");
                         }
