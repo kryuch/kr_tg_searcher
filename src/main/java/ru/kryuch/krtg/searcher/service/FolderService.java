@@ -62,18 +62,20 @@ public class FolderService {
         createTargetFolder(tgAccountId);
 
         if (forceFlag) {
-            log.info("Удаление чатов из папки {}", tgAccountId);
+            log.info("\t Удаление чатов из папки для аккаунта {}", tgAccountId);
 
             List<Integer> foundFolderIds = folderRepository.findIdsByTgId(tgAccountId);
-            log.info("Подзапрос нашел папки для tgId {}: {}", tgAccountId, foundFolderIds);
+            log.info("\t Подзапрос нашел папки для tgId {}: {}", tgAccountId, foundFolderIds);
 
             // 1. Удаляем связи
             int deletedChats = folderChatRepository.deleteByTgIdNative(tgAccountId);
-            log.info("Удалено связей в krtg_folder_chat: {}", deletedChats);
+            log.info("\t Удалено связей в krtg_folder_chat: {}", deletedChats);
         }
 
+        log.info("\t Будем обрабатывать папки");
         List<FolderInfo> folders = telegramPythonClient.findAllFolders(tgAccountId);
 
+        log.info("\t нашлось {}", folders);
         if (folders.isEmpty()) {
             return;
         }
