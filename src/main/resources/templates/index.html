@@ -66,7 +66,7 @@
             <div class="filtercontainer" th:if="${filter != null}">
                 <div class="filtercontainerecontent" th:insert="chat/filter.html :: table"></div>
             </div>
-            <div class="econtent" th:insert="__${page}__.html :: div"></div>
+            <div class="econtent" th:insert="~{__${page}__.html :: div}"></div>
             <img class="loading" th:src="@{/css/images/loading.gif}"/>
             <div class="navigator" th:if="${pageNumbers != null}">
                 <ul>
