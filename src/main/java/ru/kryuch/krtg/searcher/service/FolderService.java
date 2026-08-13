@@ -195,7 +195,7 @@ public class FolderService {
                         .findFirst();
 
         if (folderInfo.isEmpty()) {
-      //      telegramPythonClient.createFolder(new CreateFolderRequest(tgAccountId, targetFolderTitle));
+            telegramPythonClient.createFolder(new CreateFolderRequest(tgAccountId, targetFolderTitle));
             log.info("createTargetFolder {} for accountId", targetFolderTitle, tgAccountId);
         }
 

@@ -43,7 +43,7 @@ public class TelegramPythonClient {
     private final TelegramSettingsResolver settings;
 
     public void init(InitRequest initRequest) {
-        String response = execute(
+        execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/init"),
                         initRequest,
@@ -54,7 +54,6 @@ public class TelegramPythonClient {
     }
 
     public List<FolderInfo> findAllFolders(Integer tgAccountId) {
-        log.info("TelegramPythonClient::findAllFolders (request = {}", tgAccountId);
 
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUri(buildUri("/api/folders"))
@@ -67,7 +66,7 @@ public class TelegramPythonClient {
                 ),
                 "Failed to get folders"
         );
-        log.info("TelegramPythonClient::findAllFolders (response = {}", response);
+
         return response == null
                 ? List.of() :
                 List.of(response);
@@ -75,7 +74,6 @@ public class TelegramPythonClient {
 
 
     public List<ChatInfo> findAllChats(Integer tgAccountId) {
-
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUri(buildUri("/api/chats/all"))
                 .queryParam("accountId", tgAccountId);
@@ -109,7 +107,6 @@ public class TelegramPythonClient {
     }
 
     public List<TgUserAvatar> getAvatars(List <ChatKey> request) {
-        log.info("TelegramPythonClient::getAvatars (request = {}", request);
         TgUserAvatar[] response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/search/avatars"),
@@ -126,7 +123,6 @@ public class TelegramPythonClient {
 
 
     public List<ChatResponse> searchChats(SearchRequest request) {
-        log.info("TelegramPythonClient::searchChats (request = {}", request);
         ChatResponse[] response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/search"),
@@ -142,8 +138,7 @@ public class TelegramPythonClient {
     }
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByConcatUsername request) {
-        log.info("TelegramPythonClient::sendBulkMessages (request = {})", request);
-        SendResponse response = execute(
+        return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
                         request,
@@ -151,13 +146,10 @@ public class TelegramPythonClient {
                 ),
                 "Failed to send messages"
         );
-        log.info("TelegramPythonClient::sendBulkMessages (response = {})", response);
-        return response;
     }
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByContactId request) {
-        log.info("TelegramPythonClient::sendBulkMessages (request = {})", request);
-        SendResponse response = execute(
+        return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
                         request,
@@ -165,8 +157,6 @@ public class TelegramPythonClient {
                 ),
                 "Failed to send messages"
         );
-        log.info("TelegramPythonClient::sendBulkMessages (response = {})", response);
-        return response;
     }
 
     public CreateFolderResponse createFolder(CreateFolderRequest request) {
@@ -202,10 +192,6 @@ public class TelegramPythonClient {
     }
 
     public RequestCodeResponse sendCode(Integer tgAccountId) {
-        UriComponentsBuilder builder = UriComponentsBuilder
-                .fromUri(buildUri("/api/session/request_code"))
-                .queryParam("accountId", tgAccountId);
-
         return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/session/request_code"),
@@ -266,9 +252,7 @@ public class TelegramPythonClient {
     }
 
     public Map<String, Object> updateFolder(UpdateFolderRequest request) {
-        log.info("TelegramPythonClient::updateFolder (request = {})", request);
-
-        Map<String, Object> response = execute(
+        return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/folders/update"),
                         request,
@@ -276,7 +260,5 @@ public class TelegramPythonClient {
                 ),
                 "Failed to get chats info"
         );
-        log.info("TelegramPythonClient::updateFolder (response = {})", response);
-        return response;
     }
 }

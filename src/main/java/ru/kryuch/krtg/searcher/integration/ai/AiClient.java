@@ -27,7 +27,6 @@ public class AiClient {
                 .build();
     }
 
-    // Отправить сообщение
     public String sendMessage(String userMessage) {
         try {
             Map<String, Object> request = Map.of(
