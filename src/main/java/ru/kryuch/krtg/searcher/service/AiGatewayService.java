@@ -30,7 +30,8 @@ public class AiGatewayService implements Serializable {
 
     public String createMessage(String vacancyText) {
         aiClient = new AiClient(apiKey, model);
-        String result = aiClient.sendMessage("Вот мое резюме: " + resume + ". Подготовь небольшое письмо для отклика на вакансию " +vacancyText);
+        String vacancyPromt = settingService.getValueByCode(SettingConfig.AI_VACANCY_PROMT_SETTING_CODE);
+        String result = aiClient.sendMessage("Вот мое резюме: " + resume + ". Вот текст вакансии: " + vacancyText + ". " + vacancyPromt);
         return result;
     }
 

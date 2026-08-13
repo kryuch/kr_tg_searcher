@@ -72,6 +72,7 @@ public class SettingService {
         settingAccessService.setFirstValueByCode("ai_enable", "0");
         settingAccessService.setFirstValueByCode("ai_api_key", "");
         settingAccessService.setFirstValueByCode("ai_model", "openrouter/free");
+        settingAccessService.setFirstValueByCode("ai_vacancy_promt", "");
         settingAccessService.setFirstValueByCode("resume", "");
     }
 

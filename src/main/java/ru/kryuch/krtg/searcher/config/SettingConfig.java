@@ -21,6 +21,7 @@ public class SettingConfig {
     public static String AI_ENABLE_SETTING_CODE = "ai_enable";
     public static String AI_API_KEY_SETTING_CODE = "ai_api_key";
     public static String AI_MODEL_SETTING_CODE = "ai_model";
+    public static String AI_VACANCY_PROMT_SETTING_CODE = "ai_model";
     public static String RESUME_SETTING_CODE = "resume";
 
 }

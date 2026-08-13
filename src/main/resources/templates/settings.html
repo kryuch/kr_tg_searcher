@@ -121,7 +121,7 @@
                 // === ИНИЦИАЛИЗАЦИЯ ВКЛАДОК ===
 
                 // 1. Обработка полей с переносом значения в td
-                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder", "ai_model", "ai_api_key"], function (index, field) {
+                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder", "ai_model", "ai_api_key", "ai_vacancy_promt"], function (index, field) {
                     var input = jQuery("input[data=" + field + "]");
                     var td = input.parent();
                     jQuery("td#" + field).html(td.html());
