@@ -54,6 +54,7 @@ public class TelegramPythonClient {
     }
 
     public List<FolderInfo> findAllFolders(Integer tgAccountId) {
+        log.info("TelegramPythonClient::findAllFolders (request = {}", tgAccountId);
 
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUri(buildUri("/api/folders"))
@@ -66,7 +67,7 @@ public class TelegramPythonClient {
                 ),
                 "Failed to get folders"
         );
-
+        log.info("TelegramPythonClient::findAllFolders (response = {}", response);
         return response == null
                 ? List.of() :
                 List.of(response);
@@ -142,7 +143,7 @@ public class TelegramPythonClient {
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByConcatUsername request) {
         log.info("TelegramPythonClient::sendBulkMessages (request = {})", request);
-        return execute(
+        SendResponse response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
                         request,
@@ -150,11 +151,13 @@ public class TelegramPythonClient {
                 ),
                 "Failed to send messages"
         );
+        log.info("TelegramPythonClient::sendBulkMessages (response = {})", response);
+        return response;
     }
 
     public SendResponse sendBulkMessages(SendBulkMessageRequestByContactId request) {
         log.info("TelegramPythonClient::sendBulkMessages (request = {})", request);
-        return execute(
+        SendResponse response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/send_bulk_messages"),
                         request,
@@ -162,6 +165,8 @@ public class TelegramPythonClient {
                 ),
                 "Failed to send messages"
         );
+        log.info("TelegramPythonClient::sendBulkMessages (response = {})", response);
+        return response;
     }
 
     public CreateFolderResponse createFolder(CreateFolderRequest request) {

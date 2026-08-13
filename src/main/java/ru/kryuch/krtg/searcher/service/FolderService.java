@@ -160,10 +160,11 @@ public class FolderService {
     }
 
     private List <FolderEntity> buildFoldersToSave(
-            List<FolderInfo> folders, Map<Integer,
-            FolderEntity> existingFolders,
+            List<FolderInfo> folders,
+            Map<Integer, FolderEntity> existingFolders,
             Integer tgAccountId
     ) {
+        log.info("FolderService::buildFoldersToSave (folders = {}, existingFolders = {}, tgAccountId = {}", folders, existingFolders, tgAccountId);
         List<FolderEntity> foldersToSave = new ArrayList<>();
 
         for (FolderInfo folderInfo : folders) {
@@ -181,6 +182,7 @@ public class FolderService {
 
             foldersToSave.add(folderEntity);
         }
+        log.info("FolderService::buildFoldersToSave (return = {}", foldersToSave);
         return foldersToSave;
     }
 

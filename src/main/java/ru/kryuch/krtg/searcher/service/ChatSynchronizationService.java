@@ -15,6 +15,7 @@ import ru.kryuch.krtg.searcher.repository.TgUserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -49,26 +50,30 @@ public class ChatSynchronizationService {
             for (ChatInfo chatInfo : chats) {
 
                 ChatEntity chatEntity = chatMap.get(chatInfo.getId());
-
                 if (chatEntity == null || chatEntity.getTgId() == null) {
                     if (chatEntity == null) {
                         chatEntity = chatMapper.toEntity(chatInfo);
-                        System.out.println("chatEntity");
                     }
                     chatEntity.setTgId(tgAccountId);
-                    System.out.println(chatEntity.getId());
                     chatEntities.add(chatEntity);
                 }
 
+                TgUserEntity tgUserEntity = tgUserMap.get(chatInfo.getId());
                 if (chatEntity.getUser() == null) {
-                    TgUserEntity tgUserEntity = tgUserMap.get(chatInfo.getId());
-
                     if (tgUserEntity == null) {
                         tgUserEntity = chatUserMapper.toEntity(chatInfo);
                         tgUserEntities.add(tgUserEntity);
                     }
 
                     chatEntity.setUser(tgUserEntity);
+                }
+                else {
+                    // если пользователь есть, но не сохранилось почему-то username
+                    if (!Objects.equals(tgUserEntity.getUsername(), chatInfo.getUsername()) || !Objects.equals(tgUserEntity.getName(), chatInfo.getName())) {
+                        tgUserEntity.setUsername(chatInfo.getUsername());
+                        tgUserEntity.setName(chatInfo.getName());
+                        tgUserEntities.add(tgUserEntity);
+                    }
                 }
             }
 
