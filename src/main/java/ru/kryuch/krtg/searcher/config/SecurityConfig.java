@@ -34,8 +34,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/api/init").permitAll()
+                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/oauth2/**")
+                        .permitAll()
+                        .requestMatchers("/api/init")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
 
@@ -49,6 +51,8 @@ public class SecurityConfig {
                         .passwordParameter("password")
                         .permitAll()
                 )
+
+                .oauth2Login(oauth -> oauth .defaultSuccessUrl("/gmail/connected", true) )
 
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -66,7 +70,7 @@ public class SecurityConfig {
 
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**",
-                        "/chat/status/**")
+                                "/chat/status/**")
                 );
 
         return http.build();

@@ -74,6 +74,9 @@ public class SettingService {
         settingAccessService.setFirstValueByCode("ai_model", "openrouter/free");
         settingAccessService.setFirstValueByCode("ai_vacancy_promt", "");
         settingAccessService.setFirstValueByCode("resume", "");
+        settingAccessService.setFirstValueByCode("gmail_email", "");
+        settingAccessService.setFirstValueByCode("gmail_refresh_token", "");
+        settingAccessService.setFirstValueByCode("gmail_subject", "");
     }
 
 }

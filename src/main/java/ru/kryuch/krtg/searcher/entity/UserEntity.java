@@ -12,7 +12,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -37,4 +39,14 @@ public class UserEntity {
 
     @OneToMany(mappedBy="")
     private Set<RoleEntity> role;
+/*
+    @Column(name = "gmail_email")
+    private String gmailEmail;
+
+    @Column(name = "google_refresh_token")
+    private String googleRefreshToken;*/
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
