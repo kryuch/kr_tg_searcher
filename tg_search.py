@@ -39,9 +39,27 @@ def prepare_search_params(data):
     last_message = data.get('lastMessage')
     last_message = last_message.strip() if last_message else ''
 
+    last_message_type = data.get('lastMessageType', 0)
+    if last_message_type is None:
+        last_message_type = 0
+
+    if isinstance(last_message_type, str):
+        if last_message_type == 'EXCLUDE':
+            last_message_type = -1
+        elif last_message_type == 'ONLY':
+            last_message_type = 1
+        elif last_message_type == 'IGNORE':
+            last_message_type = 0
+        else:
+            try:
+                last_message_type = int(last_message_type)
+            except ValueError:
+                last_message_type = 0
+
     return {
         'term': term,
         'lastMessage': last_message,
+        'lastMessageType': last_message_type,
         'maxFoundCount': data.get('maxFoundCount', 10) or 10,
         'minDiffDaysCount': data.get('minDiffDaysCount', 0) if data.get('minDiffDaysCount') is not None else 0,
         'botType': data.get('botType', 'PERSONAL'),
@@ -62,7 +80,8 @@ async def search_chats(client, params, account_id):
     """
     term = params.get('term', 'Java')
     last_message = params.get('lastMessage', '').strip()
-    max_found_count = params.get('maxFoundCount', 10)
+    max_found_count = params.get('maxFoundCount', 16)
+    last_message_type = params.get('lastMessageType', 0)
     min_diff_days_count = params.get('minDiffDaysCount', 0)
     bot_type = params.get('botType', 'PERSONAL')
     group_type = params.get('groupType', 'PERSONAL')
@@ -120,22 +139,26 @@ async def search_chats(client, params, account_id):
         try:
             async for m in client.iter_messages(d.id, search=term, limit=1):
                 if m.text and term.lower() in m.text.lower():
-                    if last_message:
-                        found_in_chat = False
-                        try:
-                            last_msg = None
-                            async for msg in client.iter_messages(d.id, limit=1):
-                                last_msg = msg
-                                break
+                    if last_message_type != 0:
+                       try:
+                           last_msg = None
+                           async for msg in client.iter_messages(d.id, limit=1):
+                               last_msg = msg
+                               break
 
-                            if last_msg and last_msg.text and last_message.lower() in last_msg.text.lower():
-                                found_in_chat = True
-                        except Exception as e:
-                            print(f"Ошибка при проверке lastMessage для {d.name}: {e}")
-                            continue
+                           last_msg_text = last_msg.text if last_msg and last_msg.text else ''
+                           last_message_lower = last_message.lower()
+                           last_msg_text_lower = last_msg_text.lower()
 
-                        if not found_in_chat:
-                            continue
+                           if last_message_type == 1:
+                               if last_message_lower not in last_msg_text_lower:
+                                   continue
+                           elif last_message_type == -1:
+                               if last_message_lower in last_msg_text_lower:
+                                   continue
+                       except Exception as e:
+                           print(f"Ошибка при проверке lastMessage для {d.name}: {e}")
+                           continue
 
                     username = getattr(d.entity, 'username', None)
                     if not username:

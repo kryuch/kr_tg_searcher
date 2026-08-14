@@ -5,14 +5,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
-import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
-import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
-import ru.kryuch.krtg.searcher.integration.dto.SearchRequest;
+import ru.kryuch.krtg.searcher.integration.tg.dto.SearchRequest;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Mapper(
         componentModel = "spring",

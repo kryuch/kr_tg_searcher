@@ -1,7 +1,6 @@
 <table class="filtercontainericontent" id="filtercontainericontent">
     <script th:src="@{/js/chatsfilter.js}"></script>
     <tr class="filter" id="filterparams">
-        <td class="colid"></td>
         <td class="col">
             <label>Поиск:</label>
             <input type="text" id="term" th:field="*{filter.term}" name="term" class="1col active form-control"/>
@@ -12,22 +11,32 @@
                 <label for="excludeStatusFlag">Не показывать статус > 0</label>
             </div>
         </td>
+        <td class="colid">
+            <div class="tgmultiselectcontainer" th:insert="~{tgmultiselect.html :: div}"></div>
+        </td>
         <td class="col limit">
             <label>Максимум чатов:</label>
             <input type="text" id="maxFoundCount" th:field="*{filter.maxFoundCount}" name="maxFoundCount"
                    class="1col active form-control"/>
+            <label>Не писали больше чем (д):</label>
+            <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}" name="minDiffDaysCount"
+                   class="1col active form-control"/>
 
-            <div class="tgmultiselectcontainer" th:insert="tgmultiselect.html :: div"></div>
         </td>
         <td class="col">
             <div class="filterchatblock">
-                <label>Не писали больше чем (д):</label>
-                <input type="text" id="minDiffDaysCount" th:field="*{filter.minDiffDaysCount}" name="minDiffDaysCount"
-                       class="1col active form-control"/>
-
                 <label>Последнее сообщение:</label>
                 <input type="text" id="lastMessage" th:field="*{filter.lastMessage}" name="lastMessage"
                        class="1col active form-control"/>
+
+                <label>Тип сообщения</label>
+                <select id="lastMessageType" name="lastMessageType">
+                    <option th:each="type : ${lastMessageTypes}"
+                            th:value="${type.name()}"
+                            th:text="${type.value}">
+                    </option>
+                </select>
+
             </div>
         </td>
         <td class="col">

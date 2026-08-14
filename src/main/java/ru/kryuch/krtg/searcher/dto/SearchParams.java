@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
+import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ public class SearchParams {
     Integer maxFoundCount = 10;
     Integer minDiffDaysCount = 7;
     String lastMessage = "";
+    SearchLastMessageType lastMessageType;
     PersonalChatType botType = PersonalChatType.PERSONAL;
     PersonalChatType groupType = PersonalChatType.PERSONAL;
     Boolean excludeStatusFlag = true;

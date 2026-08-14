@@ -28,6 +28,13 @@ td #mapcont{
     height: 500px;
 }
 
+.filterchatblock select {
+    height: 28px;
+    border: 1px solid #bdbdbd;
+    border-radius: 5px;
+    padding: 0 10px;
+}
+
 tbody td {vertical-align: top}
 tbody td:last-child {vertical-align: middle}
 

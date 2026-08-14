@@ -19,10 +19,11 @@ import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.entity.UserEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
-import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.integration.tg.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 import ru.kryuch.krtg.searcher.repository.UserRepository;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
+import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -154,6 +155,7 @@ public class CronService {
                         .minDiffDaysCount(Integer.valueOf(settingAccessService.getValueByCode(SettingConfig.MAX_DAY_SETTING_CODE, userId)))
                         .botType(PersonalChatType.PERSONAL)
                         .excludeStatusFlag(true)
+                        .lastMessageType(SearchLastMessageType.ONLY)
                         .term(settingAccessService.getValueByCode(SettingConfig.TERM_SETTING_CODE, userId))
                         .lastMessage(settingAccessService.getValueByCode(SettingConfig.CRON_LASTMESSAGE_SETTING_CODE, userId))
                         .maxFoundCount(Integer.valueOf(settingAccessService.getValueByCode(SettingConfig.CRON_CHATS_COUNT, userId)))

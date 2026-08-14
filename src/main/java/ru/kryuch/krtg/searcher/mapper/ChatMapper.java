@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
-import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.integration.tg.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 import ru.kryuch.krtg.searcher.util.SendResult;
