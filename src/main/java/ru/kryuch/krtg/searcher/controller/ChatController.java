@@ -64,6 +64,8 @@ public class ChatController {
         model.addAttribute("targetFolder", settingService.getValueByCode("folder"));
         model.addAttribute("tgAccounts", tgAccountService.getAll());
         return "chat/list";
+//long start = System.currentTimeMillis(); String html = templateEngine.process("chat/list", context); log.info("Render took {} ms, size={} KB", System.currentTimeMillis()-start, html.length()/1024); 
+//return html;
     }
 
     @GetMapping("/{chatId}/messages")
