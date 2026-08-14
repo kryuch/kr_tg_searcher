@@ -11,18 +11,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.helper.ExportHelper;
-import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.integration.tg.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.service.ChatExportService;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.FolderChatService;
 import ru.kryuch.krtg.searcher.service.SettingService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
 import ru.kryuch.krtg.searcher.service.TgAccountService;
+import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.io.IOException;
@@ -53,6 +53,7 @@ public class ChatController {
         }
         model.addAttribute("items", new ArrayList());
         model.addAttribute("filter", new SearchParams());
+        model.addAttribute("lastMessageTypes", SearchLastMessageType.values());
         model.addAttribute("tgAccounts", tgAccountService.getAll());
         model.addAttribute("page", "chat/list");
         return "index";

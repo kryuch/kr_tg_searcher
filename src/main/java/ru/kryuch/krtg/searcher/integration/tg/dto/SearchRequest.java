@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.integration.dto;
+package ru.kryuch.krtg.searcher.integration.tg.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +8,7 @@ import lombok.ToString;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
+import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class SearchRequest {
     Integer maxFoundCount;
     Integer minDiffDaysCount;
     String lastMessage;
+    SearchLastMessageType lastMessageType;
     PersonalChatType botType;
     PersonalChatType groupType;
     Boolean excludeStatusFlag;

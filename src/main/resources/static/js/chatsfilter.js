@@ -95,6 +95,9 @@ function restoreSearchParamsFromCookies() {
     if (params.minDiffDaysCount) jQuery("#minDiffDaysCount").val(params.minDiffDaysCount);
     if (params.lastMessage) jQuery("#lastMessage").val(params.lastMessage);
     if (params.messagesCount) jQuery("#messagesCount").val(params.messagesCount);
+    if (params.lastMessageType !== undefined && params.lastMessageType !== null) {
+        jQuery("#lastMessageType").val(params.lastMessageType);
+    }
 
     if (params.excludeStatusFlag !== undefined) {
         jQuery("#excludeStatusFlag").prop('checked', params.excludeStatusFlag === true || params.excludeStatusFlag === 'true');
@@ -274,6 +277,7 @@ jQuery(document).ready(function () {
             lastMessage: jQuery("#lastMessage").val(),
             groupType: jQuery("#groupType").val(),
             messagesCount: jQuery("#messagesCount").val(),
+            lastMessageType: jQuery("#lastMessageType").val(),
             tgAccountIds: jQuery("#tgAccounts").val()
         };
 

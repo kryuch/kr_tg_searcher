@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.integration.dto;
+package ru.kryuch.krtg.searcher.integration.tg.dto;
 
 import lombok.Data;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;

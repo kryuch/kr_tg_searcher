@@ -1,9 +1,7 @@
-package ru.kryuch.krtg.searcher.integration.dto;
+package ru.kryuch.krtg.searcher.integration.tg.dto;
 
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.Set;
 
 @Data
 @Builder

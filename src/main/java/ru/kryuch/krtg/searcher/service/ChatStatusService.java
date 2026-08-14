@@ -2,12 +2,10 @@ package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
-import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.integration.tg.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
-import ru.kryuch.krtg.searcher.type.ChatStatus;
 
 @Service
 @RequiredArgsConstructor
