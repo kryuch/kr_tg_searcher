@@ -50,6 +50,10 @@ public class SettingService {
         settingAccessService.setValueByCode(code, value);
     }
 
+    public Integer getUserIdByGmail(String gmail) {
+        return settingAccessService.getUserIdByGmail(gmail);
+    }
+
     protected void init() {
         settingAccessService.setFirstValueByCode("first_message", "Добрый день. Скажите, пожалуйста, у вас вакансии по Java-разработке");
         settingAccessService.setFirstValueByCode("term", "Java");

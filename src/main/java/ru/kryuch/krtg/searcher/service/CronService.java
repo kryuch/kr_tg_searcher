@@ -18,6 +18,7 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.entity.UserEntity;
+import ru.kryuch.krtg.searcher.helper.AuthHelper;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
@@ -40,7 +41,7 @@ public class CronService {
 
     private final SettingAccessService settingAccessService;
     private final ChatService chatService;
-    private final UserRepository userRepository;
+    private final AuthHelper authHelper;
     private final TelegramMessagingService telegramMessagingService;
     private final TgAccountRepository tgAccountRepository;
     private final ChatHelper chatHelper;
@@ -64,9 +65,7 @@ public class CronService {
                 String cronLastRun = settingAccessService.getValueByCode(SettingConfig.CRON_LASTRUN_SETTING_CODE, userId);
 
                 if (shouldRun(cronTab, cronLastRun)) {
-                    SecurityContextHolder.getContext().setAuthentication(
-                            createAuthentication(userId)
-                    );
+                    authHelper.setAuth(userId);
 
                     log.info("Запуск задачи по расписанию: {}", cronTab);
                     doTask(userId);
@@ -74,31 +73,12 @@ public class CronService {
                     settingAccessService.setValueByCode(SettingConfig.CRON_LASTRUN_SETTING_CODE, now, userId);
                     log.info("Задача выполнена, обновлено время: {}", now);
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 log.error("Ошибка выполнения cron для пользователя {}", userId, ex);
-            }
-            finally {
+            } finally {
                 SecurityContextHolder.clearContext();
             }
         });
-    }
-
-    private Authentication createAuthentication(Integer userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("Пользователь не найден: " + userId));
-
-        CurrentUser currentUser = CurrentUser.builder()
-                .id(user.getId())
-                .username(user.getLogin())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
-                .build();
-
-        return new UsernamePasswordAuthenticationToken(
-                currentUser,
-                null,
-                currentUser.getAuthorities()
-        );
     }
 
     private boolean shouldRun(String cronTab, String cronLastRun) {
@@ -167,11 +147,11 @@ public class CronService {
                 "Найдено {} чатов: {}",
                 chats.size(),
                 chats.stream()
-                        .map(item -> item.getUsername() + "(" + item.getId()+")")
+                        .map(item -> item.getUsername() + "(" + item.getId() + ")")
                         .collect(Collectors.joining(", "))
         );
 
-        List <ChatResponse> chatResponses = telegramMessagingService.sendToChats(
+        List<ChatResponse> chatResponses = telegramMessagingService.sendToChats(
                 settingAccessService.getValueByCode(SettingConfig.CRON_NEWMESSAGE_SETTING_CODE, userId),
                 false,
                 chatHelper.getChatIdsByChatInfo(chats)

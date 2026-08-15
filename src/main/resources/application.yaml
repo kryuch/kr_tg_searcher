@@ -15,6 +15,7 @@ spring:
       client:
         registration:
           google:
+            redirect-uri: "https://molecules-compound-gloves-representations.trycloudflare.com/login/oauth2/code/google"
             client-id:  325605549031-9orntk5t3vimulmrk58iherus5d6m490.apps.googleusercontent.com
             client-secret:  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
             scope:

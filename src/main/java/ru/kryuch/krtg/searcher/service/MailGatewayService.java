@@ -6,6 +6,8 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestAttribute;
+import ru.kryuch.krtg.searcher.config.SettingConfig;
+import ru.kryuch.krtg.searcher.helper.AuthHelper;
 import ru.kryuch.krtg.searcher.integration.mail.GmailClient;
 import ru.kryuch.krtg.searcher.integration.mail.dto.MailSendRequest;
 
@@ -15,11 +17,11 @@ public class MailGatewayService
 {
 
     private final GmailClient gmailClient;
-
+    private final AuthHelper authHelper;
     private final SettingService settingService;
     private final OAuth2AuthorizedClientService clientService;
 
-    public String connected(OAuth2AuthenticationToken auth) {
+    public boolean connected(OAuth2AuthenticationToken auth) {
 
         OAuth2AuthorizedClient client =
                 clientService.loadAuthorizedClient(
@@ -34,21 +36,11 @@ public class MailGatewayService
             refreshToken = client.getRefreshToken().getTokenValue();
         }
 
-        String email = auth.getPrincipal().getAttribute("email");
+        authHelper.setAuth(settingService.getUserIdByGmail(auth.getPrincipal().getAttribute("email")));
 
-  /*      GmailAccount account = repository.findByUserId(1L)
-                .orElseGet(GmailAccount::new);
+        settingService.setValueByCode(SettingConfig.GMAIL_REFRESH_TOCKEN_SETTING_CODE, refreshToken);
 
-        account.setUserId(1L);
-        account.setEmail(email);
-
-        if (refreshToken != null) {
-            account.setRefreshToken(refreshToken);
-        }
-
-        repository.save(account);
-*/
-        return "Gmail connected: " + email;
+        return true;
     }
     public void send(String to, String body) {
 

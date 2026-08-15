@@ -52,7 +52,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                .oauth2Login(oauth -> oauth .defaultSuccessUrl("/gmail/connected", true) )
+                .oauth2Login(oauth -> oauth .defaultSuccessUrl("/settings/gmail/connected", true) )
 
                 .logout(logout -> logout
                         .logoutUrl("/logout")
