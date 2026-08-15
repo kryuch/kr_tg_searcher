@@ -42,12 +42,16 @@ public class MailGatewayService
 
         return true;
     }
-    public void send(String to, String body) {
+    public void send(String to, String body) throws Exception {
 
         MailSendRequest mailSendRequest =
                 MailSendRequest.builder()
-                        .title("")
+                        .to(to)
+                        .from(settingService.getValueByCode(SettingConfig.GMAIL_VALUE_SETTING_CODE))
+                        .title(settingService.getValueByCode(SettingConfig.GMAIL_SUBJECT_SETTING_CODE))
+                        .googleRefreshToken(settingService.getValueByCode(SettingConfig.GMAIL_REFRESH_TOCKEN_SETTING_CODE))
                         .body(body)
                         .build();
+        gmailClient.send(mailSendRequest);
     }
 }

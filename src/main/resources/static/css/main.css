@@ -1128,3 +1128,15 @@ form.synchr button.save {
 .vacancies .answer textarea {
     font-size: small;
 }
+
+.owners .ownerval_3 {
+    color: #1D95D2;
+}
+
+.owners .ownerval_2 {
+    color: #348585;
+}
+
+.owners .ownerval_1 {
+    color: #6b9215;
+}

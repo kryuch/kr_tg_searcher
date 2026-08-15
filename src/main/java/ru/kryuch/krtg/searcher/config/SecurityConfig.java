@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -26,6 +29,7 @@ import ru.kryuch.krtg.searcher.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Lazy
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
@@ -39,6 +43,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/init")
                         .permitAll()
                         .anyRequest().authenticated()
+                )
+
+                .oauth2Login(oauth -> oauth
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestResolver(
+                                        authorizationRequestResolver()
+                                )
+                        )
                 )
 
                 .formLogin(form -> form
@@ -74,6 +86,25 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
+
+        DefaultOAuth2AuthorizationRequestResolver resolver =
+                new DefaultOAuth2AuthorizationRequestResolver(
+                        clientRegistrationRepository,
+                        "/oauth2/authorization"
+                );
+
+        resolver.setAuthorizationRequestCustomizer(builder ->
+                builder.additionalParameters(params -> {
+                    params.put("access_type", "offline");
+                    params.put("prompt", "consent");
+                })
+        );
+
+        return resolver;
     }
 
     @Bean

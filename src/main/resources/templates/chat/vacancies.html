@@ -145,8 +145,7 @@
                 <td>
                     <table border="1" class="owners">
                         <tr th:each="owner : ${item.owners}">
-                            <td class="tgvalue" th:text="${owner.value}"></td>
-                            <td th:text="${owner.type}"></td>
+                            <td class="tgvalue" th:classappend="${'ownerval_' + (owner.type)}" th:text="${owner.value}"></td>
                         </tr>
                     </table>
                 </td>

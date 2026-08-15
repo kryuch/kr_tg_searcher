@@ -25,6 +25,7 @@ public class SettingConfig {
     public static String RESUME_SETTING_CODE = "resume";
 
     public static String GMAIL_VALUE_SETTING_CODE = "gmail_email";
+    public static String GMAIL_SUBJECT_SETTING_CODE = "gmail_subject";
     public static String GMAIL_REFRESH_TOCKEN_SETTING_CODE = "gmail_refresh_token";
 
 }

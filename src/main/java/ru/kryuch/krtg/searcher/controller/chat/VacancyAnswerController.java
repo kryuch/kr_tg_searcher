@@ -13,6 +13,7 @@ import ru.kryuch.krtg.searcher.dto.view.SendVacancyMessageRequest;
 import ru.kryuch.krtg.searcher.dto.view.SendVacancyMessageResponse;
 import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.service.AiGatewayService;
+import ru.kryuch.krtg.searcher.service.MailGatewayService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
@@ -28,6 +29,7 @@ public class VacancyAnswerController {
 
     private final AiGatewayService aiGatewayService;
     private final TelegramMessagingService telegramMessagingService;
+    private final MailGatewayService mailGatewayService;
 
     @PostMapping("/generate")
     public String generate(@RequestBody Map<String, String> payload) {
@@ -60,5 +62,15 @@ public class VacancyAnswerController {
         }
 
         return sendVacancyMessageResponse;
+    }
+
+    @GetMapping("/gmail")
+    public String gmail() {
+        try {
+            mailGatewayService.send("vladimirspaf@gmail.com", "This is test");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return "test";
     }
 }
