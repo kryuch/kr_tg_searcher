@@ -40,6 +40,7 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingEnt
         setValueByCode(code, value, getCurrentUserId());
     }
 
+    @Transactional
     public void setValueByCode(String code, String value, Integer userId) {
         Optional<SettingEntity> setting = repository.findByCodeAndUserId(code, userId).stream().findFirst();
         if (setting.isPresent()) {
