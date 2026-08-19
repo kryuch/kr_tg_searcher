@@ -6,16 +6,23 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
+import jakarta.activation.DataHandler;
+import jakarta.mail.Multipart;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.kryuch.krtg.searcher.integration.mail.dto.MailAttachment;
 import ru.kryuch.krtg.searcher.integration.mail.dto.MailSendRequest;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
+import java.util.List;
 import java.util.Properties;
 
 import static jakarta.mail.Message.RecipientType.TO;
@@ -64,7 +71,8 @@ public class GmailClient {
                 request.getFrom(),
                 request.getTo(),
                 request.getTitle(),
-                request.getBody()
+                request.getBody(),
+                request.getAttachments()
         );
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -86,7 +94,8 @@ public class GmailClient {
             String from,
             String to,
             String subject,
-            String body
+            String body,
+            List<MailAttachment> attachments
     ) throws Exception {
 
         Session session =
@@ -101,7 +110,37 @@ public class GmailClient {
         );
 
         email.setSubject(subject, "UTF-8");
-        email.setText(body, "UTF-8");
+
+        Multipart multipart = new MimeMultipart();
+
+        // Текст письма
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText(body, "UTF-8");
+
+        multipart.addBodyPart(textPart);
+
+        // Вложения
+        if (attachments != null) {
+            for (MailAttachment attachment : attachments) {
+
+                MimeBodyPart attachmentPart = new MimeBodyPart();
+
+                attachmentPart.setDataHandler(
+                        new DataHandler(
+                                new ByteArrayDataSource(
+                                        attachment.getContent(),
+                                        attachment.getContentType()
+                                )
+                        )
+                );
+
+                attachmentPart.setFileName(attachment.getFileName());
+
+                multipart.addBodyPart(attachmentPart);
+            }
+        }
+
+        email.setContent(multipart);
 
         return email;
     }

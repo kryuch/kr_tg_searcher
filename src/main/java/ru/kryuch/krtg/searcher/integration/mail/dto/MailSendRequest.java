@@ -3,6 +3,8 @@ package ru.kryuch.krtg.searcher.integration.mail.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class MailSendRequest {
@@ -12,4 +14,5 @@ public class MailSendRequest {
     private String from;
     private String body;
     private String googleRefreshToken;
+    private List<MailAttachment> attachments;
 }

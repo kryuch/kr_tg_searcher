@@ -10,6 +10,12 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: krrg
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
   security:
     oauth2:
       client:
@@ -72,3 +78,7 @@ spring:
       api-key: dummy-key  # Временно, чтобы не падало при старте
       chat:
         enabled: false    # <-- ОТКЛЮЧАЕМ автоконфигурацию
+
+app:
+  file-storage:
+    path: /var/lib/krrg/files

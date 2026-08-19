@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.controller.chat;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import ru.kryuch.krtg.searcher.service.AiGatewayService;
 import ru.kryuch.krtg.searcher.service.MailGatewayService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
+import ru.kryuch.krtg.searcher.type.VacancyOwnerType;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/chat/vacancy/answer")
 @RequiredArgsConstructor
+@Slf4j
 public class VacancyAnswerController {
 
     private final AiGatewayService aiGatewayService;
@@ -38,7 +41,19 @@ public class VacancyAnswerController {
     }
 
     @PostMapping("/send")
-    public SendVacancyMessageResponse send(SendVacancyMessageRequest sendVacancyMessageRequest) {
+    public SendVacancyMessageResponse send(@RequestBody SendVacancyMessageRequest sendVacancyMessageRequest) {
+        switch (sendVacancyMessageRequest.getOwner().getType()) {
+            case TG -> {
+                return sendTg(sendVacancyMessageRequest);
+            }
+            case EMAIL -> {
+                return sendEmail(sendVacancyMessageRequest);
+            }
+        }
+        return new SendVacancyMessageResponse();
+    }
+
+     private SendVacancyMessageResponse sendTg(SendVacancyMessageRequest sendVacancyMessageRequest) {
         SendMessageParam sendMessageParam =
                 SendMessageParam.builder()
                         .message(sendVacancyMessageRequest.getMessage())
@@ -46,7 +61,7 @@ public class VacancyAnswerController {
                         .build();
 
         List<ChatResponse> chatResponses =
-                telegramMessagingService.registerAndSend(sendMessageParam, Set.of(sendVacancyMessageRequest.getUsername()));
+                telegramMessagingService.registerAndSend(sendMessageParam, Set.of(sendVacancyMessageRequest.getOwner().getValue()));
 
         SendVacancyMessageResponse sendVacancyMessageResponse = new SendVacancyMessageResponse();
 
@@ -64,13 +79,19 @@ public class VacancyAnswerController {
         return sendVacancyMessageResponse;
     }
 
-    @GetMapping("/gmail")
-    public String gmail() {
+    private SendVacancyMessageResponse sendEmail(SendVacancyMessageRequest sendVacancyMessageRequest) {
+        SendVacancyMessageResponse sendVacancyMessageResponse = new SendVacancyMessageResponse();
+        String email = sendVacancyMessageRequest.getOwner().getValue();
+
         try {
-            mailGatewayService.send("vladimirspaf@gmail.com", "This is test");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            mailGatewayService.send(sendVacancyMessageRequest.getOwner().getValue(), sendVacancyMessageRequest.getMessage());
+            sendVacancyMessageResponse.setSuccess(String.format("Письмо было отправлено на {}", email));
         }
-        return "test";
+        catch (Exception ex) {
+            sendVacancyMessageResponse.setError(String.format("Письмо не было отправлено на {}. Ошибка {}", email, ex.getMessage()));
+            log.error(String.valueOf(ex));
+        }
+
+        return sendVacancyMessageResponse;
     }
 }

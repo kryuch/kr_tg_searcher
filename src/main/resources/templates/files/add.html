@@ -1,0 +1,24 @@
+<div id="directionForm">
+    <form action="#"
+          th:action="@{/user/files/upload}"
+          class="edit-form form-horizontal"
+          method="post"
+          enctype="multipart/form-data">
+        <table>
+            <tr>
+                <td>
+                    <label for="file">Выберите файл:</label>
+                </td>
+                <td>
+                    <input type="file" id="file" name="file" accept=".txt,.csv,.xlsx,.xls,.json,.xml,.pdf,.doc,.docx" required/>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button class="save" type="submit">Загрузить</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
