@@ -4,11 +4,12 @@ import java.util.Arrays;
 
 public enum ChatStatus {
 
-    SIMPLE(0, "-"),
-    REFUSE(1, "отказ"),
+    SIMPLE(0, "отказ"),
+    REFUSE(1, "-"),
     EMPTY(2, "нет вакансий"),
-    FAIL(3, "нет HR"),
-    SEND_ERROR(4, "ощибка в отправке");
+    FAIL(3, "не HR"),
+    SEND_ERROR(4, "ощибка в отправке"),
+    PAUSE(5, "пока отложим");
 
     final Integer type;
     final String value;
