@@ -5,6 +5,7 @@
             <ul>
                 <li><a href="#tabs-cron">Крон</a></li>
                 <li><a href="#tabs-folder">Папка</a></li>
+                <li><a href="#tabs-email">Почта</a></li>
                 <li><a href="#tabs-ai">ИИ</a></li>
                 <li><a href="#tabs-resume">Резюме</a></li>
                 <li><a href="#tabs-other">Прочее</a></li>
@@ -121,7 +122,11 @@
                 // === ИНИЦИАЛИЗАЦИЯ ВКЛАДОК ===
 
                 // 1. Обработка полей с переносом значения в td
-                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder", "ai_model", "ai_api_key", "ai_vacancy_promt"], function (index, field) {
+                jQuery.each([
+                    "cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder",
+                    "gmail_email", "gmail_subject", "gmail_refresh_token",
+                    "ai_model", "ai_api_key", "ai_vacancy_promt"
+                ], function (index, field) {
                     var input = jQuery("input[data=" + field + "]");
                     var td = input.parent();
                     jQuery("td#" + field).html(td.html());

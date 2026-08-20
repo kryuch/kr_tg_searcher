@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,36 +14,30 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Entity
-@Table(name = "krrg_users")
+@Table(name = "krrg_user_files")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class UserEntity {
+public class UserFileEntity extends BasedAccessEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    private String login;
+    @Column(name = "original_name", nullable = false)
+    private String originalName;
 
-    private String password;
+    @Column(name = "storage_name", nullable = false, unique = true)
+    private String storageName;
 
-    private Boolean active;
+    @Column(name = "content_type", nullable = false)
+    private String contentType;
 
-    @OneToMany(mappedBy="")
-    private Set<RoleEntity> role;
-/*
-    @Column(name = "gmail_email")
-    private String gmailEmail;
-
-    @Column(name = "google_refresh_token")
-    private String googleRefreshToken;*/
+    private Long size;
 
     @CreationTimestamp
     @Column(name = "created_at")

@@ -3,17 +3,11 @@ package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.Setting;
 import ru.kryuch.krtg.searcher.dto.SettingsWrapper;
-import ru.kryuch.krtg.searcher.entity.SettingEntity;
-import ru.kryuch.krtg.searcher.mapper.SettingMapper;
-import ru.kryuch.krtg.searcher.repository.SettingRepository;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -50,7 +44,11 @@ public class SettingService {
         settingAccessService.setValueByCode(code, value);
     }
 
-    public void init() {
+    public Integer getUserIdByGmail(String gmail) {
+        return settingAccessService.getUserIdByGmail(gmail);
+    }
+
+    protected void init() {
         settingAccessService.setFirstValueByCode("first_message", "Добрый день. Скажите, пожалуйста, у вас вакансии по Java-разработке");
         settingAccessService.setFirstValueByCode("term", "Java");
         settingAccessService.setFirstValueByCode("folder", "HR");
@@ -74,6 +72,9 @@ public class SettingService {
         settingAccessService.setFirstValueByCode("ai_model", "openrouter/free");
         settingAccessService.setFirstValueByCode("ai_vacancy_promt", "");
         settingAccessService.setFirstValueByCode("resume", "");
+        settingAccessService.setFirstValueByCode("gmail_email", "");
+        settingAccessService.setFirstValueByCode("gmail_refresh_token", "");
+        settingAccessService.setFirstValueByCode("gmail_subject", "");
     }
 
 }

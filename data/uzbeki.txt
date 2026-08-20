@@ -1,0 +1,1406 @@
+<questions>
+    <question>
+        <title>Чем ConcurrentHashMap отличается от synchronized Map?</title>
+        <groups>
+            <group>HashMap</group>
+        </groups>
+        <short><b>ConcurrentHashMap</b> использует <b>сегментированную блокировку</b> (или блокировку отдельных корзин в Java 8+), что позволяет нескольким потокам одновременно читать и записывать в разные части карты. <b>Collections.synchronizedMap</b> блокирует всю карту при любом обращении, что приводит к последовательному доступу и снижению производительности в многопоточной среде. <code>ConcurrentHashMap</code> также поддерживает <code>null</code> и итераторы с <code>weak consistency</code>.</short>
+        <long>
+            <b>Различия:</b>
+            <ul>
+                <li><b><code>ConcurrentHashMap</code>:</b>
+                    <ul>
+                        <li>Разработан для высокой производительности в многопоточной среде.</li>
+                        <li>В Java 8+ использует блокировку только на уровне отдельных корзин (buckets).</li>
+                        <li>Операции чтения (<code>get</code>) не блокируются, запись блокирует только конкретную корзину.</li>
+                        <li>Итераторы не бросают <code>ConcurrentModificationException</code>.</li>
+                        <li>Не поддерживает <code>null</code> ключи или значения.</li>
+                    </ul>
+                </li>
+                <li><b><code>Collections.synchronizedMap()</code>:</b>
+                    <ul>
+                        <li>Синхронизирует все методы с помощью <code>synchronized</code> на самом объекте.</li>
+                        <li>Блокирует всю карту при любом доступе (чтение и запись).</li>
+                        <li>Может использовать итераторы только с внешней синхронизацией.</li>
+                        <li>Поддерживает <code>null</code>.</li>
+                    </ul>
+                </li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как работает ExecuteService, если его вызвать внутри транзакции?</title>
+        <groups>
+            <group>Транзакции</group>
+        </groups>
+        <short>Если <code>ExecutorService</code> вызывается внутри транзакции, задачи, выполняемые в отдельных потоках, <b>не наследуют</b> контекст транзакции (транзакция не распространяется на новые потоки). Это может привести к <b>несогласованности данных</b>: основная транзакция может быть откачена, а асинхронная задача уже выполнила изменения. Решение: использовать синхронное выполнение или передавать необходимые данные отдельно.</short>
+        <long>
+            <b>Особенности работы ExecutorService в транзакции:</b>
+            <ul>
+                <li>Транзакция привязана к текущему потоку (<code>ThreadLocal</code>).</li>
+                <li>Асинхронные задачи в пуле потоков не видят текущую транзакцию.</li>
+                <li>Если основная транзакция откатывается, а асинхронная задача уже выполнила <code>INSERT</code>/<code>UPDATE</code>, данные останутся в БД.</li>
+                <li><b>Рекомендации:</b>
+                    <ul>
+                        <li>Избегать асинхронных операций внутри транзакций.</li>
+                        <li>Если необходимо, передавать нужные данные (ID, DTO) отдельно.</li>
+                        <li>Использовать <code>@Transactional</code> в самом асинхронном методе (транзакция будет новая).</li>
+                    </ul>
+                </li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что произойдет если внутри транзакции возникнет Exception или RuntimeException?</title>
+        <groups>
+            <group>Транзакции</group>
+        </groups>
+        <short>По умолчанию Spring откатывает транзакцию, если возникает <b>RuntimeException</b> (или его наследник). <b>Checked Exception</b> (<code>Exception</code>) не приводит к откату, если не указано явно (<code>@Transactional(rollbackFor = Exception.class)</code>). Транзакция будет закоммичена, если перехватить исключение и не пробросить его дальше.</short>
+        <long>
+            <b>Поведение Spring @Transactional:</b>
+            <ul>
+                <li><b><code>RuntimeException</code></b> (unchecked):<br/>
+                    Откат транзакции (<code>rollback</code>).<br/>
+                    <i>Пример:</i> <code>NullPointerException</code>, <code>IllegalArgumentException</code>.</li>
+                <li><b><code>Exception</code></b> (checked):<br/>
+                    <b>Нет</b> отката (<code>commit</code>), если не указано <code>rollbackFor</code>.<br/>
+                    <i>Пример:</i> <code>IOException</code>, <code>SQLException</code>.</li>
+                <li><b>Обработка исключения внутри метода:</b><br/>
+                    Если исключение поймано и не проброшено дальше, транзакция будет закоммичена (если не вызван <code>setRollbackOnly()</code>).</li>
+                <li><b>Параметры:</b>
+                    <ul>
+                        <li><code>@Transactional(rollbackFor = Exception.class)</code> — откат для всех исключений.</li>
+                        <li><code>@Transactional(noRollbackFor = RuntimeException.class)</code> — не откатывать для конкретного исключения.</li>
+                    </ul>
+                </li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что произойдет при уровнях изоляции repeateableRead и sinchronized если 2 транзакции попытаются изменить одну строку в базе</title>
+        <groups>
+            <group>изоляция</group>
+        </groups>
+        <short>При <b>REPEATABLE READ</b> и использовании <b>синхронизации</b> (например, пессимистичной блокировки <code>SELECT ... FOR UPDATE</code>) вторая транзакция <b>заблокируется</b> и будет ждать, пока первая не завершится. В PostgreSQL уровень <code>REPEATABLE READ</code> предотвращает <b>неповторяемое чтение</b>, но не конфликты при обновлении одной строки (если нет явной блокировки). Без явной блокировки вторая транзакция может перезаписать изменения первой (lost update).</short>
+        <long>
+            <b>Сценарий:</b>
+            <ul>
+                <li>Транзакция 1 читает строку (значение 10).</li>
+                <li>Транзакция 2 читает ту же строку (значение 10).</li>
+                <li>Транзакция 1 обновляет строку до 20 и коммитит.</li>
+                <li>Транзакция 2 обновляет строку на основе старого значения (10) до 15 и коммитит.</li>
+                <li><b>Результат:</b> Значение в строке 15, а не 20 (потеря обновления).</li>
+            </ul>
+            <b>Как избежать:</b>
+            <ul>
+                <li>Использовать <b>пессимистичную блокировку</b>: <code>SELECT ... FOR UPDATE</code>.</li>
+                <li>Использовать <b>оптимистичную блокировку</b> (версия).</li>
+                <li>Уровень <code>SERIALIZABLE</code> предотвращает все аномалии, но может вызывать ошибки сериализации.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как работают оптимистиченые блокировки? Кто именно ставит версию, это происходит внутри транзакции или нет?</title>
+        <groups>
+            <group>изоляция</group>
+        </groups>
+        <short>Оптимистичная блокировка работает через <b>версионирование</b> (<code>@Version</code> в JPA). Версия обновляется <b>внутри транзакции</b> при обновлении сущности. При сохранении Hibernate проверяет, что версия в БД совпадает с версией сущности. Если нет — выбрасывается <code>OptimisticLockException</code>. Версия не обновляется при чтении, только при записи.</short>
+        <long>
+            <b>Как работает @Version:</b>
+            <ul>
+                <li><b>Поле версии:</b> <code>@Version private Long version;</code></li>
+                <li><b>При загрузке:</b> Hibernate загружает текущую версию из БД.</li>
+                <li><b>При обновлении:</b> Hibernate выполняет <code>UPDATE ... SET version = version + 1 WHERE id = ? AND version = ?</code>.</li>
+                <li><b>Если версия не совпала:</b> Обновление не затрагивает строки, Hibernate выбрасывает <code>OptimisticLockException</code>.</li>
+                <li><b>Поле версии обновляется внутри транзакции</b> (в момент выполнения <code>UPDATE</code>).</li>
+                <li><b>Кто ставит версию:</b> Hibernate автоматически инкрементирует версию при сохранении.</li>
+            </ul>
+            <b>Когда использовать:</b>
+            <ul>
+                <li>При редких конфликтах (например, редактирование профиля).</li>
+                <li>В системах, где важна производительность, а не блокировки.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое happens-before? Как работает и что гарантирует?</title>
+        <groups>
+            <group>потоки</group>
+        </groups>
+        <short><b>Happens-before</b> — это отношение порядка в Java Memory Model, которое гарантирует <b>видимость</b> изменений между потоками. Если операция A happens-before операция B, то все изменения, сделанные в A, видны в B. Это работает через <b>синхронизацию</b> (<code>synchronized</code>, <code>volatile</code>, <code>Lock</code>). Гарантирует, что изменения не будут переупорядочены компилятором или процессором.</short>
+        <long>
+            <b>Гарантии happens-before:</b>
+            <ul>
+                <li>Запись в <code>volatile</code> переменную happens-before последующее чтение этой переменной.</li>
+                <li>Выход из <code>synchronized</code> блока happens-before вход в <code>synchronized</code> блок.</li>
+                <li>Запуск потока (<code>Thread.start</code>) happens-before первое действие в этом потоке.</li>
+                <li>Завершение потока (<code>Thread.join</code>) happens-before возврат из <code>join()</code>.</li>
+            </ul>
+            <b>Что гарантирует:</b>
+            <ul>
+                <li>Все изменения, сделанные до операции A, видны в операции B.</li>
+                <li>Предотвращает переупорядочивание инструкций.</li>
+                <li>Обеспечивает консистентность данных между потоками.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Почему при старте Keycloak-пода в K8s могут быть длинные GC-паузы?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>При старте Keycloak происходит <b>активная инициализация</b> кэшей, загрузка провайдеров и метаданных, что создаёт большое количество объектов. Это может вызвать <b>длительные GC-паузы</b>, особенно при использовании старого сборщика (Parallel GC). Рекомендуется использовать <b>G1 GC</b> с настройками <code>-XX:MaxGCPauseMillis</code> и предварительным "прогревом" приложения.</short>
+        <long>
+            <b>Причины длительных GC-пауз:</b>
+            <ul>
+                <li>Интенсивное создание объектов во время инициализации (загрузка провайдеров, кэшей).</li>
+                <li>Использование старого сборщика (<code>Parallel GC</code>).</li>
+                <li>Недостаточный размер кучи (<code>-Xmx</code>).</li>
+                <li>Отсутствие прогрева JVM перед приёмом трафика.</li>
+            </ul>
+            <b>Решения:</b>
+            <ul>
+                <li>Использовать <b>G1 GC</b>: <code>-XX:+UseG1GC -XX:MaxGCPauseMillis=200</code>.</li>
+                <li>Увеличить память: <code>-Xmx2g</code> (в зависимости от нагрузки).</li>
+                <li>Включить <code>-XX:+ParallelRefProcEnabled</code> для ускорения обработки ссылок.</li>
+                <li>Использовать прогревающие запросы (warm-up) перед включением в трафик.</li>
+                <li>Настроить <code>readinessProbe</code> на ожидание полной инициализации.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как запустить JFR-запись на production-сервисе без перезапуска? Какие события анализируете в первую очередь при деградации latency?</title>
+        <groups>
+            <group>JFR</group>
+        </groups>
+        <short><b>JFR (Java Flight Recorder)</b> можно запустить на работающем приложении с помощью <code>jcmd</code> (без перезапуска): <code>jcmd &lt;pid&gt; JFR.start name=myrecording settings=profile duration=60s filename=myrecording.jfr</code>. При деградации latency в первую очередь анализируют: <b>GC паузы</b> (<code>GC Pauses</code>), <b>блокировки</b> (<code>Java Monitor Wait</code>, <code>Thread Park</code>), <b>сетевые задержки</b> (<code>Socket Read</code>, <code>Socket Write</code>) и <b>системные вызовы</b> (<code>File I/O</code>, <code>CPU Load</code>).</short>
+        <long>
+            <b>Запуск JFR:</b>
+            <ul>
+                <li><b>Найти PID:</b> <code>jps</code> или <code>ps -ef | grep java</code>.</li>
+                <li><b>Запустить запись:</b> <code>jcmd &lt;pid&gt; JFR.start name=myrecording settings=profile duration=60s filename=myrecording.jfr</code>.</li>
+                <li><b>Остановить запись:</b> <code>jcmd &lt;pid&gt; JFR.stop name=myrecording</code>.</li>
+                <li><b>Параметры:</b>
+                    <ul>
+                        <li><code>settings=profile</code> — профильная запись с детальными событиями.</li>
+                        <li><code>duration=60s</code> — длительность записи.</li>
+                        <li><code>filename</code> — путь к файлу (можно указать <code>/tmp</code>).</li>
+                    </ul>
+                </li>
+            </ul>
+            <b>При деградации latency:</b>
+            <ul>
+                <li><b>GC Pauses:</b> Длительные паузы сборщика мусора.</li>
+                <li><b>Java Monitor Wait:</b> Блокировки на мониторах (<code>synchronized</code>).</li>
+                <li><b>Thread Park:</b> Ожидание потоков (<code>LockSupport.park()</code>).</li>
+                <li><b>Socket Read/Write:</b> Сетевые задержки.</li>
+                <li><b>CPU Load:</b> Высокая загрузка процессора.</li>
+                <li><b>File I/O:</b> Медленные операции ввода-вывода.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как снять HeapDump с Java-процесса в контейнере? Как найти memory leak через Eclipse MAT (dominator tree, histogram)?</title>
+        <groups>
+            <group>JFR</group>
+        </groups>
+        <short><b>Heap Dump</b> снимается через <code>jcmd</code> или <code>jmap</code>: <code>jcmd &lt;pid&gt; GC.heap_dump /path/to/dump.hprof</code>. <b>Eclipse MAT</b> использует <b>Histogram</b> (сортировка по количеству объектов) и <b>Dominator Tree</b> (поиск крупных объектов). Поиск утечки: найти объекты, которые не должны существовать (например, статические коллекции, удерживающие большие объекты), проанализировать <b>GC Roots</b>.</short>
+        <long>
+            <b>Снятие Heap Dump:</b>
+            <ul>
+                <li><b>Через jcmd:</b> <code>jcmd &lt;pid&gt; GC.heap_dump /tmp/dump.hprof</code>.</li>
+                <li><b>Через jmap:</b> <code>jmap -dump:live,format=b,file=/tmp/dump.hprof &lt;pid&gt;</code>.</li>
+                <li><b>В Kubernetes:</b> <code>kubectl exec -it &lt;pod&gt; -- jcmd 1 GC.heap_dump /tmp/dump.hprof</code>.</li>
+                <li><b>Важно:</b> Убедиться, что есть место на диске (heap может быть большим).</li>
+            </ul>
+            <b>Анализ в Eclipse MAT:</b>
+            <ul>
+                <li><b>Histogram:</b> Сортировка по количеству объектов. Искать классы с подозрительно большим количеством.</li>
+                <li><b>Dominator Tree:</b> Показывает объекты, которые удерживают память. Искать большие объекты с сильными ссылками.</li>
+                <li><b>Leak Suspects:</b> Автоматический отчёт о потенциальных утечках.</li>
+                <li><b>GC Roots:</b> Найти корневые ссылки, удерживающие объекты.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как снять thread dump? Как по дампу определить deadlock? Что означает состояние BLOCKED vs WAITING?</title>
+        <groups>
+            <group>JFR</group>
+        </groups>
+        <short><b>Thread Dump</b> снимается через <code>jcmd</code> или <code>kill -3</code>: <code>jcmd &lt;pid&gt; Thread.print</code>. <b>Deadlock</b> определяется по наличию циклических зависимостей между блокировками (<code>BLOCKED</code> состояния). <b>BLOCKED</b> — ожидание монитора (<code>synchronized</code>). <b>WAITING</b> — ожидание уведомления (<code>wait()</code>, <code>LockSupport.park()</code>).</short>
+        <long>
+            <b>Снятие Thread Dump:</b>
+            <ul>
+                <li><b>jcmd:</b> <code>jcmd &lt;pid&gt; Thread.print</code>.</li>
+                <li><b>jstack:</b> <code>jstack &lt;pid&gt;</code>.</li>
+                <li><b>kill -3:</b> <code>kill -3 &lt;pid&gt;</code> (записывает в stdout).</li>
+                <li><b>В Kubernetes:</b> <code>kubectl exec -it &lt;pod&gt; -- jcmd 1 Thread.print</code>.</li>
+            </ul>
+            <b>Поиск deadlock:</b>
+            <ul>
+                <li>Искать потоки с состоянием <code>BLOCKED</code>, которые ждут один другой.</li>
+                <li>Искать циклические зависимости в <code>waiting to lock</code> и <code>locked</code>.</li>
+                <li>Использовать анализаторы (JStack, VisualVM) для выявления deadlock.</li>
+            </ul>
+            <b>Состояния:</b>
+            <ul>
+                <li><b><code>BLOCKED</code>:</b> Ожидает захвата монитора (<code>synchronized</code>).</li>
+                <li><b><code>WAITING</code>:</b> Ожидает уведомления (<code>Object.wait()</code> без таймаута, <code>LockSupport.park()</code>).</li>
+                <li><b><code>TIMED_WAITING</code>:</b> Ожидание с таймаутом (<code>Thread.sleep()</code>, <code>Object.wait(timeout)</code>).</li>
+                <li><b><code>RUNNABLE</code>:</b> Выполняется или готов к выполнению.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как включить GC-логи в контейнере? На какие метрики смотрите при анализе: pause time, throughput, allocation rate?</title>
+        <groups>
+            <group>JFR</group>
+        </groups>
+        <short><b>GC-логи</b> включаются параметрами JVM: <code>-Xlog:gc*</code> (Java 9+) или <code>-XX:+PrintGCDetails</code> (Java 8). При анализе смотрят: <b>Pause Time</b> (время пауз GC), <b>Throughput</b> (процент времени приложения), <b>Allocation Rate</b> (скорость выделения памяти). Высокий Allocation Rate может указывать на создание большого количества объектов, что требует оптимизации.</short>
+        <long>
+            <b>Включение GC-логов:</b>
+            <ul>
+                <li><b>Java 8:</b> <code>-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:/path/to/gc.log</code>.</li>
+                <li><b>Java 9+:</b> <code>-Xlog:gc*:file=/path/to/gc.log:time,uptime</code>.</li>
+                <li><b>В Kubernetes:</b> Добавить параметры в <code>JAVA_OPTS</code>.</li>
+            </ul>
+            <b>Метрики для анализа:</b>
+            <ul>
+                <li><b>Pause Time:</b> Среднее и максимальное время пауз (<code>GC pause</code>).</li>
+                <li><b>Throughput:</b> Процент времени, когда приложение работало (<code>1 - pause_time / total_time</code>).</li>
+                <li><b>Allocation Rate:</b> Скорость выделения памяти (<code>allocated / time</code>).</li>
+                <li><b>Heap Size:</b> Размер кучи до и после GC.</li>
+                <li><b>GC Frequency:</b> Частота сборок (Minor/Major).</li>
+            </ul>
+            <b>Инструменты:</b>
+            <ul>
+                <li><b>GCViewer:</b> Визуализация GC-логов.</li>
+                <li><b>Prometheus + Grafana:</b> Мониторинг метрик.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Жизненный цикл Maven-сборки: что происходит на фазе package? Чем install отличается от deploy?</title>
+        <groups>
+            <group>Сборка</group>
+        </groups>
+        <short><b>package</b> — фаза, на которой создаётся артефакт (JAR, WAR, EAR) в папке <code>target</code>. <b>install</b> — копирует артефакт в локальный репозиторий Maven (<code>~/.m2/repository</code>). <b>deploy</b> — загружает артефакт в удалённый репозиторий (Nexus, Artifactory) для общего доступа.</short>
+        <long>
+            <b>Жизненный цикл Maven (default):</b>
+            <ul>
+                <li><b>compile</b> — компиляция исходных кодов.</li>
+                <li><b>test</b> — запуск тестов.</li>
+                <li><b>package</b> — сборка артефакта (JAR/WAR).</li>
+                <li><b>install</b> — установка в локальный репозиторий.</li>
+                <li><b>deploy</b> — загрузка в удалённый репозиторий.</li>
+            </ul>
+            <b>Различия:</b>
+            <ul>
+                <li><b>install:</b> Используется для локальной разработки (другие модули могут ссылаться на артефакт).</li>
+                <li><b>deploy:</b> Используется для публикации артефакта (CI/CD, общий доступ).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое BOM (Bill of Materials)? Зачем использовать scope=provided для Keycloak SPI?</title>
+        <groups>
+            <group>Сборка</group>
+        </groups>
+        <short><b>BOM (Bill of Materials)</b> — это специальный POM-файл, который управляет версиями зависимостей в проекте. Используется для централизованного управления версиями в многомодульных проектах. <b>Scope=provided</b> для Keycloak SPI означает, что библиотека уже присутствует в рантайме Keycloak, и её не нужно включать в JAR приложения. Это уменьшает размер и предотвращает конфликты версий.</short>
+        <long>
+            <b>BOM:</b>
+            <ul>
+                <li>Используется для управления версиями (<code>&lt;dependencyManagement&gt;</code>).</li>
+                <li>Пример: <code>spring-boot-dependencies</code>.</li>
+                <li>Упрощает управление зависимостями в проекте.</li>
+            </ul>
+            <b>Scope=provided для Keycloak SPI:</b>
+            <ul>
+                <li>Keycloak уже содержит эти библиотеки в своём класспасе.</li>
+                <li>Не включать в JAR (иначе могут быть конфликты).</li>
+                <li>Уменьшает размер артефакта и время деплоя.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как устроен multi-module Maven-проект? Как разрешить конфликт транзитивных зависимостей?</title>
+        <groups>
+            <group>Сборка</group>
+        </groups>
+        <short><b>Multi-module Maven</b> проект состоит из родительского POM и нескольких модулей. Родительский POM содержит общие настройки (зависимости, плагины). Конфликты транзитивных зависимостей разрешаются с помощью <code>dependencyManagement</code> (явное указание версии) или исключением (<code>exclusions</code>). Maven выбирает ближайшую к проекту версию (ближайшая в дереве зависимостей).</short>
+        <long>
+            <b>Структура multi-module:</b>
+            <ul>
+                <li><b>Родительский POM:</b> <code>&lt;packaging&gt;pom&lt;/packaging&gt;</code>, модули в <code>&lt;modules&gt;</code>.</li>
+                <li><b>Дочерние модули:</b> Указывают родителя (<code>&lt;parent&gt;</code>).</li>
+            </ul>
+            <b>Разрешение конфликтов:</b>
+            <ul>
+                <li><b><code>dependencyManagement</code>:</b> Явно указать версию зависимости.</li>
+                <li><b><code>exclusions</code>:</b> Исключить транзитивную зависимость.</li>
+                <li><b>Maven выбирает ближайшую</b> к проекту версию (по графу зависимостей).</li>
+                <li><b>Плагин <code>maven-dependency-plugin</code>:</b> Для анализа дерева зависимостей.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем api отличается от implementation в Gradle?</title>
+        <groups>
+            <group>Сборка</group>
+        </groups>
+        <short><b>api</b> — зависимость передаётся модулям, которые используют текущий модуль (транзитивная). <b>implementation</b> — зависимость доступна только внутри модуля и не передаётся наружу (скрыта). Использование <code>implementation</code> ускоряет сборку, так как изменения в зависимостях не перекомпилируют зависимые модули.</short>
+        <long>
+            <b>Различия:</b>
+            <ul>
+                <li><b><code>api</code>:</b>
+                    <ul>
+                        <li>Зависимость видна внешним модулям.</li>
+                        <li>Изменение версии вызывает пересборку зависимых модулей.</li>
+                        <li>Используется для публичных API библиотек.</li>
+                    </ul>
+                </li>
+                <li><b><code>implementation</code>:</b>
+                    <ul>
+                        <li>Зависимость скрыта внутри модуля.</li>
+                        <li>Изменение не пересобирает зависимые модули (быстрее).</li>
+                        <li>Используется по умолчанию для внутренних зависимостей.</li>
+                    </ul>
+                </li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Когда лучше выбрать Gradle вместо Maven?</title>
+        <groups>
+            <group>Сборка</group>
+        </groups>
+        <short><b>Gradle</b> лучше, когда: проект требует <b>гибкости</b> (условные сборки, кастомные задачи), <b>большой монорепозиторий</b> (инкрементальная сборка, кэширование), или если команда предпочитает <b>Groovy/Kotlin DSL</b>. <b>Maven</b> проще и стандартизирован, лучше для простых проектов и команд, не знакомых с Gradle.</short>
+        <long>
+            <b>Преимущества Gradle:</b>
+            <ul>
+                <li><b>Гибкость:</b> Можно писать кастомную логику на Groovy/Kotlin.</li>
+                <li><b>Инкрементальная сборка:</b> Пересобирает только изменённые части.</li>
+                <li><b>Кэширование:</b> Кеширует результаты задач.</li>
+                <li><b>Поддержка монорепозиториев:</b> Лучше справляется с большими проектами.</li>
+            </ul>
+            <b>Когда Maven лучше:</b>
+            <ul>
+                <li>Простые проекты.</li>
+                <li>Команда не знает Gradle.</li>
+                <li>Требуется стандартизация и предсказуемость.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем SNAPSHOT отличается от RELEASE? Когда Maven перевыкачивает SNAPSHOT-артефакт?</title>
+        <groups>
+            <group>Сборка</group>
+        </groups>
+        <short><b>SNAPSHOT</b> — это нестабильная версия, которая может обновляться (разработка). <b>RELEASE</b> — стабильная финальная версия. Maven перевыкачивает SNAPSHOT при сборке, если в удалённом репозитории есть более новая версия (по умолчанию раз в сутки, или всегда при указании <code>-U</code>). RELEASE кешируется локально и не обновляется автоматически.</short>
+        <long>
+            <b>Различия:</b>
+            <ul>
+                <li><b>SNAPSHOT:</b>
+                    <ul>
+                        <li>Используется в процессе разработки.</li>
+                        <li>Maven может загружать обновлённую версию.</li>
+                        <li>Пример: <code>1.0-SNAPSHOT</code>.</li>
+                    </ul>
+                </li>
+                <li><b>RELEASE:</b>
+                    <ul>
+                        <li>Финальная, стабильная версия.</li>
+                        <li>Загружается один раз.</li>
+                        <li>Пример: <code>1.0</code>.</li>
+                    </ul>
+                </li>
+            </ul>
+            <b>Когда перевыкачивает SNAPSHOT:</b>
+            <ul>
+                <li><b>По умолчанию:</b> Раз в сутки (или при указании <code>-U</code>).</li>
+                <li><b>Принудительно:</b> <code>mvn clean install -U</code>.</li>
+                <li><b>Настройка:</b> <code>&lt;updatePolicy&gt;always&lt;/updatePolicy&gt;</code> в <code>settings.xml</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем JUnit 5 отличается от JUnit 4?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short><b>JUnit 5</b> — это модульная архитектура (Platform, Jupiter, Vintage). Ключевые отличия: <b>аннотации</b> (<code>@Test</code>, <code>@BeforeEach</code>, <code>@AfterEach</code>), поддержка <b>параметризованных тестов</b> (<code>@ParameterizedTest</code>), <b>lambda-ассерты</b>, <b>расширения</b> (вместо правил). JUnit 5 также поддерживает вложенные тесты и динамическое создание тестов.</short>
+        <long>
+            <b>Ключевые различия:</b>
+            <ul>
+                <li><b>Архитектура:</b> JUnit 5 состоит из Platform, Jupiter (API), Vintage (совместимость с JUnit 4).</li>
+                <li><b>Аннотации:</b>
+                    <ul>
+                        <li><code>@BeforeEach</code> вместо <code>@Before</code>.</li>
+                        <li><code>@AfterEach</code> вместо <code>@After</code>.</li>
+                        <li><code>@Test</code> без <code>public</code> (могут быть приватными).</li>
+                    </ul>
+                </li>
+                <li><b>Ассерты:</b> <code>assertAll</code>, <code>assertThrows</code>, <code>assertTimeout</code>.</li>
+                <li><b>Параметризованные тесты:</b> <code>@ParameterizedTest</code> с <code>@ValueSource</code>.</li>
+                <li><b>Расширения:</b> <code>@ExtendWith</code> вместо <code>@Rule</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое @ParameterizedTest и когда его применять?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short><b>@ParameterizedTest</b> — это аннотация JUnit 5 для выполнения одного и того же теста с разными входными данными. Применяется для тестирования функций с несколькими наборами параметров (валидация, математические функции). Упрощает тесты, уменьшает дублирование кода.</short>
+        <long>
+            <b>Использование:</b>
+            <ul>
+                <li><b>Аннотация:</b> <code>@ParameterizedTest</code>.</li>
+                <li><b>Источники:</b>
+                    <ul>
+                        <li><code>@ValueSource</code> — для примитивов и строк.</li>
+                        <li><code>@CsvSource</code> — для CSV-данных.</li>
+                        <li><code>@MethodSource</code> — для сложных объектов.</li>
+                        <li><code>@EnumSource</code> — для перечислений.</li>
+                    </ul>
+                </li>
+            </ul>
+            <b>Пример:</b>
+            <ul>
+                <li><code>@ParameterizedTest</code></li>
+                <li><code>@ValueSource(ints = {1, 2, 3})</code></li>
+                <li><code>void testSquare(int input) { assertTrue(input*input > 0); }</code></li>
+            </ul>
+            <b>Когда применять:</b>
+            <ul>
+                <li>Тестирование одной и той же логики с разными входными данными.</li>
+                <li>Валидация граничных значений.</li>
+                <li>Данные для тестов (Data-Driven Testing).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как замокировать HTTP-клиент для тестирования сервиса, вызывающего внешний API?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short>Для мокирования HTTP-клиента используют <b>Mockito</b> (для <code>RestTemplate</code> или <code>WebClient</code>) или <b>WireMock</b> для более сложных сценариев (проверка заголовков, status codes). <b>Mockito</b> подходит для изоляции, <b>WireMock</b> — для интеграционных тестов с реальными запросами.</short>
+        <long>
+            <b>Мокирование через Mockito:</b>
+            <ul>
+                <li><code>@Mock private RestTemplate restTemplate;</code></li>
+                <li><code>when(restTemplate.exchange(any(), eq(HttpMethod.GET), any(), eq(String.class))) .thenReturn(new ResponseEntity<>("{}", HttpStatus.OK));</code></li>
+            </ul>
+            <b>Мокирование через WireMock:</b>
+            <ul>
+                <li><b>Настройка:</b> <code>wireMockServer.stubFor(get(urlEqualTo("/api/users/1")).willReturn(aResponse().withBody("{\"id\":1}").withStatus(200)));</code></li>
+                <li><b>Плюсы:</b> Тестирует реальные HTTP-запросы и клиент.</li>
+                <li><b>Минусы:</b> Требует запуска сервера.</li>
+            </ul>
+            <b>Рекомендация:</b>
+            <ul>
+                <li>Для unit-тестов: <code>Mockito</code>.</li>
+                <li>Для интеграционных: <code>WireMock</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Когда лучше использовать mock, а когда spy?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short><b>Mock</b> — создаётся полностью подменяемый объект, все методы заменяются заглушками. Используется, когда нужно изолировать тестируемый класс от зависимостей. <b>Spy</b> — это частичный mock, который вызывает реальные методы, если не указано иное. Используется для отслеживания вызовов или для методов, которые нельзя переопределить.</short>
+        <long>
+            <b>Mock:</b>
+            <ul>
+                <li><code>@Mock private Service service;</code></li>
+                <li>Все методы заменяются заглушками.</li>
+                <li>Подходит для внешних зависимостей.</li>
+            </ul>
+            <b>Spy:</b>
+            <ul>
+                <li><code>@Spy private Service service = new Service();</code></li>
+                <li>Вызывает реальные методы, если не задано поведение.</li>
+                <li>Используется для сложных объектов с реальной логикой.</li>
+            </ul>
+            <b>Когда использовать:</b>
+            <ul>
+                <li><b>Mock:</b> Для зависимостей, которые не нужно реализовывать.</li>
+                <li><b>Spy:</b> Для объектов с частичной логикой (например, когда нужно вызвать реальный метод, но переопределить часть).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какое соотношение unit/integration/E2E оптимально?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short>Оптимальное соотношение по <b>пирамиде тестов</b>: <b>70% unit</b> (быстрые и дёшевые), <b>20% integration</b> (проверка взаимодействия), <b>10% E2E</b> (полные сценарии). Unit-тесты должны быть основой, интеграционные проверяют интеграцию с внешними системами, E2E — критичные бизнес-сценарии.</short>
+        <long>
+            <b>Пирамида тестов:</b>
+            <ul>
+                <li><b>Unit (70%):</b>
+                    <ul>
+                        <li>Быстрые (мс).</li>
+                        <li>Проверяют логику изолированно.</li>
+                        <li>Легко поддерживать.</li>
+                    </ul>
+                </li>
+                <li><b>Integration (20%):</b>
+                    <ul>
+                        <li>Медленнее (секунды).</li>
+                        <li>Проверяют взаимодействие с БД, API.</li>
+                        <li>Используют Testcontainers.</li>
+                    </ul>
+                </li>
+                <li><b>E2E (10%):</b>
+                    <ul>
+                        <li>Самые медленные (минуты).</li>
+                        <li>Проверяют полные сценарии.</li>
+                        <li>Дорогие в поддержке.</li>
+                    </ul>
+                </li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как использовать Testcontainers для интеграционного теста с БД? Какие плюсы по сравнению с H2?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short><b>Testcontainers</b> позволяет поднимать реальные контейнеры (PostgreSQL, Kafka, Elasticsearch) в тестах. Используется для интеграционных тестов с реальной БД. <b>Плюсы по сравнению с H2:</b> реальная БД (совместимость, правильное поведение), поддержка специфичных функций (JSON, индексы). Минусы: медленнее, требует Docker.</short>
+        <long>
+            <b>Использование:</b>
+            <ul>
+                <li><b>Добавить зависимость:</b> <code>testcontainers:postgresql</code>.</li>
+                <li><b>Код:</b> <code>@Container static PostgreSQLContainer&lt;?&gt; postgres = new PostgreSQLContainer<>("postgres:15");</code></li>
+                <li><b>Настройка:</b> <code>spring.datasource.url = jdbc:postgresql://${postgres.getHost()}:${postgres.getMappedPort(5432)}/test</code></li>
+            </ul>
+            <b>Плюсы по сравнению с H2:</b>
+            <ul>
+                <li><b>Совместимость:</b> Реальная БД, без отличий в поведении.</li>
+                <li><b>Реализация:</b> Поддержка всех функций (JSON, индексы, расширения).</li>
+                <li><b>Надёжность:</b> Тестирование именно на той БД, что в продакшене.</li>
+            </ul>
+            <b>Минусы:</b>
+            <ul>
+                <li>Медленнее (подъём контейнера).</li>
+                <li>Требует Docker.</li>
+                <li>Занимает больше ресурсов.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем branch coverage отличается от line coverage? Какой порог покрытия можно считать разумным?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short><b>Line coverage</b> показывает процент выполненных строк кода. <b>Branch coverage</b> показывает процент выполненных ветвей условий (<code>if</code>, <code>switch</code>). <b>Branch coverage</b> более строгий, так как требует тестирования всех путей выполнения. Разумный порог: <b>80% line coverage</b> и <b>70% branch coverage</b> (для критических систем выше).</short>
+        <long>
+            <b>Различия:</b>
+            <ul>
+                <li><b>Line coverage:</b> Строки кода (включая методы).</li>
+                <li><b>Branch coverage:</b> Ветви (<code>if-else</code>, <code>switch</code>).</li>
+                <li><b>Пример:</b> <code>if (x > 0) { ... } else { ... }</code> — обе ветви должны быть покрыты для 100% branch coverage.</li>
+            </ul>
+            <b>Разумные пороги:</b>
+            <ul>
+                <li><b>Line coverage:</b> <b>80%</b> (некоторые компании требуют 90%).</li>
+                <li><b>Branch coverage:</b> <b>70%</b> (сложнее достичь).</li>
+                <li><b>Не гнаться за 100%:</b> Это не всегда оправдано (автоматические getter/setter, UI-код).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как работает auto-configuration?</title>
+        <groups>
+            <group>Spring</group>
+        </groups>
+        <short><b>Auto-configuration</b> в Spring Boot автоматически настраивает бины на основе зависимостей в classpath. Она использует <code>@Conditional</code> аннотации (например, <code>@ConditionalOnClass</code>, <code>@ConditionalOnMissingBean</code>). Если в classpath есть нужный класс, соответствующая конфигурация активируется. Это позволяет подключать модули без явной конфигурации (например, DataSource, JPA, Security).</short>
+        <long>
+            <b>Как работает:</b>
+            <ul>
+                <li><b>Сканирование:</b> Spring Boot сканирует <code>META-INF/spring.factories</code>.</li>
+                <li><b>Условные аннотации:</b> Определяют, когда активировать конфигурацию.</li>
+                <li><b>Пример:</b>
+                    <ul>
+                        <li><code>@ConditionalOnClass(DataSource.class)</code> — если есть класс DataSource, активировать.</li>
+                        <li><code>@ConditionalOnMissingBean(DataSource.class)</code> — создать DataSource, если его нет.</li>
+                    </ul>
+                </li>
+            </ul>
+            <b>Принцип "соглашение над конфигурацией":</b>
+            <ul>
+                <li>Минимальная настройка.</li>
+                <li>Возможность переопределить через <code>@Configuration</code>.</li>
+                <li>Стартеры (<code>spring-boot-starter-web</code>) автоматически настраивают всё необходимое.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что показывает /actuator/health и как настроить liveness/readiness probes для K8s?</title>
+        <groups>
+            <group>Kubernetes</group>
+        </groups>
+        <short><code>/actuator/health</code> показывает состояние приложения (UP, DOWN). <b>Liveness probe</b> определяет, работает ли приложение (если нет — K8s перезапустит). <b>Readiness probe</b> определяет, готово ли приложение принимать трафик (если нет — не будет направлять запросы). Настраиваются через <code>management.endpoint.health.show-details=always</code>.</short>
+        <long>
+            <b>/actuator/health:</b>
+            <ul>
+                <li>Показывает статус: <code>{"status":"UP"}</code>.</li>
+                <li>Детали: <code>management.endpoint.health.show-details=always</code>.</li>
+                <li>Группы health: <code>management.endpoint.health.group.readiness.include=db</code>.</li>
+            </ul>
+            <b>Настройка probes в K8s:</b>
+            <ul>
+                <li><b>livenessProbe:</b>
+                    <ul>
+                        <li><code>httpGet: { path: /actuator/health/liveness, port: 8080 }</code></li>
+                        <li>Проверяет, жив ли контейнер.</li>
+                    </ul>
+                </li>
+                <li><b>readinessProbe:</b>
+                    <ul>
+                        <li><code>httpGet: { path: /actuator/health/readiness, port: 8080 }</code></li>
+                        <li>Проверяет, готов ли принимать трафик.</li>
+                    </ul>
+                </li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как настроить Spring Boot как OAuth2 Resource Server, валидирующий JWT от Keycloak?</title>
+        <groups>
+            <group>Spring</group>
+        </groups>
+        <short>Для настройки Spring Boot как Resource Server нужно добавить <code>spring-boot-starter-oauth2-resource-server</code> и настроить: <code>spring.security.oauth2.resourceserver.jwt.issuer-uri</code> (ссылка на Keycloak). Spring автоматически валидирует JWT, используя JWKS-эндпоинт Keycloak. Для кастомных ролей используется <code>JwtAuthenticationConverter</code>.</short>
+        <long>
+            <b>Шаги:</b>
+            <ul>
+                <li><b>Зависимость:</b> <code>implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'</code></li>
+                <li><b>Настройка:</b> <code>spring.security.oauth2.resourceserver.jwt.issuer-uri=https://keycloak:8080/realms/myrealm</code></li>
+                <li><b>SecurityConfig:</b>
+                    <ul>
+                        <li><code>@EnableWebSecurity</code></li>
+                        <li><code>http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter())));</code></li>
+                    </ul>
+                </li>
+            </ul>
+            <b>Валидация:</b>
+            <ul>
+                <li>Spring проверяет подпись JWT (JWKS).</li>
+                <li>Проверяет срок действия (exp).</li>
+                <li>Проверяет издателя (iss).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое SecurityFilterChain?</title>
+        <groups>
+            <group>Spring</group>
+        </groups>
+        <short><b>SecurityFilterChain</b> — это цепочка фильтров в Spring Security, которая определяет, как обрабатываются HTTP-запросы. Каждый запрос проходит через цепочку фильтров (аутентификация, авторизация, CSRF, логирование). Можно создать несколько цепочек для разных путей (например, <code>/api/**</code> и <code>/public/**</code>).</short>
+        <long>
+            <b>Основные фильтры:</b>
+            <ul>
+                <li><code>UsernamePasswordAuthenticationFilter</code> — аутентификация.</li>
+                <li><code>BearerTokenAuthenticationFilter</code> — для JWT.</li>
+                <li><code>CsrfFilter</code> — защита от CSRF.</li>
+                <li><code>SecurityContextHolderFilter</code> — сохранение контекста.</li>
+            </ul>
+            <b>Пример SecurityConfig:</b>
+            <ul>
+                <li><code>http.authorizeHttpRequests(auth -> auth.requestMatchers("/public/**").permitAll().anyRequest().authenticated()).oauth2ResourceServer(...)</code></li>
+                <li>Создаёт <code>SecurityFilterChain</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое N+1 проблема? Как её диагностировать и исправить?</title>
+        <groups>
+            <group>Hibernate</group>
+        </groups>
+        <short><b>N+1 проблема</b> — это ситуация, когда Hibernate выполняет 1 запрос для получения родительской сущности и N дополнительных запросов для каждой дочерней сущности. Диагностируется через <code>spring.jpa.show-sql=true</code>. Исправляется с помощью <code>JOIN FETCH</code>, <code>@EntityGraph</code>, <code>@BatchSize</code> или <code>@Fetch(FetchMode.SUBSELECT)</code>.</short>
+        <long>
+            <b>Пример:</b>
+            <ul>
+                <li><code>SELECT * FROM users;</code> — 1 запрос.</li>
+                <li><code>SELECT * FROM orders WHERE user_id = 1;</code> — N запросов.</li>
+            </ul>
+            <b>Диагностика:</b>
+            <ul>
+                <li>Включить <code>spring.jpa.show-sql=true</code>.</li>
+                <li>Включить <code>logging.level.org.hibernate.SQL=DEBUG</code>.</li>
+            </ul>
+            <b>Исправление:</b>
+            <ul>
+                <li><b><code>JOIN FETCH</code>:</b> <code>SELECT u FROM User u JOIN FETCH u.orders</code>.</li>
+                <li><b><code>@EntityGraph</code>:</b> <code>@EntityGraph(attributePaths = {"orders"})</code>.</li>
+                <li><b><code>@BatchSize</code>:</b> <code>@BatchSize(size = 10)</code> на коллекции.</li>
+                <li><b><code>@Fetch(FetchMode.SUBSELECT)</code>:</b> <code>@Fetch(FetchMode.SUBSELECT)</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как протестировать REST-контроллер с помощью MockMvc? Чем @WebMvcTest отличается от @SpringBootTest?</title>
+        <groups>
+            <group>Тестирование</group>
+        </groups>
+        <short><b>MockMvc</b> используется для тестирования REST-контроллеров без поднятия полного контекста. <b>@WebMvcTest</b> загружает только веб-слой (контроллеры, валидацию, фильтры), не поднимает БД и другие сервисы (использует моки). <b>@SpringBootTest</b> загружает полный контекст для интеграционных тестов.</short>
+        <long>
+            <b>Использование MockMvc:</b>
+            <ul>
+                <li><code>@Autowired private MockMvc mockMvc;</code></li>
+                <li><code>mockMvc.perform(get("/api/users/1")).andExpect(status().isOk()) .andExpect(jsonPath("$.id").value(1));</code></li>
+            </ul>
+            <b>@WebMvcTest:</b>
+            <ul>
+                <li>Загружает только веб-слой.</li>
+                <li>Не поднимает сервисы и БД.</li>
+                <li>Быстрее, чем <code>@SpringBootTest</code>.</li>
+            </ul>
+            <b>@SpringBootTest:</b>
+            <ul>
+                <li>Загружает полный контекст.</li>
+                <li>Медленнее, поднимает БД.</li>
+                <li>Используется для интеграционных тестов.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Жизненный цикл custom Authenticator SPI. Какие методы нужно реализовать?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>Custom Authenticator SPI в Keycloak должен реализовать <code>Authenticator</code> или <code>AuthenticatorFactory</code>. Основные методы: <code>authenticate()</code> (проверка логина/пароля), <code>action()</code> (обработка форм), <code>setRequiredActions()</code> (список действий), <code>requiresUser()</code> (нужен ли пользователь). Также нужно реализовать <code>getId()</code>, <code>getDisplayType()</code>.</short>
+        <long>
+            <b>Методы Authenticator:</b>
+            <ul>
+                <li><b><code>authenticate(AuthenticationFlowContext context)</code>:</b> Основной метод проверки логина.</li>
+                <li><b><code>action(AuthenticationFlowContext context)</code>:</b> Обработка POST-запросов.</li>
+                <li><b><code>requiresUser()</code>:</b> Нужен ли пользователь (обычно false).</li>
+                <li><b><code>setRequiredActions(KeycloakSession session, UserModel user)</code>:</b> Задание обязательных действий.</li>
+            </ul>
+            <b>Методы AuthenticatorFactory:</b>
+            <ul>
+                <li><b><code>getId()</code>:</b> Уникальный ID.</li>
+                <li><b><code>getDisplayType()</code>:</b> Отображаемое имя.</li>
+                <li><b><code>create()</code>:</b> Создание экземпляра.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как программно создать realm, client и role через Admin REST API?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>Для создания realm, client и role используется Admin REST API Keycloak с токеном администратора. Создание realm: POST <code>/admin/realms</code>. Создание client: POST <code>/admin/realms/{realm}/clients</code>. Создание role: POST <code>/admin/realms/{realm}/roles</code>. Для аутентификации используется Bearer-токен администратора.</short>
+        <long>
+            <b>Создание realm:</b>
+            <ul>
+                <li><b>POST</b> <code>/admin/realms</code></li>
+                <li><b>Body:</b> <code>{"realm": "myrealm", "enabled": true}</code></li>
+            </ul>
+            <b>Создание client:</b>
+            <ul>
+                <li><b>POST</b> <code>/admin/realms/myrealm/clients</code></li>
+                <li><b>Body:</b> <code>{"clientId": "myclient", "protocol": "openid-connect", "publicClient": false, "redirectUris": ["http://localhost:8080/*"]}</code></li>
+            </ul>
+            <b>Создание role:</b>
+            <ul>
+                <li><b>POST</b> <code>/admin/realms/myrealm/roles</code></li>
+                <li><b>Body:</b> <code>{"name": "user"}</code></li>
+            </ul>
+            <b>Аутентификация:</b>
+            <ul>
+                <li><b>Header:</b> <code>Authorization: Bearer &lt;admin_token&gt;</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем Quarkus-дистрибутив отличается от старого WildFly? Что такое build-time options?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short><b>Quarkus</b> — это современный фреймворк для Java, оптимизированный для облачных сред (быстрый старт, низкое потребление памяти). <b>Build-time options</b> — это параметры, которые обрабатываются на этапе сборки, а не во время выполнения (например, настройка базы данных, логирование). Это позволяет уменьшить время старта и размер образа.</short>
+        <long>
+            <b>Отличия Quarkus от WildFly:</b>
+            <ul>
+                <li><b>Время старта:</b> Quarkus стартует в разы быстрее (мс против секунд).</li>
+                <li><b>Память:</b> Quarkus потребляет меньше памяти (особенно в контейнерах).</li>
+                <li><b>Build-time:</b> Quarkus обрабатывает конфигурацию на этапе сборки.</li>
+                <li><b>Native:</b> Quarkus поддерживает GraalVM Native Image.</li>
+            </ul>
+            <b>Build-time options:</b>
+            <ul>
+                <li>Параметры, которые фиксируются при сборке (например, <code>quarkus.datasource.jdbc.url</code>).</li>
+                <li>Уменьшают время инициализации.</li>
+                <li>Пример: <code>quarkus.log.level=INFO</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как Keycloak использует Infinispan для сессий? Что происходит при добавлении нового пода?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>Keycloak использует <b>Infinispan</b> для распределённого кэширования сессий и данных. При добавлении нового пода в кластер, Infinispan автоматически ребалансирует данные (распределяет сессии между узлами). Это обеспечивает отказоустойчивость и масштабируемость (сессии не теряются при сбое одного пода).</short>
+        <long>
+            <b>Infinispan в Keycloak:</b>
+            <ul>
+                <li><b>Кэши:</b> <code>sessions</code>, <code>clientSessions</code>, <code>offlineSessions</code>.</li>
+                <li><b>Распределённый кэш:</b> Данные реплицируются между узлами.</li>
+                <li><b>Топология:</b> <code>JGroups</code> для обнаружения узлов.</li>
+            </ul>
+            <b>Добавление нового пода:</b>
+            <ul>
+                <li>Infinispan обнаруживает новый узел.</li>
+                <li>Начинается ребалансировка данных (перераспределение сессий).</li>
+                <li>Сессии остаются доступными.</li>
+                <li>Влияет на производительность (короткие паузы).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Реализуйте на словах Token Exchange flow: сервис A получил токен пользователя, как обменять его на токен для сервиса B?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>Для обмена токена (Token Exchange) сервис A отправляет свой токен на эндпоинт <code>/token</code> Keycloak с параметром <code>grant_type=urn:ietf:params:oauth:grant-type:token-exchange</code>, указав <code>subject_token</code> и <code>audience</code> (сервис B). Keycloak проверяет токен, создаёт новый JWT для сервиса B и возвращает его. Сервис A использует этот токен для вызова сервиса B.</short>
+        <long>
+            <b>Запрос на обмен:</b>
+            <ul>
+                <li><b>POST</b> <code>/realms/myrealm/protocol/openid-connect/token</code></li>
+                <li><b>Параметры:</b>
+                    <ul>
+                        <li><code>grant_type=urn:ietf:params:oauth:grant-type:token-exchange</code></li>
+                        <li><code>client_id=serviceA</code></li>
+                        <li><code>client_secret=...</code></li>
+                        <li><code>subject_token=&lt;user_token&gt;</code></li>
+                        <li><code>audience=serviceB</code></li>
+                    </ul>
+                </li>
+            </ul>
+            <b>Ответ:</b>
+            <ul>
+                <li><code>access_token</code> — JWT для сервиса B.</li>
+                <li><code>expires_in</code> — срок действия.</li>
+            </ul>
+            <b>Требования:</b>
+            <ul>
+                <li>Сервис A должен иметь права на обмен.</li>
+                <li>Keycloak настроен на поддержку Token Exchange.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как добавить кастомный claim в access_token через Protocol Mapper?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>Для добавления кастомного claim в access_token нужно создать <b>Protocol Mapper</b> в Keycloak. Выбрать тип <code>User Property</code>, <code>Hardcoded claim</code> или <code>Script-based</code>. В маппере указать <code>Claim name</code> (например, <code>custom_role</code>) и <code>User Attribute</code> или <code>Script</code>. Маппер привязывается к <code>Client</code> или <code>Realm</code>.</short>
+        <long>
+            <b>Шаги:</b>
+            <ul>
+                <li>Зайти в Realm → Clients → выбрать клиент.</li>
+                <li>Перейти в <b>Mappers</b> → <b>Create</b>.</li>
+                <li>Выбрать <b>Protocol Mapper Type</b> (например, <code>User Attribute</code>).</li>
+                <li>Указать <b>Claim Name</b> (например, <code>department</code>).</li>
+                <li>Указать <b>User Attribute</b> (например, <code>department</code>).</li>
+                <li>Сохранить.</li>
+            </ul>
+            <b>Примеры:</b>
+            <ul>
+                <li><b>Hardcoded claim:</b> <code>{"role": "admin"}</code></li>
+                <li><b>Script-based:</b> <code>user.getAttribute("department")</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как приложение валидирует JWT? Что такое JWKS endpoint и kid? Как обеспечить ротацию ключей без даунтайма?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>Приложение валидирует JWT, проверяя подпись через <b>JWKS endpoint</b> Keycloak (<code>/realms/myrealm/protocol/openid-connect/certs</code>). <b>kid</b> (Key ID) указывает, какой ключ использовать для проверки подписи. Для ротации ключей без даунтайма используется <b>JWKS</b>: приложение периодически (по умолчанию раз в час) обновляет кеш ключей. Новый JWT подписывается новым ключом, старый ключ остаётся в JWKS до истечения всех токенов.</short>
+        <long>
+            <b>Валидация JWT:</b>
+            <ul>
+                <li>Проверка подписи (RS256).</li>
+                <li>Проверка срока действия (<code>exp</code>).</li>
+                <li>Проверка издателя (<code>iss</code>).</li>
+                <li>Проверка аудитории (<code>aud</code>).</li>
+            </ul>
+            <b>JWKS endpoint:</b>
+            <ul>
+                <li>Содержит публичные ключи.</li>
+                <li>Пример: <code>/realms/myrealm/protocol/openid-connect/certs</code>.</li>
+                <li><b>kid</b> (Key ID) в заголовке JWT.</li>
+            </ul>
+            <b>Ротация ключей:</b>
+            <ul>
+                <li>Keycloak автоматически генерирует новые ключи при ротации.</li>
+                <li>Приложение периодически обновляет JWKS (Spring Security делает это по умолчанию).</li>
+                <li>Старые ключи сохраняются некоторое время для существующих токенов.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как настроить mTLS между Java-сервисом и внешним сервисом?</title>
+        <groups>
+            <group>SSL</group>
+        </groups>
+        <short><b>mTLS (Mutual TLS)</b> требует аутентификации обеих сторон. Для настройки mTLS в Java нужно настроить <b>SSLContext</b> с <code>KeyManager</code> (клиентский сертификат) и <code>TrustManager</code> (серверный сертификат). Используется <code>HttpsURLConnection</code> или <code>Apache HttpClient</code>. Настройка включает <code>keystore</code> (клиентский сертификат) и <code>truststore</code> (серверные сертификаты).</short>
+        <long>
+            <b>Настройка mTLS:</b>
+            <ul>
+                <li><b>KeyStore:</b> Хранит клиентский сертификат и приватный ключ.</li>
+                <li><b>TrustStore:</b> Хранит доверенные серверные сертификаты.</li>
+                <li><b>SSLContext:</b> <code>SSLContext.getInstance("TLS")</code>.</li>
+                <li><b>Apache HttpClient:</b>
+                    <ul>
+                        <li><code>HttpClientBuilder.create().setSSLContext(sslContext).setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();</code></li>
+                    </ul>
+                </li>
+            </ul>
+            <b>JVM параметры:</b>
+            <ul>
+                <li><code>-Djavax.net.ssl.keyStore=/path/keystore.p12</code></li>
+                <li><code>-Djavax.net.ssl.keyStorePassword=password</code></li>
+                <li><code>-Djavax.net.ssl.trustStore=/path/truststore.jks</code></li>
+                <li><code>-Djavax.net.ssl.trustStorePassword=password</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Где хранятся truststore и keystore?</title>
+        <groups>
+            <group>SSL</group>
+        </groups>
+        <short><b>KeyStore</b> и <b>TrustStore</b> могут храниться в файловой системе (JKS, PKCS12) или в облачных хранилищах (AWS Secrets Manager, Vault). В Java они обычно хранятся в папке <code>/etc/ssl/</code> или в <code>resources</code> проекта. Для безопасности не хранить пароли в коде, использовать переменные окружения или внешние конфигурации.</short>
+        <long>
+            <b>Типичные пути:</b>
+            <ul>
+                <li><b>Keystore:</b> <code>/etc/ssl/keystore.p12</code>, <code>src/main/resources/keystore.jks</code>.</li>
+                <li><b>Truststore:</b> <code>/etc/ssl/truststore.jks</code>, <code>src/main/resources/truststore.jks</code>.</li>
+                <li><b>В Kubernetes:</b> <code>/var/run/secrets/keystore.p12</code> (Secrets).</li>
+            </ul>
+            <b>Форматы:</b>
+            <ul>
+                <li><b>PKCS12 (.p12):</b> Рекомендуемый формат.</li>
+                <li><b>JKS (.jks):</b> Устаревший.</li>
+            </ul>
+            <b>Безопасность:</b>
+            <ul>
+                <li>Пароли не хранить в коде.</li>
+                <li>Использовать переменные окружения.</li>
+                <li>Использовать Vault или AWS Secrets.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем KeyStore отличается от TrustStore?</title>
+        <groups>
+            <group>SSL</group>
+        </groups>
+        <short><b>KeyStore</b> хранит приватные ключи и сертификаты для идентификации клиента или сервера. <b>TrustStore</b> хранит доверенные сертификаты (CA) для проверки удалённых серверов. KeyStore используется для <b>аутентификации</b>, TrustStore — для <b>верификации</b>.</short>
+        <long>
+            <b>KeyStore:</b>
+            <ul>
+                <li>Хранит приватный ключ и сертификат.</li>
+                <li>Используется для mTLS (клиентская сторона).</li>
+                <li>Используется сервером для SSL/TLS.</li>
+            </ul>
+            <b>TrustStore:</b>
+            <ul>
+                <li>Хранит доверенные сертификаты (CA).</li>
+                <li>Используется для проверки серверных сертификатов.</li>
+                <li>Общий для всех приложений.</li>
+            </ul>
+            <b>Пример:</b>
+            <ul>
+                <li>Приложение A подключается к сервису B: KeyStore А (клиентский сертификат), TrustStore А (сертификат B).</li>
+                <li>Сервис B использует KeyStore B (серверный сертификат).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как программно загрузить сертификат в Java?</title>
+        <groups>
+            <group>SSL</group>
+        </groups>
+        <short>Программная загрузка сертификата в Java выполняется через <code>KeyStore</code> и <code>TrustManagerFactory</code>. Создаётся <code>KeyStore</code> экземпляр, загружается файл сертификата (<code>load()</code>), создаётся <code>TrustManager</code>. Пример: <code>KeyStore ks = KeyStore.getInstance("PKCS12"); ks.load(new FileInputStream("cert.p12"), "password".toCharArray());</code></short>
+        <long>
+            <b>Загрузка KeyStore:</b>
+            <ul>
+                <li><code>KeyStore ks = KeyStore.getInstance("PKCS12");</code></li>
+                <li><code>ks.load(new FileInputStream("/path/keystore.p12"), "password".toCharArray());</code></li>
+            </ul>
+            <b>Загрузка TrustStore:</b>
+            <ul>
+                <li><code>KeyStore ts = KeyStore.getInstance("JKS");</code></li>
+                <li><code>ts.load(new FileInputStream("/path/truststore.jks"), "password".toCharArray());</code></li>
+            </ul>
+            <b>SSLContext:</b>
+            <ul>
+                <li><code>TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());</code></li>
+                <li><code>tmf.init(ts);</code></li>
+                <li><code>SSLContext sslContext = SSLContext.getInstance("TLS");</code></li>
+                <li><code>sslContext.init(null, tmf.getTrustManagers(), null);</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какой алгоритм хеширования паролей используется по умолчанию в Keycloak? Как его сменить?</title>
+        <groups>
+            <group>Авторизация</group>
+        </groups>
+        <short>По умолчанию в Keycloak используется <b>PBKDF2</b> с SHA256 (итерации 27500). Можно сменить через <b>Password Policy</b> (в Realm → Authentication → Password Policy). Доступны алгоритмы: <code>pbkdf2-sha256</code>, <code>pbkdf2-sha512</code>, <code>bcrypt</code>, <code>argon2</code>. Для смены нужно добавить <code>hashAlgorithm</code> и <code>hashIterations</code> в политику.</short>
+        <long>
+            <b>По умолчанию:</b>
+            <ul>
+                <li><b>Алгоритм:</b> <code>pbkdf2-sha256</code>.</li>
+                <li><b>Итерации:</b> 27500.</li>
+            </ul>
+            <b>Смена алгоритма:</b>
+            <ul>
+                <li>Перейти в Realm → Authentication → Password Policy.</li>
+                <li>Добавить политику <code>Hash Algorithm</code>.</li>
+                <li>Выбрать <code>bcrypt</code>, <code>argon2</code> или другой.</li>
+                <li>Добавить <code>Hash Iterations</code> для настройки итераций.</li>
+            </ul>
+            <b>Примеры:</b>
+            <ul>
+                <li><b>bcrypt:</b> <code>hashAlgorithm=bcrypt</code>.</li>
+                <li><b>argon2:</b> <code>hashAlgorithm=argon2</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Где должна происходить валидация токенов — на API Gateway или в каждом микросервисе?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short>Рекомендуется <b>валидировать токены в каждом микросервисе</b> (децентрализованная аутентификация). API Gateway проверяет токен на уровне входа, но конечная валидация должна быть в каждом сервисе для обеспечения безопасности (защита от поддельных запросов, если Gateway обойден). Также это позволяет сервисам работать независимо.</short>
+        <long>
+            <b>Плюсы валидации на Gateway:</b>
+            <ul>
+                <li>Централизованное управление.</li>
+                <li>Снижение нагрузки на сервисы.</li>
+            </ul>
+            <b>Плюсы валидации в каждом сервисе:</b>
+            <ul>
+                <li>Безопасность (Gateway может быть обойдён).</li>
+                <li>Независимость сервисов.</li>
+                <li>Поддержка прямых вызовов между сервисами.</li>
+            </ul>
+            <b>Рекомендация:</b>
+            <ul>
+                <li>Gateway проверяет токен для маршрутизации.</li>
+                <li>Каждый сервис валидирует токен самостоятельно (используя JWKS).</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как работает service discovery в Kubernetes?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short><b>Service Discovery</b> в Kubernetes реализуется через <b>DNS</b> и <b>Envoy</b> (для сервисной сетки). Встроенный DNS-сервер K8s резолвит имена сервисов (<code>my-service.default.svc.cluster.local</code>) в IP-адреса подов. <b>Headless Service</b> (без <code>clusterIP</code>) возвращает IP-адреса подов. Для более сложного discovery используется <b>Consul</b> или <b>Istio</b>.</short>
+        <long>
+            <b>DNS-based Discovery:</b>
+            <ul>
+                <li><b>Service:</b> <code>my-service.default.svc.cluster.local</code>.</li>
+                <li>Kubernetes DNS резолвит имя в <code>clusterIP</code>.</li>
+                <li>Запросы распределяются между подами (load balancing).</li>
+            </ul>
+            <b>Headless Service:</b>
+            <ul>
+                <li><code>clusterIP: None</code>.</li>
+                <li>DNS возвращает IP-адреса подов.</li>
+                <li>Используется для StatefulSets (например, Kafka, PostgreSQL).</li>
+            </ul>
+            <b>Service Mesh (Istio):</b>
+            <ul>
+                <li>Использует Envoy для discovery и балансировки.</li>
+                <li>Поддерживает circuit breaking, retries.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Зачем нужен headless Service?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short><b>Headless Service</b> нужен для <b>прямого доступа к подам</b> без балансировки (без <code>clusterIP</code>). Он возвращает IP-адреса подов вместо одного виртуального IP. Используется для StatefulSets (базы данных, Kafka), где каждый под должен быть доступен по своему уникальному адресу, или когда требуется кастомная балансировка.</short>
+        <long>
+            <b>Использование headless Service:</b>
+            <ul>
+                <li><b>StatefulSet:</b> Каждый под имеет уникальное имя (<code>pod-name.service-name.namespace.svc.cluster.local</code>).</li>
+                <li><b>Kafka:</b> Подключение к конкретному брокеру.</li>
+                <li><b>PostgreSQL:</b> Для репликации.</li>
+            </ul>
+            <b>Пример:</b>
+            <ul>
+                <li><code>apiVersion: v1</code></li>
+                <li><code>kind: Service</code></li>
+                <li><code>spec: clusterIP: None</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Когда применять fallback у Circuit Breaker?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short><b>Fallback</b> у Circuit Breaker применяется, когда внешний сервис недоступен или превышает порог ошибок. Он возвращает альтернативный ответ (например, данные из кэша, стандартный ответ или сообщение об ошибке). Fallback используется для <b>сохранения доступности</b> сервиса и предотвращения каскадных отказов.</short>
+        <long>
+            <b>Когда использовать fallback:</b>
+            <ul>
+                <li>При сетевых сбоях.</li>
+                <li>При таймаутах внешних сервисов.</li>
+                <li>При недоступности зависимостей.</li>
+            </ul>
+            <b>Типы fallback:</b>
+            <ul>
+                <li><b>Кэш:</b> Возвращать закешированные данные.</li>
+                <li><b>Стандартный ответ:</b> <code>{"status": "service unavailable"}</code>.</li>
+                <li><b>Пустой список:</b> Для запросов, где данные не критичны.</li>
+            </ul>
+            <b>Пример:</b>
+            <ul>
+                <li><code>@CircuitBreaker(name = "serviceB", fallbackMethod = "fallbackMethod")</code></li>
+                <li><code>public String fallbackMethod(Throwable t) { return "Default response"; }</code></li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Чем Orchestration Saga отличается от Choreography? Когда Saga нужна в IAM?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short><b>Orchestration Saga</b> — централизованное управление процессом (оркестратор). <b>Choreography Saga</b> — децентрализованное управление (сервисы обмениваются событиями). Оркестрация проще для управления и отладки, хореография — более слабосвязанная. В IAM Saga нужна для сложных процессов (создание пользователя, регистрация, обмен токенами, синхронизация с внешними системами).</short>
+        <long>
+            <b>Orchestration:</b>
+            <ul>
+                <li>Центральный координатор (оркестратор).</li>
+                <li>Управляет последовательностью шагов.</li>
+                <li>Легко контролировать и отлаживать.</li>
+                <li>Пример: Camunda, Temporal.</li>
+            </ul>
+            <b>Choreography:</b>
+            <ul>
+                <li>Сервисы обмениваются событиями.</li>
+                <li>Нет центрального координатора.</li>
+                <li>Более слабосвязанная.</li>
+                <li>Пример: Kafka, Event-driven.</li>
+            </ul>
+            <b>Saga в IAM:</b>
+            <ul>
+                <li>Создание пользователя в Keycloak, синхронизация с БД, отправка письма.</li>
+                <li>Регистрация в нескольких сервисах.</li>
+                <li>Обмен токенами между сервисами.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое CQRS и когда он оправдан?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short><b>CQRS (Command Query Responsibility Segregation)</b> — разделение моделей для чтения (Query) и записи (Command). Это позволяет оптимизировать каждую модель независимо. Оправдан в системах с <b>высокой нагрузкой на чтение/запись</b>, когда нужно масштабировать их отдельно, или в сложных доменах с Event Sourcing. В простых CRUD-приложениях не оправдан.</short>
+        <long>
+            <b>Компоненты CQRS:</b>
+            <ul>
+                <li><b>Command:</b> Изменяет состояние.</li>
+                <li><b>Query:</b> Читает данные (отдельная модель).</li>
+                <li><b>Read/Write Store:</b> Могут быть разными БД.</li>
+            </ul>
+            <b>Когда оправдан:</b>
+            <ul>
+                <li>Высокая нагрузка на чтение и запись.</li>
+                <li>Сложные бизнес-правила.</li>
+                <li>Event Sourcing (хранение событий).</li>
+                <li>Сложные запросы (отчёты, аналитика).</li>
+            </ul>
+            <b>Когда не оправдан:</b>
+            <ul>
+                <li>Простое CRUD.</li>
+                <li>Небольшие проекты.</li>
+                <li>Команда не готова к сложности.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Зачем нужен Bulkhead? Как он ограничивает blast radius при отказе зависимости?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short><b>Bulkhead</b> изолирует ресурсы (пулы потоков, соединения) между зависимостями, чтобы сбой в одной зависимости не влиял на другие. Если зависимость падает, только её пул истощается, остальные работают нормально. Это ограничивает <b>blast radius</b> (зону поражения) при отказе.</short>
+        <long>
+            <b>Как работает Bulkhead:</b>
+            <ul>
+                <li>Каждая зависимость использует свой пул потоков.</li>
+                <li>Если пул исчерпан, запросы блокируются или отклоняются.</li>
+                <li>Другие зависимости не страдают.</li>
+            </ul>
+            <b>Пример:</b>
+            <ul>
+                <li>Сервис A вызывает сервис B и сервис C.</li>
+                <li>У каждого свой пул (10 потоков).</li>
+                <li>Если B падает, пул B заполняется, но C продолжает работать.</li>
+            </ul>
+            <b>Реализация:</b>
+            <ul>
+                <li>Resilience4j: <code>@Bulkhead(name = "serviceB", type = Bulkhead.Type.THREADPOOL)</code>.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как propagation ID проходит через цепочку микросервисов? Как интегрировать Spring Boot с OpenTelemetry?</title>
+        <groups>
+            <group>микросервисы</group>
+        </groups>
+        <short><b>Propagation ID (traceId, spanId)</b> передаётся через HTTP-заголовки (<code>traceparent</code>, <code>tracestate</code>). В Spring Boot интеграция с <b>OpenTelemetry</b> осуществляется через библиотеку <code>opentelemetry-spring-boot-starter</code>. Она автоматически добавляет заголовки в исходящие запросы и создаёт spans для входящих. Для передачи между сервисами используется <code>W3C Trace Context</code>.</short>
+        <long>
+            <b>Пропагация:</b>
+            <ul>
+                <li><b>traceparent:</b> <code>00-&lt;traceId&gt;-&lt;spanId&gt;-&lt;flags&gt;</code>.</li>
+                <li><b>tracestate:</b> Дополнительные метаданные.</li>
+            </ul>
+            <b>Интеграция OpenTelemetry:</b>
+            <ul>
+                <li>Добавить зависимость: <code>implementation 'io.opentelemetry:opentelemetry-spring-boot-starter'</code>.</li>
+                <li>Настроить <code>exporter</code> (например, OTLP для Jaeger).</li>
+                <li><code>@Autowired</code> <code>Tracer</code> для создания спанов.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Какая branching-стратегию оптимальна для IAM-проекта и почему?</title>
+        <groups>
+            <group>GIT</group>
+        </groups>
+        <short>Для IAM-проекта оптимальна <b>GitFlow</b> или <b>GitHub Flow</b> с <b>долгоживущими ветками</b> (<code>develop</code>, <code>main</code>). IAM требует строгого контроля версий и стабильности. <b>GitFlow</b> подходит для релизов (hotfix, release), <b>GitHub Flow</b> — для CI/CD. Использование <b>feature-веток</b> и <b>pull requests</b> обязательно для аудита.</short>
+        <long>
+            <b>GitFlow:</b>
+            <ul>
+                <li><b>main:</b> Производственная ветка.</li>
+                <li><b>develop:</b> Разработка.</li>
+                <li><b>feature/*:</b> Новые функции.</li>
+                <li><b>release/*:</b> Подготовка к релизу.</li>
+                <li><b>hotfix/*:</b> Срочные исправления.</li>
+            </ul>
+            <b>GitHub Flow:</b>
+            <ul>
+                <li><b>main:</b> Всегда готова к релизу.</li>
+                <li><b>feature/*:</b> Ветки для задач.</li>
+                <li>PRs с ревью.</li>
+            </ul>
+            <b>Почему для IAM:</b>
+            <ul>
+                <li>Строгий контроль изменений.</li>
+                <li>Требуется аудит.</li>
+                <li>Стабильность критична.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Что такое CODEOWNERS и как его настроить?</title>
+        <groups>
+            <group>GIT</group>
+        </groups>
+        <short><b>CODEOWNERS</b> — это файл в репозитории, который определяет владельцев кода. Он автоматически назначает ответственных за ревью при создании PR. Настраивается в <code>.github/CODEOWNERS</code>. Формат: <code>путь/к/файлу @owner</code>. Например, <code>src/main/java/** @team-backend</code>.</short>
+        <long>
+            <b>Формат:</b>
+            <ul>
+                <li><code>*.java @team-backend</code></li>
+                <li><code>/src/main/java/com/example/security/ @security-team</code></li>
+                <li><code>README.md @docs-team</code></li>
+            </ul>
+            <b>Как работает:</b>
+            <ul>
+                <li>При создании PR владельцы автоматически добавляются в ревьюеры.</li>
+                <li>Поддерживается в GitHub, GitLab, Bitbucket.</li>
+                <li>Используется для распределения ответственности.</li>
+            </ul>
+        </long>
+    </question>
+
+    <question>
+        <title>Как настроить readiness probe для Java-приложения в K8s? Почему liveness probe не должна проверять внешние зависимости?</title>
+        <groups>
+            <group>Kubernetes</group>
+        </groups>
+        <short><b>Readiness probe</b> проверяет, готов ли под принимать трафик. Настраивается через <code>httpGet</code> на эндпоинт <code>/actuator/health/readiness</code>. <b>Liveness probe</b> проверяет, жив ли под. Она <b>не должна проверять внешние зависимости</b> (БД, API), потому что при их недоступности K8s будет перезапускать под, что может привести к каскадным сбоям. Liveness должна проверять только внутреннее состояние JVM.</short>
+        <long>
+            <b>Readiness probe:</b>
+            <ul>
+                <li><code>httpGet: { path: /actuator/health/readiness, port: 8080 }</code></li>
+                <li>Если возвращает 200, под готов принимать трафик.</li>
+                <li>Используется для отключения трафика во время старта.</li>
+            </ul>
+            <b>Liveness probe:</b>
+            <ul>
+                <li><code>httpGet: { path: /actuator/health/liveness, port: 8080 }</code></li>
+                <li>Проверяет только JVM (UP/DOWN).</li>
+                <li>Не должна проверять БД, внешние API.</li>
+                <li>Если проверка падает, под перезапускается.</li>
+            </ul>
+            <b>Настройка Spring Boot:</b>
+            <ul>
+                <li><code>management.endpoint.health.probes.enabled=true</code></li>
+                <li><code>management.endpoint.health.group.readiness.include=db,ping</code></li>
+            </ul>
+        </long>
+    </question>
+</questions>

@@ -8,6 +8,7 @@ import ru.kryuch.krtg.searcher.entity.SettingEntity;
 import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -70,5 +71,16 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingEnt
     public String getValueByCode(String code, Integer userId) {
         SettingEntity settingEntity = repository.findByCodeAndUserId(code, userId).stream().findFirst().orElse(null);
         return settingEntity.getValue();
+    }
+
+    public Integer getUserIdByGmail(String gmail) {
+        List<Integer> userIds =
+                ((SettingRepository)repository).findUserIdByCodeAndValue(SettingConfig.GMAIL_VALUE_SETTING_CODE, gmail);
+
+        if (userIds.size() == 1) {
+            return userIds.get(0);
+        }
+
+        return null;
     }
 }

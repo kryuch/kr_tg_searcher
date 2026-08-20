@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -26,6 +29,7 @@ import ru.kryuch.krtg.searcher.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Lazy
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
@@ -34,9 +38,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/api/init").permitAll()
+                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/oauth2/**")
+                        .permitAll()
+                        .requestMatchers("/api/init")
+                        .permitAll()
                         .anyRequest().authenticated()
+                )
+
+                .oauth2Login(oauth -> oauth
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestResolver(
+                                        authorizationRequestResolver()
+                                )
+                        )
                 )
 
                 .formLogin(form -> form
@@ -49,6 +63,8 @@ public class SecurityConfig {
                         .passwordParameter("password")
                         .permitAll()
                 )
+
+                .oauth2Login(oauth -> oauth .defaultSuccessUrl("/settings/gmail/connected", true) )
 
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -66,10 +82,29 @@ public class SecurityConfig {
 
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**",
-                        "/chat/status/**")
+                                "/chat/status/**")
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
+
+        DefaultOAuth2AuthorizationRequestResolver resolver =
+                new DefaultOAuth2AuthorizationRequestResolver(
+                        clientRegistrationRepository,
+                        "/oauth2/authorization"
+                );
+
+        resolver.setAuthorizationRequestCustomizer(builder ->
+                builder.additionalParameters(params -> {
+                    params.put("access_type", "offline");
+                    params.put("prompt", "consent");
+                })
+        );
+
+        return resolver;
     }
 
     @Bean

@@ -1,0 +1,30 @@
+<div class="icontent">
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="telegramId" class="table-alias"> Идентификатор</th>
+            <th id="originalName" class="table-alias"> Имя файла</th>
+            <th id="setting" class="table-alias"> </th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${items.empty}">
+            <td colspan="3"> Тут пусто</td>
+        </tr>
+
+        <th:block th:each="item, iStat : ${items}">
+            <tr>
+                <td><span th:text="${item.id}"> Идентификатор </span></td>
+                <td><span th:text="${item.originalName}"> Имя файла </span></td>
+                <td class="settingbuttons">
+                    <a class="btn-save" th:href="@{/user/files/{id}/remove(id=${item.id})}">Удалить</a>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+
+    <a class="save" type="submit" th:href="@{/user/files/add}">Добавить</a>
+</div>
