@@ -54,6 +54,18 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="002-003b-add-group-and-type-columns" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_settings
+                ADD COLUMN title varchar(1024);
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_settings DROP COLUMN title;
+            </sql>
+        </rollback>
+    </changeSet>
+
     <!-- 4. Заполнение setting_type / title / group_id по code -->
     <changeSet id="002-004-fill-type-title-group-by-code" author="Oleg V. Kryuchin">
         <sql>
