@@ -61,19 +61,17 @@
             }
 
             var $vacancyRow = $row.prevAll('tr[id^="head-"]').first();
-            var username = $vacancyRow.find('.tgvalue').text().trim();
+            var $ownerCell = $vacancyRow.find('.owners .tgvalue').first();
+            var ownerValue = $ownerCell.text().trim();
+            var ownerType = $ownerCell.attr('ownertype');
 
-            if (!username) {
-                username = $vacancyRow.find('td').first().text().trim();
-            }
-
-            if (!username) {
-                alert('Не найден username для отправки');
+            if (!ownerValue) {
+                alert('Не найден владелец для отправки');
                 return;
             }
 
             var tgAccountId = jQuery('#tgAccounts').val();
-            if (!tgAccountId || tgAccountId.length === 0) {
+            if (ownerType == "TG" && (!tgAccountId || tgAccountId.length === 0)) {
                 alert('Выберите ТГ-аккаунт');
                 return;
             }
@@ -87,11 +85,15 @@
             jQuery.ajax({
                 url: '/chat/vacancy/answer/send',
                 type: 'POST',
-                data: {
+                contentType: 'application/json',
+                data: JSON.stringify({
                     message: message,
-                    username: username,
-                    tgAccountId: tgAccountId
-                },
+                    tgAccountId: tgAccountId,
+                    owner: {
+                        type: ownerType,
+                        value: ownerValue
+                    }
+                }),
                 beforeSend: function (xhr) {
                     if (typeof csrfToken !== 'undefined' && typeof csrfHeader !== 'undefined') {
                         xhr.setRequestHeader(csrfHeader, csrfToken);
@@ -145,8 +147,7 @@
                 <td>
                     <table border="1" class="owners">
                         <tr th:each="owner : ${item.owners}">
-                            <td class="tgvalue" th:text="${owner.value}"></td>
-                            <td th:text="${owner.type}"></td>
+                            <td class="tgvalue" th:ownertype="${owner.type}" th:text="${owner.value}"></td>
                         </tr>
                     </table>
                 </td>

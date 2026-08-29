@@ -1,0 +1,75 @@
+<div id="directionForm">
+    <p>
+        <strong th:text="${answer.questionText}"> Текст вопроса </strong>
+        <span th:if="${answer.required}" class="required-mark"> *</span>
+    </p>
+
+    <form action="#"
+          th:action="@{/vacancy/questions/answers/{id}/edit(id=${answer.questionId})}"
+          th:object="${form}"
+          class="edit-form form-horizontal"
+          method="post">
+
+        <input type="hidden" th:field="*{questionId}" />
+
+        <table class="list" th:switch="${answer.questionType.name()}">
+
+            <tr th:case="'TEXT'">
+                <td><label for="textValue">Ответ</label></td>
+                <td>
+                    <input type="text" th:field="*{textValue}" id="textValue" placeholder="Ваш ответ">
+                </td>
+            </tr>
+
+            <tr th:case="'BOOLEAN'">
+                <td><label>Ответ</label></td>
+                <td>
+                    <label>
+                        <input type="radio" th:field="*{boolValue}" value="true"> Да
+                    </label>
+                    <label>
+                        <input type="radio" th:field="*{boolValue}" value="false"> Нет
+                    </label>
+                </td>
+            </tr>
+
+            <tr th:case="'SINGLE_CHOICE'">
+                <td><label>Вариант ответа</label></td>
+                <td>
+                    <div th:each="opt : ${answer.options}">
+                        <label>
+                            <input type="radio"
+                                   th:field="*{singleOptionId}"
+                                   th:value="${opt.id}">
+                            <span th:text="${opt.text}"></span>
+                        </label>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:case="'MULTIPLE_CHOICE'">
+                <td><label>Варианты ответа</label></td>
+                <td>
+                    <div th:each="opt : ${answer.options}">
+                        <label>
+                            <input type="checkbox"
+                                   th:field="*{selectedOptionIds}"
+                                   th:value="${opt.id}">
+                            <span th:text="${opt.text}"></span>
+                        </label>
+                    </div>
+                </td>
+            </tr>
+
+        </table>
+
+        <table>
+            <tr>
+                <td></td>
+                <td>
+                    <button class="save" type="submit">Сохранить</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>

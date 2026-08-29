@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- 1. Таблица групп настроек -->
+    <changeSet id="002-001-create-setting-groups" author="Oleg V. Kryuchin">
+        <sql>
+            CREATE TABLE krrg_setting_groups
+            (
+                id         BIGSERIAL PRIMARY KEY,
+                code       VARCHAR(255) NOT NULL UNIQUE,
+                name       VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP
+            );
+        </sql>
+        <rollback>
+            <sql>DROP TABLE krrg_setting_groups;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 2. Наполнение справочника групп -->
+    <changeSet id="002-002-insert-groups" author="Oleg V. Kryuchin">
+        <sql>
+            INSERT INTO krrg_setting_groups (code, name, created_at, updated_at)
+            VALUES ('general', 'Общее', now(), now()),
+                   ('folder', 'Папка HR', now(), now()),
+                   ('cron', 'Крон', now(), now()),
+                   ('ai', 'ИИ', now(), now()),
+                   ('admin', 'Администрирование', now(), now()),
+                   ('gmail', 'Gmail', now(), now());
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM krrg_setting_groups WHERE code IN ('general','folder','cron','ai','admin','gmail');
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 3. Новые nullable-колонки в krrg_settings -->
+    <changeSet id="002-003-add-group-and-type-columns" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_settings
+                ADD COLUMN group_id BIGINT,
+                ADD COLUMN setting_type VARCHAR(20);
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_settings DROP COLUMN group_id, DROP COLUMN setting_type;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 4. Заполнение setting_type / title / group_id по code -->
+    <changeSet id="002-004-fill-type-title-group-by-code" author="Oleg V. Kryuchin">
+        <sql>
+            UPDATE krrg_settings s
+            SET setting_type = m.setting_type,
+                title        = m.title,
+                group_id     = g.id
+                FROM (VALUES
+                ('first_message',         'STRING',  'Первое сообщение',                                   'general'),
+                ('term',                  'STRING',  'Шаблон поиска',                                       'general'),
+                ('folder',                'STRING',  'Название',                                            'folder'),
+                ('max_day',               'INTEGER', 'Число дней после последнего сообщения',               'general'),
+                ('ignore',                'STRING',  'Игнорируемый текст',                                   'general'),
+                ('python',                'STRING',  'Python URL',                                           'admin'),
+                ('send_delay',            'INTEGER', 'Пауза при отправке (в секундах)',                      'general'),
+                ('text_in_vacancy',       'STRING',  'Текст в вакансии',                                     'folder'),
+                ('cron_time',             'STRING',  'Запуск',                                               'cron'),
+                ('cron_lastmessage',      'STRING',  'Последнее сообщение',                                  'cron'),
+                ('cron_newmessage',       'STRING',  'Новое сообщение',                                      'cron'),
+                ('cron_lastrun',          'STRING',  'Последний запуск',                                     'cron'),
+                ('cron_enable',           'BOOLEAN', 'Включено',                                             'cron'),
+                ('ignore_if_not_found',   'BOOLEAN', 'Заносить в игнорируемые если не удалось найти',        'admin'),
+                ('cron_chats_count',      'INTEGER', 'Количество чатов',                                     'cron'),
+                ('folder_enable',         'BOOLEAN', 'Включено',                                             'folder'),
+                ('add_to_folder',         'BOOLEAN', 'Добавлять при отправке',                               'folder'),
+                ('ai_enable',             'BOOLEAN', 'Включено',                                             'ai'),
+                ('ai_api_key',            'STRING',  'API key',                                              'ai'),
+                ('ai_model',              'STRING',  'модель',                                               'ai'),
+                ('ai_vacancy_promt',      'STRING',  'Промт',                                                'ai'),
+                ('resume',                'STRING',  'Резюме',                                               'general'),
+                ('gmail_email',           'STRING',  'Email',                                                'gmail'),
+                ('gmail_refresh_token',   'STRING',  'Токен',                                                'gmail'),
+                ('gmail_subject',         'STRING',  'Заголовок',                                            'gmail')
+            ) AS m(code, setting_type, title, group_code)
+            JOIN krrg_setting_groups g ON g.code = m.group_code
+            WHERE s.code = m.code;
+        </sql>
+        <rollback>
+            <sql>
+                UPDATE krrg_settings SET setting_type = NULL, title = NULL, group_id = NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 4b. Устаревшее свойство tg_folder — удаляем, т.к. больше не используется -->
+    <changeSet id="002-004b-delete-obsolete-tg_folder" author="Oleg V. Kryuchin">
+        <sql>
+            DELETE FROM krrg_settings WHERE code = 'tg_folder';
+        </sql>
+        <rollback>
+            <!-- Удалённые данные не восстановить миграцией; при необходимости — из бэкапа. -->
+            <sql>SELECT 1;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 5. Таблица значений -->
+    <changeSet id="002-005-create-setting-values" author="Oleg V. Kryuchin">
+        <sql>
+            CREATE TABLE krrg_setting_values
+            (
+                id           BIGSERIAL PRIMARY KEY,
+                setting_id   BIGINT NOT NULL,
+                user_id      INTEGER,
+                bool_value   BOOLEAN,
+                int_value    INTEGER,
+                double_value DOUBLE PRECISION,
+                string_value TEXT,
+                created_at   TIMESTAMP,
+                updated_at   TIMESTAMP,
+                CONSTRAINT fk_setting_values_setting
+                    FOREIGN KEY (setting_id) REFERENCES krrg_settings (id) ON DELETE CASCADE,
+                CONSTRAINT uq_setting_values_setting_user
+                    UNIQUE (setting_id, user_id)
+            );
+        </sql>
+        <rollback>
+            <sql>DROP TABLE krrg_setting_values;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 6. Перенос существующих значений -->
+    <changeSet id="002-006-migrate-existing-values" author="Oleg V. Kryuchin">
+        <sql>
+            INSERT INTO krrg_setting_values (setting_id, user_id, bool_value, int_value, double_value, string_value,
+                                             created_at, updated_at)
+            SELECT s.id,
+                   s.user_id,
+                   CASE WHEN s.setting_type = 'BOOLEAN' THEN NULLIF(s.setting_value, '')::boolean ELSE NULL END,
+                   CASE WHEN s.setting_type = 'INTEGER' THEN COALESCE(NULLIF(s.setting_value, '')::integer, 0) ELSE NULL END,
+                   CASE WHEN s.setting_type = 'DOUBLE'  THEN NULLIF(s.setting_value, '')::double precision ELSE NULL END,
+                   CASE WHEN s.setting_type = 'STRING'  THEN s.setting_value ELSE NULL END,
+                   s.created_at,
+                   s.updated_at
+            FROM krrg_settings s
+            WHERE s.setting_value IS NOT NULL;
+        </sql>
+        <rollback>
+            <sql>DELETE FROM krrg_setting_values;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 7. NOT NULL после того, как все строки гарантированно заполнены -->
+    <changeSet id="002-007-set-not-null-constraints" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_settings
+                ALTER COLUMN setting_type SET NOT NULL,
+            ALTER COLUMN group_id SET NOT NULL,
+                ALTER COLUMN title SET NOT NULL;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_settings
+                ALTER COLUMN setting_type DROP NOT NULL,
+                ALTER COLUMN group_id DROP NOT NULL,
+                ALTER COLUMN title DROP NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 7b. Восстановление krrg_setting_groups (была случайно удалена вручную)
+         и пересчёт group_id в krrg_settings заново по code, без опоры на старые id -->
+    <changeSet id="002-007b-recreate-setting-groups" author="Oleg V. Kryuchin">
+        <sql>
+            CREATE TABLE krrg_setting_groups
+            (
+                id         BIGSERIAL PRIMARY KEY,
+                code       VARCHAR(255) NOT NULL UNIQUE,
+                name       VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP
+            );
+
+            INSERT INTO krrg_setting_groups (code, name, created_at, updated_at)
+            VALUES ('general', 'Общее', now(), now()),
+                   ('folder', 'Папка HR', now(), now()),
+                   ('cron', 'Крон', now(), now()),
+                   ('ai', 'ИИ', now(), now()),
+                   ('admin', 'Администрирование', now(), now()),
+                   ('gmail', 'Gmail', now(), now());
+
+            UPDATE krrg_settings s
+            SET group_id = g.id
+                FROM (VALUES
+                ('first_message',       'general'),
+                ('term',                'general'),
+                ('folder',              'folder'),
+                ('max_day',             'general'),
+                ('ignore',              'general'),
+                ('python',              'admin'),
+                ('send_delay',          'general'),
+                ('text_in_vacancy',     'folder'),
+                ('cron_time',           'cron'),
+                ('cron_lastmessage',    'cron'),
+                ('cron_newmessage',     'cron'),
+                ('cron_lastrun',        'cron'),
+                ('cron_enable',         'cron'),
+                ('ignore_if_not_found', 'admin'),
+                ('cron_chats_count',    'cron'),
+                ('folder_enable',       'folder'),
+                ('add_to_folder',       'folder'),
+                ('ai_enable',           'ai'),
+                ('ai_api_key',          'ai'),
+                ('ai_model',            'ai'),
+                ('ai_vacancy_promt',    'ai'),
+                ('resume',              'general'),
+                ('gmail_email',         'gmail'),
+                ('gmail_refresh_token', 'gmail'),
+                ('gmail_subject',       'gmail')
+            ) AS m(code, group_code)
+            JOIN krrg_setting_groups g ON g.code = m.group_code
+            WHERE s.code = m.code;
+        </sql>
+        <rollback>
+            <sql>DROP TABLE krrg_setting_groups;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 8. FK на группу -->
+    <changeSet id="002-008-add-group-fk" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_settings
+                ADD CONSTRAINT fk_settings_group
+                    FOREIGN KEY (group_id) REFERENCES krrg_setting_groups (id);
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE krrg_settings DROP CONSTRAINT fk_settings_group;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 9. Удаление старых колонок -->
+    <changeSet id="002-009-drop-old-columns" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_settings
+            DROP COLUMN setting_value,
+                DROP COLUMN user_id;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_settings ADD COLUMN setting_value TEXT, ADD COLUMN user_id INTEGER;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

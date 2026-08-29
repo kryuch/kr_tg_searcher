@@ -23,9 +23,9 @@ public class AiGatewayService implements Serializable {
 
 
     public void init() {
-        apiKey = settingService.getValueByCode(SettingConfig.AI_API_KEY_SETTING_CODE);
-        model = settingService.getValueByCode(SettingConfig.AI_MODEL_SETTING_CODE);
-        resume = resumeService.getResume();
+      //  apiKey = settingService.getValueByCode(SettingConfig.AI_API_KEY_SETTING_CODE);
+  //      model = settingService.getValueByCode(SettingConfig.AI_MODEL_SETTING_CODE);
+   //     resume = resumeService.getResume();
     }
 
     public String createMessage(String vacancyText) {

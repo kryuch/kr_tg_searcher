@@ -10,6 +10,34 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: krrg
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: "https://professor-lined-provided-rangers.trycloudflare.com/login/oauth2/code/google"
+            client-id:  325605549031-9orntk5t3vimulmrk58iherus5d6m490.apps.googleusercontent.com
+            client-secret:  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
+            scope:
+              - openid
+              - email
+              - profile
+              - https://www.googleapis.com/auth/gmail.send
+            access-type: offline
+            prompt: consent
+
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+
   liquibase:
     enabled: false  # Отключаем автоконфигурацию!
 
@@ -50,3 +78,7 @@ spring:
       api-key: dummy-key  # Временно, чтобы не падало при старте
       chat:
         enabled: false    # <-- ОТКЛЮЧАЕМ автоконфигурацию
+
+app:
+  file-storage:
+    path: /var/lib/krrg/files
