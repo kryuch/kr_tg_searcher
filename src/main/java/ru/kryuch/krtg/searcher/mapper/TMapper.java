@@ -1,10 +1,6 @@
 package ru.kryuch.krtg.searcher.mapper;
 
 import org.mapstruct.MappingTarget;
-import ru.kryuch.krtg.searcher.dto.IgnoreInfo;
-import ru.kryuch.krtg.searcher.dto.Setting;
-import ru.kryuch.krtg.searcher.entity.IgnoreEntity;
-import ru.kryuch.krtg.searcher.entity.SettingEntity;
 
 import java.util.Collection;
 import java.util.List;

@@ -10,7 +10,6 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.UserFileDto;
 import ru.kryuch.krtg.searcher.entity.TgAccountEntity;
 import ru.kryuch.krtg.searcher.entity.UserFileEntity;
-import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
 
 import java.time.LocalDateTime;
 

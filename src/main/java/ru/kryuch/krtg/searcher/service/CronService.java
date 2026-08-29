@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CronService {
-
+/*
     private final SettingAccessService settingAccessService;
     private final ChatService chatService;
     private final AuthHelper authHelper;
@@ -160,5 +160,5 @@ public class CronService {
         );
 
         log.info("Сообщение отправлено в " + chatResponses.stream().map(ChatResponse::getName).collect(Collectors.joining(", ")));
-    }
+    }*/
 }

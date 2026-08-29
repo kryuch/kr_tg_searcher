@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="003-000-fix-krrg-settings-id-auto-increment" author="Oleg V. Kryuchin">
+        <sql>
+            CREATE SEQUENCE IF NOT EXISTS krrg_settings_id_seq;
+            ALTER TABLE krrg_settings ALTER COLUMN id SET DEFAULT nextval('krrg_settings_id_seq');
+            SELECT setval('krrg_settings_id_seq', COALESCE((SELECT MAX(id) FROM krrg_settings), 0));
+        </sql>
+    </changeSet>
+
+    <!-- 1. sort_order для krrg_settings: всем по умолчанию 3 -->
+    <changeSet id="003-001-add-sort-order-to-settings" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_settings
+                ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 3;
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE krrg_settings DROP COLUMN sort_order;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 2. sort_order для krrg_setting_groups: по умолчанию 0, затем проставим точные значения -->
+    <changeSet id="003-002-add-sort-order-to-groups" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_setting_groups
+                ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE krrg_setting_groups DROP COLUMN sort_order;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 3. Точные значения sort_order для существующих групп -->
+    <changeSet id="003-003-set-groups-sort-order" author="Oleg V. Kryuchin">
+        <sql>
+            UPDATE krrg_setting_groups SET sort_order = 1 WHERE code = 'general';
+            UPDATE krrg_setting_groups SET sort_order = 2 WHERE code = 'cron';
+            UPDATE krrg_setting_groups SET sort_order = 3 WHERE code = 'folder';
+            UPDATE krrg_setting_groups SET sort_order = 4 WHERE code = 'ai';
+            UPDATE krrg_setting_groups SET sort_order = 5 WHERE code = 'gmail';
+            UPDATE krrg_setting_groups SET sort_order = 9 WHERE code = 'admin';
+        </sql>
+        <rollback>
+            <sql>UPDATE krrg_setting_groups SET sort_order = 0;</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 4. Переключатели групп (ai_enable/cron_enable/folder_enable) поднимаем наверх своих вкладок -->
+    <changeSet id="003-004-boost-enable-settings-sort-order" author="Oleg V. Kryuchin">
+        <sql>
+            UPDATE krrg_settings SET sort_order = 1
+            WHERE code IN ('ai_enable', 'cron_enable', 'folder_enable');
+        </sql>
+        <rollback>
+            <sql>
+                UPDATE krrg_settings SET sort_order = 3
+                WHERE code IN ('ai_enable', 'cron_enable', 'folder_enable');
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 5. Новая группа hh -->
+    <changeSet id="003-005-insert-hh-group" author="Oleg V. Kryuchin">
+        <sql>
+            INSERT INTO krrg_setting_groups (code, name, sort_order, created_at, updated_at)
+            VALUES ('hh', 'HH', 6, now(), now());
+        </sql>
+        <rollback>
+            <sql>DELETE FROM krrg_setting_groups WHERE code = 'hh';</sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 6. Настройки группы hh -->
+    <changeSet id="003-006-insert-hh-settings" author="Oleg V. Kryuchin">
+        <sql>
+            INSERT INTO krrg_settings (code, title, setting_type, sort_order, group_id, created_at, updated_at)
+            SELECT v.code, v.title, v.setting_type, v.sort_order, g.id, now(), now()
+            FROM (VALUES
+                      ('hh_enabled', 'Включено', 'BOOLEAN', 1),
+                      ('hh_pause', 'Пауза между откликами (сек)', 'INTEGER', 2),
+                      ('hh_letter', 'Сопроводительное письмо', 'STRING', 3),
+                      ('hh_log', 'Логируем действия', 'BOOLEAN', 4)
+                 ) AS v(code, title, setting_type, sort_order)
+                     JOIN krrg_setting_groups g ON g.code = 'hh';
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM krrg_settings
+                WHERE code IN ('hh_enabled', 'hh_pause', 'hh_letter', 'hh_log');
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

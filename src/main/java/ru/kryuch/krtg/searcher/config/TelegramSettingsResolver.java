@@ -17,6 +17,7 @@ public class TelegramSettingsResolver {
     private static final String SEND_DELAY_CODE = "send_delay";
 
     public String getBaseUrl() {
+        return "http://localhost:8081";/*
         try {
             var setting = settingService.getByCode(PYTHON_URL_CODE);
             if (setting == null || setting.getValue() == null) {
@@ -31,7 +32,7 @@ public class TelegramSettingsResolver {
         } catch (Exception e) {
             log.error("Ошибка получения URL Python сервера", e);
             throw new IllegalStateException("Ошибка получения URL Python сервера", e);
-        }
+        }*/
     }
 
     public int getSendDelay() {

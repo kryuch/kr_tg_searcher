@@ -2,14 +2,16 @@ package ru.kryuch.krtg.searcher.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-@Data
+@Getter
+@Setter
 @MappedSuperclass
-public class BasedAccessEntity {
+public class BasedAccessEntity extends TimestampedEntity {
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     protected Integer userId;
+
 }

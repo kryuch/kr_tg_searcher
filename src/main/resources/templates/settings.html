@@ -3,67 +3,43 @@
           class="edit-form form-horizontal" method="post">
         <div id="tabs">
             <ul>
-                <li><a href="#tabs-cron">Крон</a></li>
-                <li><a href="#tabs-folder">Папка</a></li>
-                <li><a href="#tabs-email">Почта</a></li>
-                <li><a href="#tabs-ai">ИИ</a></li>
-                <li><a href="#tabs-resume">Резюме</a></li>
-                <li><a href="#tabs-other">Прочее</a></li>
+                <li th:each="group : ${groups}">
+                    <a th:href="'#tabs-' + ${group.code}" th:text="${group.title}">Группа</a>
+                </li>
             </ul>
 
-            <!-- Вкладки Крон и Папка в цикле -->
-            <th:block th:each="entry : ${views}">
-                <div th:id="${entry.key}">
-                    <table class="list">
-                        <thead>
-                        <tr id="header">
-                            <th class="table-alias">Параметр</th>
-                            <th id="rate" class="table-description">Значение</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <th:block th:each="view : ${entry.value}">
-                            <tr>
-                                <td class="settingcode"><span th:text="${view.title}">Заголовок</span></td>
-                                <td th:id="${view.code}">
-                                    <input th:if="${view.isCheckbox}"
-                                           type="checkbox"
-                                           th:id="${view.code} + '_value'"/>
-                                    <span th:unless="${view.isCheckbox}">
-                                            <!-- Здесь будет значение из items.settings -->
-                                        </span>
-                                </td>
-                            </tr>
-                        </th:block>
-                        </tbody>
-                    </table>
-                </div>
-            </th:block>
-
-            <!-- Вкладка Прочее (отдельно, как было) -->
-            <div id="tabs-other">
+            <div th:each="group : ${groups}" th:id="'tabs-' + ${group.code}">
                 <table class="list">
                     <thead>
-                    <tr id="header">
+                    <tr>
                         <th class="table-alias">Параметр</th>
-                        <th id="rate" class="table-description">Значение</th>
+                        <th class="table-description">Значение</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:if="${items.settings.empty}">
-                        <td colspan="2">Тут пусто</td>
+                    <tr th:each="idx : ${items.groupedIndices[group.code]}"
+                        th:class="${items.settings[idx].code == group.code + '_enable'} ? 'settings-master-row' : ''">
+                        <td class="settingcode" th:text="*{settings[__${idx}__].title}">Заголовок</td>
+                        <td>
+                            <input type="hidden" th:field="*{settings[__${idx}__].code}"/>
+
+                            <input type="checkbox"
+                                   th:if="*{settings[__${idx}__].type.name()} == 'BOOLEAN'"
+                                   th:field="*{settings[__${idx}__].boolValue}"/>
+
+                            <input type="number" step="1"
+                                   th:if="*{settings[__${idx}__].type.name()} == 'INTEGER'"
+                                   th:field="*{settings[__${idx}__].intValue}"/>
+
+                            <input type="number" step="any"
+                                   th:if="*{settings[__${idx}__].type.name()} == 'DOUBLE'"
+                                   th:field="*{settings[__${idx}__].doubleValue}"/>
+
+                            <input type="text"
+                                   th:if="*{settings[__${idx}__].type.name()} == 'STRING'"
+                                   th:field="*{settings[__${idx}__].stringValue}"/>
+                        </td>
                     </tr>
-                    <th:block th:each="item, iter : *{settings}">
-                        <tr id="setting">
-                            <td id="code">
-                                <input th:field="*{settings[__${iter.index}__].code}" readonly="readonly"/>
-                            </td>
-                            <td id="value">
-                                <input th:field="*{settings[__${iter.index}__].value}"
-                                       th:data="*{settings[__${iter.index}__].code}"/>
-                            </td>
-                        </tr>
-                    </th:block>
                     </tbody>
                 </table>
             </div>
@@ -73,120 +49,38 @@
 
         <script>
             jQuery(function () {
-                // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+                jQuery("#tabs").tabs();
 
-                /**
-                 * Обновляет состояние полей на вкладке
-                 */
-                function updateTabFieldsState(tabId, checkboxId, dataField) {
-                    var isEnabled = jQuery(checkboxId).prop("checked");
-                    var rows = jQuery(tabId + " tbody tr");
+                function updateGroupState($table) {
+                    var $masterCheckbox = $table.find("tr.settings-master-row input[type=checkbox]");
+                    if ($masterCheckbox.length === 0) {
+                        return;
+                    }
+                    var enabled = $masterCheckbox.prop("checked");
 
-                    rows.each(function () {
+                    $table.find("tbody tr").each(function () {
                         var $row = jQuery(this);
-                        var hasCheckbox = $row.find(checkboxId).length > 0;
 
-                        if (hasCheckbox) {
+                        if ($row.hasClass("settings-master-row")) {
+                            return;
+                        }
+                        // readonly не блокирует чекбоксы в браузерах — такие строки не трогаем
+                        if ($row.find("input[type=checkbox]").length > 0) {
                             return;
                         }
 
-                        if (isEnabled) {
-                            $row.css("opacity", "1");
-                            $row.find("input, textarea").prop("readonly", false).prop("disabled", false);
-                            $row.find("select, button").prop("disabled", false);
-                            $row.css("cursor", "default");
-                            $row.find("input, textarea").css("background-color", "");
-                            $row.find("input, textarea").css("color", "");
-                        } else {
-                            $row.css("opacity", "0.5");
-                            $row.find("input, textarea").prop("readonly", true).prop("disabled", false);
-                            $row.find("select, button").prop("disabled", true);
-                            $row.css("cursor", "not-allowed");
-                            $row.find("input, textarea").css("background-color", "#e9ecef");
-                            $row.find("input, textarea").css("color", "#6c757d");
-                        }
-                    });
-                }
-                /**
-                 * Инициализирует поведение вкладки с чекбоксом-переключателем
-                 */
-                function initTabWithToggle(tabId, checkboxId, dataField) {
-                    updateTabFieldsState(tabId, checkboxId, dataField);
-
-                    jQuery(checkboxId).on("change", function () {
-                        jQuery("input[data=" + dataField + "]").val(jQuery(checkboxId).prop("checked") ? "1" : "0");
-                        updateTabFieldsState(tabId, checkboxId, dataField);
+                        $row.css("opacity", enabled ? "1" : "0.5");
+                        $row.find("input, textarea").prop("readonly", !enabled);
                     });
                 }
 
-                // === ИНИЦИАЛИЗАЦИЯ ВКЛАДОК ===
-
-                // 1. Обработка полей с переносом значения в td
-                jQuery.each([
-                    "cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder",
-                    "gmail_email", "gmail_subject", "gmail_refresh_token",
-                    "ai_model", "ai_api_key", "ai_vacancy_promt"
-                ], function (index, field) {
-                    var input = jQuery("input[data=" + field + "]");
-                    var td = input.parent();
-                    jQuery("td#" + field).html(td.html());
-                    td.parent().hide();
-                    td.remove();
-                })
-
-                // 2. Обработка полей с отображением значения как текст
-                jQuery.each(["term", "max_day", "cron_lastrun"], function (index, field) {
-                    var value = jQuery("input[data=" + field + "]").val();
-                    jQuery("td#" + field).html(value);
-                })
-
-                // 3. Скрытие служебных строк
-                jQuery.each(["cron_lastrun", "cron_enable", "folder_enable", "add_to_folder", "ai_enable"], function (index, field) {
-                    jQuery("input[data=" + field + "]").parents("tr").hide();
-                })
-
-                // 4. Инициализация jQuery UI Tabs
-                jQuery("#tabs").tabs();
-
-                // 5. Установка начальных состояний чекбоксов
-                jQuery.each(["cron_enable", "folder_enable", "add_to_folder", "ai_enable"], function (index, field) {
-                    jQuery("#" + field + "_value").prop("checked", Number(jQuery("input[data=" + field + "]").val()) == 1);
-
-                    jQuery("#" + field + "_value").on("click", function () {
-                        jQuery("input[data=" + field + "]").val((jQuery("#" + field + "_value").prop("checked")) ? "1" : "0");
+                jQuery(".list").each(function () {
+                    var $table = jQuery(this);
+                    updateGroupState($table);
+                    $table.find("tr.settings-master-row input[type=checkbox]").on("change", function () {
+                        updateGroupState($table);
                     });
-                })
-
-                // === ВКЛАДКА РЕЗЮМЕ ===
-                var resumeInput = jQuery("input[data=resume]");
-                var resumeTd = jQuery("td#resume");
-
-                if (resumeInput.length && resumeTd.length) {
-                    var resumeValue = resumeInput.val() || "";
-                    var textarea = jQuery('<textarea id="resume_textarea" rows="10" cols="50" style="width: 100%;">' + resumeValue + '</textarea>');
-                    resumeTd.html(textarea);
-                    resumeInput.parents("tr").hide();
-                }
-
-                var saveButton = jQuery(".save");
-                var resumeTextarea = jQuery("#resume_textarea");
-
-                saveButton.on("click", function () {
-                    if (resumeTextarea.length && resumeInput.length) {
-                        resumeInput.val(resumeTextarea.val());
-                    }
                 });
-
-                resumeTextarea.on("change keyup input", function () {
-                    if (resumeInput.length) {
-                        resumeInput.val(resumeTextarea.val());
-                    }
-                });
-
-                // === ИНИЦИАЛИЗАЦИЯ ВКЛАДОК С ПЕРЕКЛЮЧАТЕЛЯМИ ===
-                initTabWithToggle("#tabs-cron", "#cron_enable_value", "cron_enable");
-                initTabWithToggle("#tabs-ai", "#ai_enable_value", "ai_enable");
-                initTabWithToggle("#tabs-folder", "#folder_enable_value", "folder_enable");
             });
         </script>
     </form>

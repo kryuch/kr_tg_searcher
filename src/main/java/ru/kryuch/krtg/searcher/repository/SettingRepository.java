@@ -1,15 +1,22 @@
 package ru.kryuch.krtg.searcher.repository;
 
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.CrudRepository;
 import ru.kryuch.krtg.searcher.entity.SettingEntity;
+import ru.kryuch.krtg.searcher.entity.setting.SettingGroupEntity;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface SettingRepository extends BaseAccessRepository<SettingEntity, Long> {
 
-    List<SettingEntity> findByCode(String code);
-    List<SettingEntity> findByCodeAndUserId(String code, Integer userId);
+public interface SettingRepository extends CrudRepository<SettingEntity, Long> {
 
-    @Query("SELECT t.userId FROM SettingEntity t where code = :code and value = :value")
-    List<Integer> findUserIdByCodeAndValue(String code, String value);
+    default List<SettingEntity> findAll() {
+        return findAll(Sort.by(Sort.Direction.ASC, "sortOrder"));
+    }
+
+    List<SettingEntity> findAll(Sort sort);
+
+    Optional<SettingEntity> findByCode(String code);
 }
+
