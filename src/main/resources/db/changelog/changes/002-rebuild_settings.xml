@@ -201,6 +201,13 @@
     <!-- 7b. Восстановление krrg_setting_groups (была случайно удалена вручную)
          и пересчёт group_id в krrg_settings заново по code, без опоры на старые id -->
     <changeSet id="002-007b-recreate-setting-groups" author="Oleg V. Kryuchin">
+        <!-- 1. Создаем таблицу если её нет -->
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="krrg_setting_groups"/>
+            </not>
+        </preConditions>
+
         <sql>
             CREATE TABLE krrg_setting_groups
             (
@@ -210,47 +217,55 @@
                 created_at TIMESTAMP,
                 updated_at TIMESTAMP
             );
+        </sql>
 
+        <!-- 2. Вставляем группы, если их нет (ON CONFLICT DO NOTHING) -->
+        <sql>
             INSERT INTO krrg_setting_groups (code, name, created_at, updated_at)
             VALUES ('general', 'Общее', now(), now()),
                    ('folder', 'Папка HR', now(), now()),
                    ('cron', 'Крон', now(), now()),
                    ('ai', 'ИИ', now(), now()),
                    ('admin', 'Администрирование', now(), now()),
-                   ('gmail', 'Gmail', now(), now());
+                   ('gmail', 'Gmail', now(), now())
+                ON CONFLICT (code) DO NOTHING;
+        </sql>
 
+        <!-- 3. Обновляем group_id, только если он еще не установлен -->
+        <sql>
             UPDATE krrg_settings s
             SET group_id = g.id
                 FROM (VALUES
-                ('first_message',       'general'),
-                ('term',                'general'),
-                ('folder',              'folder'),
-                ('max_day',             'general'),
-                ('ignore',              'general'),
-                ('python',              'admin'),
-                ('send_delay',          'general'),
-                ('text_in_vacancy',     'folder'),
-                ('cron_time',           'cron'),
-                ('cron_lastmessage',    'cron'),
-                ('cron_newmessage',     'cron'),
-                ('cron_lastrun',        'cron'),
-                ('cron_enable',         'cron'),
-                ('ignore_if_not_found', 'admin'),
-                ('cron_chats_count',    'cron'),
-                ('folder_enable',       'folder'),
-                ('add_to_folder',       'folder'),
-                ('ai_enable',           'ai'),
-                ('ai_api_key',          'ai'),
-                ('ai_model',            'ai'),
-                ('ai_vacancy_promt',    'ai'),
-                ('resume',              'general'),
-                ('gmail_email',         'gmail'),
-                ('gmail_refresh_token', 'gmail'),
-                ('gmail_subject',       'gmail')
-            ) AS m(code, group_code)
-            JOIN krrg_setting_groups g ON g.code = m.group_code
-            WHERE s.code = m.code;
+            ('first_message',       'general'),
+            ('term',                'general'),
+            ('folder',              'folder'),
+            ('max_day',             'general'),
+            ('ignore',              'general'),
+            ('python',              'admin'),
+            ('send_delay',          'general'),
+            ('text_in_vacancy',     'folder'),
+            ('cron_time',           'cron'),
+            ('cron_lastmessage',    'cron'),
+            ('cron_newmessage',     'cron'),
+            ('cron_lastrun',        'cron'),
+            ('cron_enable',         'cron'),
+            ('ignore_if_not_found', 'admin'),
+            ('cron_chats_count',    'cron'),
+            ('folder_enable',       'folder'),
+            ('add_to_folder',       'folder'),
+            ('ai_enable',           'ai'),
+            ('ai_api_key',          'ai'),
+            ('ai_model',            'ai'),
+            ('ai_vacancy_promt',    'ai'),
+            ('resume',              'general'),
+            ('gmail_email',         'gmail'),
+            ('gmail_refresh_token', 'gmail'),
+            ('gmail_subject',       'gmail')
+        ) AS m(code, group_code)
+        JOIN krrg_setting_groups g ON g.code = m.group_code
+            WHERE s.code = m.code AND s.group_id IS NULL;
         </sql>
+
         <rollback>
             <sql>DROP TABLE krrg_setting_groups;</sql>
         </rollback>
