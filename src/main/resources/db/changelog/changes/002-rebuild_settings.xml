@@ -121,6 +121,19 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="002-004c-add-createdattosetting" author="Oleg V. Kryuchin">
+        <sql>
+            ALTER TABLE krrg_settings ADD COLUMN created_at TIMESTAMP;
+            ALTER TABLE krrg_settings ADD COLUMN updated_at TIMESTAMP;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_settings DROP COLUMN created_at;
+                ALTER TABLE krrg_settings DROP COLUMN updated_at;
+            </sql>
+        </rollback>
+    </changeSet>
+
     <!-- 5. Таблица значений -->
     <changeSet id="002-005-create-setting-values" author="Oleg V. Kryuchin">
         <sql>
