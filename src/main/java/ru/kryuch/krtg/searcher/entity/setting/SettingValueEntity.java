@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,15 @@ import ru.kryuch.krtg.searcher.entity.BasedAccessEntity;
 import ru.kryuch.krtg.searcher.entity.SettingEntity;
 
 @Entity
-@Table(name = "krrg_setting_values")
+@Table(
+        name = "krrg_setting_values",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_setting_value_user_setting",
+                        columnNames = {"user_id", "setting_id"}
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,7 +35,7 @@ import ru.kryuch.krtg.searcher.entity.SettingEntity;
 public class SettingValueEntity extends BasedAccessEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -45,4 +54,9 @@ public class SettingValueEntity extends BasedAccessEntity {
 
     @Column(name = "string_value")
     private String stringValue;
+
+    public SettingValueEntity(SettingEntity setting, Integer userId) {
+        setSetting(setting);
+        setUserId(userId);
+    }
 }

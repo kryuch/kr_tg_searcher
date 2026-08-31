@@ -1,37 +1,44 @@
-package ru.kryuch.krtg.searcher.service;
+package ru.kryuch.krtg.searcher.service.setting;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.config.SettingConfig;
-import ru.kryuch.krtg.searcher.dto.Setting;
+import ru.kryuch.krtg.searcher.dto.SettingDto;
 import ru.kryuch.krtg.searcher.entity.SettingEntity;
 import ru.kryuch.krtg.searcher.entity.setting.SettingValueEntity;
 import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 import ru.kryuch.krtg.searcher.repository.setting.SettingValueRepository;
+import ru.kryuch.krtg.searcher.service.AbstractAccessService;
+import ru.kryuch.krtg.searcher.service.setting.SettingValueConverter;
 import ru.kryuch.krtg.searcher.type.SettingType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class SettingAccessService extends AbstractAccessService<Long, SettingValueEntity, Setting, SettingMapper, SettingValueRepository> {
+public class SettingAccessService extends AbstractAccessService<Long, SettingValueEntity, SettingDto, SettingMapper, SettingValueRepository> {
 
     private final SettingRepository settingRepository;
+    private final SettingValueConverter settingValueConverter;
 
     public SettingAccessService(SettingValueRepository settingValueRepository,
+                                SettingMapper settingMapper,
                                 SettingRepository settingRepository,
-                                SettingMapper settingMapper) {
+                                SettingValueConverter settingValueConverter) {
         super(settingValueRepository, settingMapper, "настройки");
         this.settingRepository = settingRepository;
+        this.settingValueConverter = settingValueConverter;
     }
 
 
-    public List<Setting> getAll() {
-        List <SettingValueEntity> settingValues = repository.findAllByUserId(getCurrentUserId());
+    public List<SettingDto> getAll() {
+        Integer userId = getCurrentUserId();
+        List <SettingValueEntity> settingValues = repository.findAllByUserId(userId);
         List <SettingEntity> settings = settingRepository.findAll();
 
         Set<Long> existingIds = settingValues.stream()
@@ -40,10 +47,7 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
 
         for (SettingEntity setting : settings) {
             if (!existingIds.contains(setting.getId())) {
-                SettingValueEntity empty = new SettingValueEntity();
-                empty.setSetting(setting);
-                empty.setUserId(getCurrentUserId());
-                settingValues.add(empty);
+                settingValues.add(new SettingValueEntity(setting, userId));
             }
         }
 
@@ -51,7 +55,7 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
     }
 
     @Override
-    public void add(Setting dto) {
+    public void add(SettingDto dto) {
         SettingValueEntity entity = mapper.toEntity(dto);
         entity.setSetting(resolveSettingDefinition(dto.getCode()));
         entity.setUserId(getCurrentUserId());
@@ -59,7 +63,7 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
     }
 
     @Override
-    public void update(Setting dto, Long id) {
+    public void update(SettingDto dto, Long id) {
         SettingValueEntity entity = repository.findByIdAndUserId(id, getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(
                         String.format("Не существует сущности <<настройки>> с id=%s", id)
@@ -69,15 +73,22 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
     }
 
     @Transactional
-    public void save(Setting setting) {
+    public boolean save(SettingDto setting) {
         Integer userId = getCurrentUserId();
+        SettingEntity definition = resolveSettingDefinition(setting.getCode());
         SettingValueEntity entity = repository.findBySettingCodeAndUserId(setting.getCode(), userId)
-                .orElseGet(() -> newValueEntity(setting.getCode(), userId));
-        mapper.mergeToEntity(setting, entity);
-        repository.save(entity);
+                .orElseGet(() -> newValueEntity(definition, userId));
+
+        boolean changed = valueChanged(entity, definition.getType(), setting);
+        if (changed) {
+            applyTypedValue(entity, definition.getType(), setting);
+            repository.save(entity);
+        }
+        return changed;
     }
 
-    public Setting getByCode(String code) {
+
+    public SettingDto getByCode(String code) {
         return mapper.fromEntity(
                 repository.findBySettingCodeAndUserId(code, getCurrentUserId()).orElse(null)
         );
@@ -92,21 +103,9 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
     public void setValueByCode(String code, String value, Integer userId) {
         SettingEntity settingDefinition = resolveSettingDefinition(code);
         SettingValueEntity entity = repository.findBySettingCodeAndUserId(code, userId)
-                .orElseGet(() -> {
-                    SettingValueEntity newEntity = new SettingValueEntity();
-                    newEntity.setSetting(settingDefinition);
-                    newEntity.setUserId(userId);
-                    return newEntity;
-                });
-        applyRawValue(entity, settingDefinition.getType(), value);
+                .orElseGet(() -> new SettingValueEntity(settingDefinition, userId));
+        settingValueConverter.apply(entity, settingDefinition.getType(), value);
         repository.save(entity);
-    }
-
-    @Transactional
-    public void setFirstValueByCode(String code, String value) {
-        if (repository.findBySettingCodeAndUserId(code, getCurrentUserId()).isEmpty()) {
-            setValueByCode(code, value);
-        }
     }
 
     public Map<Integer, String> findAllCronEnabled() {
@@ -140,25 +139,31 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
                 .orElseThrow(() -> new BusinessException("Неизвестный код настройки: " + code));
     }
 
-    private SettingValueEntity newValueEntity(String code, Integer userId) {
+    private SettingValueEntity newValueEntity(SettingEntity definition, Integer userId) {
         SettingValueEntity entity = new SettingValueEntity();
-        entity.setSetting(resolveSettingDefinition(code));
+        entity.setSetting(definition);
         entity.setUserId(userId);
         return entity;
     }
 
-    private void applyRawValue(SettingValueEntity entity, SettingType type, String value) {
-        try {
-            switch (type) {
-                case BOOLEAN -> entity.setBoolValue(value == null ? null : Boolean.valueOf(value));
-                case INTEGER -> entity.setIntValue(value == null ? null : Integer.valueOf(value));
-                case DOUBLE -> entity.setDoubleValue(value == null ? null : Double.valueOf(value));
-                case STRING -> entity.setStringValue(value);
-            }
-        } catch (NumberFormatException e) {
-            throw new BusinessException(
-                    String.format("Значение \"%s\" не соответствует типу настройки %s", value, type)
-            );
+
+    private boolean valueChanged(SettingValueEntity entity, SettingType type, SettingDto dto) {
+        return switch (type) {
+            case BOOLEAN -> !Objects.equals(entity.getBoolValue(), dto.getBoolValue());
+            case INTEGER -> !Objects.equals(entity.getIntValue(), dto.getIntValue());
+            case DOUBLE -> !Objects.equals(entity.getDoubleValue(), dto.getDoubleValue());
+            case STRING -> !Objects.equals(entity.getStringValue(), dto.getStringValue());
+        };
+    }
+
+    private void applyTypedValue(SettingValueEntity entity, SettingType type, SettingDto dto) {
+        switch (type) {
+            case BOOLEAN -> entity.setBoolValue(dto.getBoolValue());
+            case INTEGER -> entity.setIntValue(dto.getIntValue());
+            case DOUBLE -> entity.setDoubleValue(dto.getDoubleValue());
+            case STRING -> entity.setStringValue(dto.getStringValue());
         }
     }
+
+
 }

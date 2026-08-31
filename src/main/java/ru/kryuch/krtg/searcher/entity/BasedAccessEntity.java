@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
@@ -12,6 +11,6 @@ import lombok.experimental.SuperBuilder;
 public class BasedAccessEntity extends TimestampedEntity {
 
     @Column(name = "user_id", nullable = false)
-    protected Integer userId;
+    private Integer userId;
 
 }

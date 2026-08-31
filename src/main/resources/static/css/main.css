@@ -1151,3 +1151,20 @@ form.synchr button.save {
 .owners .tgvalue[ownertype="PHONE"] {
     color: #6b9215;
 }
+
+.icontent textarea {
+    width: 90%;
+    background: #f6f6f6;
+}
+
+.icontent input[type=text] {
+    width: 90%;
+    background: #f6f6f6;
+}
+
+.settingform button.save{
+    width: 128px;
+    height: 32px;
+    margin-top: 16px;
+    margin-left: 16px;
+}
