@@ -75,13 +75,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                .oauth2Login(oauth -> oauth
+           /*     .oauth2Login(oauth -> oauth
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestResolver(authorizationRequestResolver())
                         )
                         .defaultSuccessUrl("/settings/gmail/connected", true)
                 )
-
+*/
                 .formLogin(form -> form
                         .loginPage("/login/")
                         .loginProcessingUrl("/login/")
@@ -114,7 +114,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
+  /*  @Bean
     public OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
         DefaultOAuth2AuthorizationRequestResolver resolver =
                 new DefaultOAuth2AuthorizationRequestResolver(
@@ -130,7 +130,7 @@ public class SecurityConfig {
         );
 
         return resolver;
-    }
+    }*/
 
     @Bean
     public PasswordEncoder passwordEncoder() {
