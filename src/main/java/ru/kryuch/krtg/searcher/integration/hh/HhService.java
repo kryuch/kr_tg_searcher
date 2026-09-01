@@ -3,6 +3,7 @@ package ru.kryuch.krtg.searcher.integration.hh;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyQuestionAnswerEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyQuestionAnswerOptionEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyQuestionEntity;
@@ -12,6 +13,7 @@ import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsRequest;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsRequestItem;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsResponse;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsResponseItem;
+import ru.kryuch.krtg.searcher.integration.hh.dto.VacancyResponseRequest;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyQuestionAnswerRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyQuestionRepository;
 import ru.kryuch.krtg.searcher.service.SettingService;
@@ -34,6 +36,10 @@ public class HhService {
 
     public HhSettingsDto getSettings() {
         return new HhSettingsDto(settingService.getByCode("hh_pause").getIntValue(), settingService.getByCode("hh_letter").getStringValue());
+    }
+
+    public Long vacancyResponse(VacancyResponseRequest vacancyResponseRequest) {
+        return hhService.getQuestionsAnswers(questionsRequest);
     }
 
     @Transactional

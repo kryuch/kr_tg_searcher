@@ -3,7 +3,7 @@ package ru.kryuch.krtg.searcher.service.vacancy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kryuch.krtg.searcher.dto.vacancy.ExtensionTaskCompleteRequest;
+import ru.kryuch.krtg.searcher.mapper.vacancy.VacancyResponseMapper;
 import ru.kryuch.krtg.searcher.dto.vacancy.ExtensionTaskResponse;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
@@ -36,7 +36,7 @@ public class ExtensionTaskService {
     @Transactional
     public void completeTask(
             Long taskId,
-            ExtensionTaskCompleteRequest request
+            VacancyResponseMapper request
     ) {
 
         VacancyOwnerOrganisationEntity task = taskRepository.findById(taskId)
