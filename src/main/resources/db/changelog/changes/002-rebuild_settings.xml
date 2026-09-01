@@ -55,6 +55,11 @@
     </changeSet>
 
     <changeSet id="002-003b-add-group-and-type-columns" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="krrg_settings" columnName="title"/>
+            </not>
+        </preConditions>
         <sql>
             ALTER TABLE krrg_settings
                 ADD COLUMN title varchar(1024);
@@ -122,6 +127,11 @@
     </changeSet>
 
     <changeSet id="002-004c-add-createdattosetting" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="krrg_settings" columnName="created_at"/>
+            </not>
+        </preConditions>
         <sql>
             ALTER TABLE krrg_settings ADD COLUMN created_at TIMESTAMP;
             ALTER TABLE krrg_settings ADD COLUMN updated_at TIMESTAMP;
