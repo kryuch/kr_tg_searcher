@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.kryuch.krtg.searcher.dto.vacancy.ExtensionTaskCompleteRequest;
 import ru.kryuch.krtg.searcher.dto.vacancy.ExtensionTaskResponse;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.ExtensionTaskEntity;
+import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.repository.ExtensionTaskRepository;
 import ru.kryuch.krtg.searcher.type.ExtensionTaskStatus;
 import ru.kryuch.krtg.searcher.util.UserUtil;
@@ -39,7 +39,7 @@ public class ExtensionTaskService {
             ExtensionTaskCompleteRequest request
     ) {
 
-        ExtensionTaskEntity task = taskRepository.findById(taskId)
+        VacancyOwnerOrganisationEntity task = taskRepository.findById(taskId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Extension task not found: " + taskId
@@ -69,7 +69,7 @@ public class ExtensionTaskService {
         taskRepository.save(task);
     }
 
-    private ExtensionTaskResponse toResponse(ExtensionTaskEntity task) {
+    private ExtensionTaskResponse toResponse(VacancyOwnerOrganisationEntity task) {
 
         VacancyEntity vacancy = task.getVacancy();
 
