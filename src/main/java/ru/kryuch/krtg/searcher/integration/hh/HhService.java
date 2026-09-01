@@ -14,9 +14,11 @@ import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsRequestItem;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsResponse;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsResponseItem;
 import ru.kryuch.krtg.searcher.integration.hh.dto.VacancyResponseRequest;
+import ru.kryuch.krtg.searcher.integration.hh.mapper.VacancyResponseMapper;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyQuestionAnswerRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyQuestionRepository;
 import ru.kryuch.krtg.searcher.service.SettingService;
+import ru.kryuch.krtg.searcher.service.vacancy.VacancyResponseAccessService;
 import ru.kryuch.krtg.searcher.util.QuestionTextNormalizer;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 public class HhService {
 
     private final SettingService settingService;
+    private final VacancyResponseAccessService vacancyResponseAccessService;
+    private final VacancyResponseMapper vacancyResponseMapper;
     private final VacancyQuestionRepository questionRepository;
     private final VacancyQuestionAnswerRepository answerRepository;
 
@@ -39,7 +43,7 @@ public class HhService {
     }
 
     public Long vacancyResponse(VacancyResponseRequest vacancyResponseRequest) {
-        return hhService.getQuestionsAnswers(questionsRequest);
+        return vacancyResponseAccessService.add(vacancyResponseMapper.toDto(vacancyResponseRequest));
     }
 
     @Transactional

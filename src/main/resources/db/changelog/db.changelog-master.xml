@@ -9,4 +9,5 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
     <include file="changes/002-rebuild_settings.xml" relativeToChangelogFile="true"/>
     <include file="changes/003-hh.xml" relativeToChangelogFile="true"/>
     <include file="changes/004-vacancy_questions.xml" relativeToChangelogFile="true"/>
+    <include file="changes/006-vacancy_response.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

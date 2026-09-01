@@ -2,6 +2,7 @@ package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import ru.kryuch.krtg.searcher.integration.hh.mapper.QuestionOption;
 
 import java.util.Set;
 
