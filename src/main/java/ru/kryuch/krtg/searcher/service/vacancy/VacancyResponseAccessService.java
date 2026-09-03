@@ -1,24 +1,15 @@
 package ru.kryuch.krtg.searcher.service.vacancy;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kryuch.krtg.searcher.dto.Setting;
-import ru.kryuch.krtg.searcher.dto.vacancy.VacancyQuestionAnswerRequestDto;
-import ru.kryuch.krtg.searcher.dto.vacancy.VacancyQuestionAnswerDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyResponseDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyResponseRequestDto;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
-import ru.kryuch.krtg.searcher.entity.setting.SettingValueEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyResponseEntity;
 import ru.kryuch.krtg.searcher.exception.BusinessException;
-import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.mapper.vacancy.VacancyResponseMapper;
-import ru.kryuch.krtg.searcher.repository.ExtensionTaskRepository;
-import ru.kryuch.krtg.searcher.repository.SettingRepository;
 import ru.kryuch.krtg.searcher.repository.VacancyRepository;
-import ru.kryuch.krtg.searcher.repository.setting.SettingValueRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyOwnerOrganisationRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyResponseRepository;
 import ru.kryuch.krtg.searcher.service.AbstractAccessService;

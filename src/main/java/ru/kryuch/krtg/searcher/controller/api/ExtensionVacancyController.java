@@ -29,9 +29,9 @@ public class ExtensionVacancyController {
             @RequestBody VacancyQuestionAnswerRequestDto request
     ) {
 
-        return vacancyService.processVacancy(
-                request
-        );
+        return null;//vacancyService.processVacancy(
+            //    request
+     //   );
     }
 
     @PostMapping("/vacancies")

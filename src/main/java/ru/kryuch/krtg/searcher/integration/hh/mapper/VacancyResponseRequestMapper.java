@@ -9,7 +9,7 @@ import ru.kryuch.krtg.searcher.integration.hh.dto.VacancyResponseRequest;
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
-public abstract class VacancyResponseMapper {
+public abstract class VacancyResponseRequestMapper {
 
     public abstract VacancyResponseRequestDto toDto(VacancyResponseRequest vacancyResponseRequest);
 

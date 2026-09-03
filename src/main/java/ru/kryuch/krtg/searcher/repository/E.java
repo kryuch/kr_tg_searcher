@@ -6,11 +6,6 @@ import ru.kryuch.krtg.searcher.type.ExtensionTaskStatus;
 
 import java.util.List;
 
-public interface ExtensionTaskRepository
-        extends JpaRepository<VacancyOwnerOrganisationEntity, Long> {
+public class E {
 
-    List<VacancyOwnerOrganisationEntity> findByUserIdAndStatusOrderByCreatedAtAsc(
-            Long userId,
-            ExtensionTaskStatus status
-    );
 }
