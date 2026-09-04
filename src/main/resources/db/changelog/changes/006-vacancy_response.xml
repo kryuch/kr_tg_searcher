@@ -1,0 +1,220 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- ================ krrg_vacancy_owner_organisation : table ================ -->
+    <changeSet id="006-01-vacancy-owner-organisation-table" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="krrg_vacancy_owner_organisation"/></not>
+        </preConditions>
+
+        <createTable tableName="krrg_vacancy_owner_organisation">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ========================= krrg_vacancies : table ========================= -->
+    <changeSet id="006-02-vacancies-table" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="krrg_vacancies"/></not>
+        </preConditions>
+
+        <createTable tableName="krrg_vacancies">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="url" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(1000)"/>
+            <column name="source" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="owner_organisation_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Добавляем колонку, если таблица существует, но колонки нет -->
+    <changeSet id="006-02a-add-owner-organisation-column-if-missing" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <not>
+                    <columnExists tableName="krrg_vacancies" columnName="owner_organisation_id"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addColumn tableName="krrg_vacancies">
+            <column name="owner_organisation_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- krrg_vacancies : FK -> krrg_vacancy_owner_organisation -->
+    <changeSet id="006-03-vacancies-fk-owner-organisation" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <tableExists tableName="krrg_vacancy_owner_organisation"/>
+                <columnExists tableName="krrg_vacancies" columnName="owner_organisation_id"/>
+                <not>
+                    <foreignKeyConstraintExists foreignKeyTableName="krrg_vacancies"
+                                                foreignKeyName="fk_vacancies__owner_organisation"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addForeignKeyConstraint
+                baseTableName="krrg_vacancies"
+                baseColumnNames="owner_organisation_id"
+                constraintName="fk_vacancies__owner_organisation"
+                referencedTableName="krrg_vacancy_owner_organisation"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+    </changeSet>
+
+    <!-- krrg_vacancies : index on owner_organisation_id -->
+    <changeSet id="006-04-vacancies-idx-owner-organisation" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <columnExists tableName="krrg_vacancies" columnName="owner_organisation_id"/>
+                <not>
+                    <indexExists tableName="krrg_vacancies"
+                                 indexName="idx_vacancies__owner_organisation_id"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <createIndex indexName="idx_vacancies__owner_organisation_id"
+                     tableName="krrg_vacancies">
+            <column name="owner_organisation_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- krrg_vacancies : unique(external_id, source) -->
+    <changeSet id="006-05-vacancies-uq-external-source" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <columnExists tableName="krrg_vacancies" columnName="external_id"/>
+                <columnExists tableName="krrg_vacancies" columnName="source"/>
+                <not>
+                    <indexExists tableName="krrg_vacancies"
+                                 indexName="uq_vacancies__external_id_source"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addUniqueConstraint
+                tableName="krrg_vacancies"
+                columnNames="external_id, source"
+                constraintName="uq_vacancies__external_id_source"/>
+    </changeSet>
+
+    <!-- ===================== krrg_vacancy_responses : table ===================== -->
+    <changeSet id="006-06-vacancy-responses-table" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="krrg_vacancy_responses"/></not>
+        </preConditions>
+
+        <createTable tableName="krrg_vacancy_responses">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="vacancy_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="questions_snapshot" type="TEXT"/>
+            <column name="cover_letter" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- krrg_vacancy_responses : FK -> krrg_vacancies -->
+    <changeSet id="006-07-vacancy-responses-fk-vacancy" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancy_responses"/>
+                <tableExists tableName="krrg_vacancies"/>
+                <columnExists tableName="krrg_vacancy_responses" columnName="vacancy_id"/>
+                <not>
+                    <foreignKeyConstraintExists foreignKeyTableName="krrg_vacancy_responses"
+                                                foreignKeyName="fk_vacancy_responses__vacancy"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addForeignKeyConstraint
+                baseTableName="krrg_vacancy_responses"
+                baseColumnNames="vacancy_id"
+                constraintName="fk_vacancy_responses__vacancy"
+                referencedTableName="krrg_vacancies"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- krrg_vacancy_responses : index on user_id -->
+    <changeSet id="006-08-vacancy-responses-idx-user" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancy_responses"/>
+                <columnExists tableName="krrg_vacancy_responses" columnName="user_id"/>
+                <not>
+                    <indexExists tableName="krrg_vacancy_responses"
+                                 indexName="idx_vacancy_responses__user_id"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <createIndex indexName="idx_vacancy_responses__user_id"
+                     tableName="krrg_vacancy_responses">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- krrg_vacancy_responses : unique(vacancy_id, user_id) -->
+    <changeSet id="006-09-vacancy-responses-uq-vacancy-user" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancy_responses"/>
+                <columnExists tableName="krrg_vacancy_responses" columnName="vacancy_id"/>
+                <columnExists tableName="krrg_vacancy_responses" columnName="user_id"/>
+                <not>
+                    <indexExists tableName="krrg_vacancy_responses"
+                                 indexName="uq_vacancy_responses__vacancy_user"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addUniqueConstraint
+                tableName="krrg_vacancy_responses"
+                columnNames="vacancy_id, user_id"
+                constraintName="uq_vacancy_responses__vacancy_user"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -12,9 +12,12 @@ import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsRequest;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsRequestItem;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsResponse;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsResponseItem;
+import ru.kryuch.krtg.searcher.integration.hh.dto.VacancyResponseRequest;
+import ru.kryuch.krtg.searcher.integration.hh.mapper.VacancyResponseRequestMapper;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyQuestionAnswerRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyQuestionRepository;
 import ru.kryuch.krtg.searcher.service.SettingService;
+import ru.kryuch.krtg.searcher.service.vacancy.VacancyResponseAccessService;
 import ru.kryuch.krtg.searcher.util.QuestionTextNormalizer;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
@@ -29,11 +32,17 @@ import java.util.stream.Collectors;
 public class HhService {
 
     private final SettingService settingService;
+    private final VacancyResponseAccessService vacancyResponseAccessService;
+    private final VacancyResponseRequestMapper vacancyResponseRequestMapper;
     private final VacancyQuestionRepository questionRepository;
     private final VacancyQuestionAnswerRepository answerRepository;
 
     public HhSettingsDto getSettings() {
         return new HhSettingsDto(settingService.getByCode("hh_pause").getIntValue(), settingService.getByCode("hh_letter").getStringValue());
+    }
+
+    public Long vacancyResponse(VacancyResponseRequest vacancyResponseRequest) {
+        return vacancyResponseAccessService.add(vacancyResponseRequestMapper.toDto(vacancyResponseRequest));
     }
 
     @Transactional

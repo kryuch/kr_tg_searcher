@@ -10,14 +10,14 @@ import ru.kryuch.krtg.searcher.dto.VacancyRequest;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyQuestionAnswerRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyQuestionAnswerDto;
 import ru.kryuch.krtg.searcher.integration.hh.dto.VacancyAnalysisResponse;
-import ru.kryuch.krtg.searcher.service.vacancy.ExtensionVacancyService;
+import ru.kryuch.krtg.searcher.service.vacancy.VacancyResponseAccessService;
 
 @RestController
 @RequestMapping("/api/extension/vacancies")
 @RequiredArgsConstructor
 public class ExtensionVacancyController {
 
-    private final ExtensionVacancyService vacancyService;
+    private final VacancyResponseAccessService vacancyService;
 
     @PostMapping("/me")
     public MeDto me() {
@@ -29,9 +29,9 @@ public class ExtensionVacancyController {
             @RequestBody VacancyQuestionAnswerRequestDto request
     ) {
 
-        return vacancyService.processVacancy(
-                request
-        );
+        return null;//vacancyService.processVacancy(
+            //    request
+     //   );
     }
 
     @PostMapping("/vacancies")
