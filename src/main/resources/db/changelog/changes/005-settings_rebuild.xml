@@ -64,7 +64,7 @@
         </sql>
     </changeSet>
 
-    <!-- НОВЫЙ changeSet: Удаляем дубликаты перед созданием уникального ограничения -->
+    <!-- Удаляем дубликаты перед созданием уникального ограничения -->
     <changeSet id="005-004a-settings_rebuild_remove_duplicates" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
@@ -154,22 +154,8 @@
                 columnNames="user_id, setting_id"/>
     </changeSet>
 
-    <changeSet id="005-008-settings_rebuild_index_setting_code" author="Oleg V. Kryuchin">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists
-                        indexName="uk_setting_code"
-                        tableName="krrg_settings"/>
-            </not>
-        </preConditions>
-
-        <createIndex
-                indexName="uk_setting_code"
-                tableName="krrg_settings"
-                unique="true">
-            <column name="code"/>
-        </createIndex>
-    </changeSet>
+    <!-- УДАЛЕН changeSet 005-008, так как он дублирует 005-006 -->
+    <!-- Теперь нумерация идет с 005-009 -->
 
     <changeSet id="005-009-settings_rebuild_index_group_id" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
