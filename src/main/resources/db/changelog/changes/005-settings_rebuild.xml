@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="005-001-settings_rebuild_add_isactive" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="krrg_setting_groups" columnName="is_active"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE krrg_setting_groups
+                ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT true;
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE krrg_setting_groups DROP COLUMN is_active;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="005-002-settings_rebuild_enabled_to_hh_enable" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*)
+                FROM krrg_settings
+                WHERE code = 'hh_enabled';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE krrg_settings
+            SET code = 'hh_enable'
+            WHERE code = 'hh_enabled';
+        </sql>
+        <rollback>
+            <sql>UPDATE krrg_settings SET code = 'hh_enabled' WHERE code = 'hh_enable';</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="005-003-settings_rebuild_add_large" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="krrg_settings" columnName="is_large"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE krrg_settings
+                ADD COLUMN is_large BOOLEAN NOT NULL DEFAULT false;
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE krrg_settings DROP COLUMN is_large;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="005-004-settings_rebuild_set_large" author="Oleg V. Kryuchin">
+        <sql>
+            UPDATE krrg_settings
+            SET is_large = true
+            WHERE code IN ('hh_letter', 'ai_vacancy_promt', 'resume');
+        </sql>
+    </changeSet>
+
+    <changeSet id="005-005-settings_rebuild_set_uniqueconstraint_for_group" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists
+                        constraintName="uk_setting_group_code"
+                        tableName="krrg_setting_groups"/>
+            </not>
+        </preConditions>
+
+        <addUniqueConstraint
+                constraintName="uk_setting_group_code"
+                tableName="krrg_setting_groups"
+                columnNames="code"
+                deferrable="false"
+                initiallyDeferred="false"/>
+    </changeSet>
+
+    <changeSet id="005-006-settings_rebuild_set_uniqueconstraint_for_setting" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists
+                        constraintName="uk_setting_code"
+                        tableName="krrg_settings"/>
+            </not>
+        </preConditions>
+
+        <addUniqueConstraint
+                constraintName="uk_setting_code"
+                tableName="krrg_settings"
+                columnNames="code"
+                deferrable="false"
+                initiallyDeferred="false"/>
+    </changeSet>
+
+    <changeSet id="005-007-settings_rebuild_set_uniqueconstraint_for_values" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists
+                        constraintName="uk_setting_value_user_setting"
+                        tableName="krrg_setting_values"/>
+            </not>
+        </preConditions>
+
+        <addUniqueConstraint
+                constraintName="uk_setting_value_user_setting"
+                tableName="krrg_setting_values"
+                columnNames="user_id, setting_id"/>
+    </changeSet>
+
+    <changeSet id="005-008-settings_rebuild_index_setting_code" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists
+                        indexName="uk_setting_code"
+                        tableName="krrg_settings"/>
+            </not>
+        </preConditions>
+
+        <createIndex
+                indexName="uk_setting_code"
+                tableName="krrg_settings"
+                unique="true">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-009-settings_rebuild_index_group_id" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists
+                        indexName="idx_setting_group_id"
+                        tableName="krrg_settings"/>
+            </not>
+        </preConditions>
+
+        <createIndex
+                indexName="idx_setting_group_id"
+                tableName="krrg_settings">
+            <column name="group_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-010-settings_rebuild_index" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists
+                        indexName="uk_setting_value_user_setting"
+                        tableName="krrg_setting_values"/>
+            </not>
+        </preConditions>
+
+        <createIndex
+                indexName="uk_setting_value_user_setting"
+                tableName="krrg_setting_values"
+                unique="true">
+            <column name="user_id"/>
+            <column name="setting_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-011-settings_rebuild_index_setting_id" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists
+                        indexName="idx_setting_value_setting_id"
+                        tableName="krrg_setting_values"/>
+            </not>
+        </preConditions>
+
+        <createIndex
+                indexName="idx_setting_value_setting_id"
+                tableName="krrg_setting_values">
+            <column name="setting_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-012-settings_rebuild_index_user_id" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists
+                        indexName="idx_setting_value_user_id"
+                        tableName="krrg_setting_values"/>
+            </not>
+        </preConditions>
+
+        <createIndex
+                indexName="idx_setting_value_user_id"
+                tableName="krrg_setting_values">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-012-settings_rebuild_rename_group_title" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="krrg_setting_groups" columnName="name"/>
+        </preConditions>
+
+        <renameColumn
+                tableName="krrg_setting_groups"
+                oldColumnName="name"
+                newColumnName="title"
+                columnDataType="varchar(255)"/>
+    </changeSet>
+
+</databaseChangeLog>

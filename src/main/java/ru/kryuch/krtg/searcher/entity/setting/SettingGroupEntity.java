@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,12 @@ import lombok.Setter;
 import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 
 @Entity
-@Table(name = "krrg_setting_groups")
+@Table(
+        name = "krrg_setting_groups",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_setting_group_code", columnNames = "code")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,16 +27,18 @@ import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 public class SettingGroupEntity extends TimestampedEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "code", nullable = false)
+    @Column(name = "code", nullable = false, unique = true, length = 100)
     private String code;
 
-    @Column(name = "name")
-    private String name;
+    private String title;
 
     @Column(name = "sort_order")
     private Integer sortOrder;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean active;
 }

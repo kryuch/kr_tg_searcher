@@ -10,15 +10,12 @@ import java.util.Optional;
 
 public interface SettingValueRepository extends BaseAccessRepository<SettingValueEntity, Long> {
 
-    @Query("SELECT sv FROM SettingValueEntity sv WHERE sv.setting.code = :code AND sv.userId = :userId")
-    Optional<SettingValueEntity> findBySettingCodeAndUserId(@Param("code") String code, @Param("userId") Integer userId);
+    Optional<SettingValueEntity> findBySettingCodeAndUserId(String code, Integer userId);
 
-    @Query("SELECT sv FROM SettingValueEntity sv WHERE sv.setting.code = :code")
-    List<SettingValueEntity> findBySettingCode(@Param("code") String code);
+    List<SettingValueEntity> findBySettingCode(String code);
 
-    @Query("SELECT sv.userId FROM SettingValueEntity sv WHERE sv.setting.code = :code AND sv.stringValue = :value")
-    List<Integer> findUserIdBySettingCodeAndStringValue(@Param("code") String code, @Param("value") String value);
+    List<Integer> findUserIdBySettingCodeAndStringValue(String code, String value);
 
-    @Query("SELECT sv FROM SettingValueEntity sv JOIN FETCH sv.setting s JOIN FETCH s.group WHERE sv.userId = :userId")
+    @Query("SELECT sv FROM SettingValueEntity sv JOIN FETCH sv.setting s JOIN FETCH s.group WHERE sv.userId = :userId ")
     List<SettingValueEntity> findAllByUserId(@Param("userId") Integer userId);
 }

@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,12 @@ import ru.kryuch.krtg.searcher.type.SettingType;
 
 
 @Entity
-@Table(name = "krrg_settings")
+@Table(
+        name = "krrg_settings",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_setting_code", columnNames = "code")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,11 +34,11 @@ import ru.kryuch.krtg.searcher.type.SettingType;
 public class SettingEntity extends TimestampedEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "code", nullable = false)
+    @Column(name = "code", nullable = false, unique = true, length = 100)
     private String code;
 
     private String title;
@@ -47,4 +53,7 @@ public class SettingEntity extends TimestampedEntity {
 
     @Column(name = "sort_order")
     private Integer sortOrder;
+
+    @Column(name = "is_large")
+    private Boolean isLarge;
 }

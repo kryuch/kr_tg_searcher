@@ -3,7 +3,7 @@ package ru.kryuch.krtg.searcher.dto.setting;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.CollectionUtils;
-import ru.kryuch.krtg.searcher.dto.Setting;
+import ru.kryuch.krtg.searcher.dto.SettingDto;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,24 +14,14 @@ import java.util.Map;
 @NoArgsConstructor
 public class SettingsCollection {
 
-    /**
-     * Плоский список — командный объект формы (th:object),
-     * Spring MVC биндит поля по индексу: settings[i].intValue и т.п.
-     */
-    private List<Setting> settings = new ArrayList<>();
+    private List<SettingDto> settings = new ArrayList<>();
 
-    public SettingsCollection(List<Setting> values) {
+    public SettingsCollection(List<SettingDto> values) {
         if (!CollectionUtils.isEmpty(values)) {
             this.settings = values;
         }
     }
 
-    /**
-     * Код группы -> индексы в settings, относящиеся к этой группе.
-     * Только для отображения; порядок и title самих групп задаёт
-     * отдельный список групп (SettingGroupService.getAll()), передаваемый
-     * в шаблон отдельным атрибутом — здесь только группировка по коду.
-     */
     public Map<String, List<Integer>> getGroupedIndices() {
         Map<String, List<Integer>> result = new LinkedHashMap<>();
         for (int i = 0; i < settings.size(); i++) {

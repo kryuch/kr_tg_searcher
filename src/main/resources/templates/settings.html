@@ -1,6 +1,6 @@
 <div class="icontent">
     <form action="#" th:action="@{/settings/save}" th:object="${items}"
-          class="edit-form form-horizontal" method="post">
+          class="edit-form form-horizontal settingform" method="post">
         <div id="tabs">
             <ul>
                 <li th:each="group : ${groups}">
@@ -11,15 +11,15 @@
             <div th:each="group : ${groups}" th:id="'tabs-' + ${group.code}">
                 <table class="list">
                     <thead>
-                    <tr>
+                    <tr id="header">
                         <th class="table-alias">Параметр</th>
-                        <th class="table-description">Значение</th>
+                        <th id="rate" class="table-description">Значение</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="idx : ${items.groupedIndices[group.code]}"
-                        th:class="${items.settings[idx].code == group.code + '_enable'} ? 'settings-master-row' : ''">
-                        <td class="settingcode" th:text="*{settings[__${idx}__].title}">Заголовок</td>
+                        th:class="${items.settings[idx].code == group.code + '_enable' or items.settings[idx].code == group.code + '_enabled'} ? 'settings-master-row' : ''">
+                        <td class="settingcode"><span th:text="*{settings[__${idx}__].title}">Заголовок</span></td>
                         <td>
                             <input type="hidden" th:field="*{settings[__${idx}__].code}"/>
 
@@ -36,8 +36,12 @@
                                    th:field="*{settings[__${idx}__].doubleValue}"/>
 
                             <input type="text"
-                                   th:if="*{settings[__${idx}__].type.name()} == 'STRING'"
+                                   th:if="${items.settings[idx].type.name() == 'STRING' and !(items.settings[idx].getIsLarge() == true)}"
                                    th:field="*{settings[__${idx}__].stringValue}"/>
+
+                            <textarea rows="6"
+                                      th:if="${items.settings[idx].type.name() == 'STRING' and items.settings[idx].getIsLarge() == true}"
+                                      th:field="*{settings[__${idx}__].stringValue}"></textarea>
                         </td>
                     </tr>
                     </tbody>
@@ -64,21 +68,32 @@
                         if ($row.hasClass("settings-master-row")) {
                             return;
                         }
-                        // readonly не блокирует чекбоксы в браузерах — такие строки не трогаем
-                        if ($row.find("input[type=checkbox]").length > 0) {
-                            return;
-                        }
 
                         $row.css("opacity", enabled ? "1" : "0.5");
-                        $row.find("input, textarea").prop("readonly", !enabled);
+
+                        // Текстовые/числовые/большие текстовые поля — readonly (значение всё равно уйдёт при сабмите).
+                        $row.find("input[type=text], input[type=number], textarea").prop("readonly", !enabled);
+
+                        // Чекбоксы намеренно НЕ делаем disabled/readonly:
+                        // - readonly на чекбоксы не действует в браузерах;
+                        // - disabled исключил бы значение из отправки формы и стёр бы его при сохранении.
+                        // Вместо этого просто блокируем клик программно, оставляя атрибуты как есть.
+                        $row.find("input[type=checkbox]").data("settings-locked", !enabled);
                     });
                 }
 
                 jQuery(".list").each(function () {
                     var $table = jQuery(this);
                     updateGroupState($table);
+
                     $table.find("tr.settings-master-row input[type=checkbox]").on("change", function () {
                         updateGroupState($table);
+                    });
+
+                    $table.on("click", "tbody tr:not(.settings-master-row) input[type=checkbox]", function (e) {
+                        if (jQuery(this).data("settings-locked")) {
+                            e.preventDefault();
+                        }
                     });
                 });
             });

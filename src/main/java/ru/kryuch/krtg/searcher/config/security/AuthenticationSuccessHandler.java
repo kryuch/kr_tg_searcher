@@ -28,7 +28,6 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
             HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
 
-        settingService.init();
         tgAccountService.init();
         aiGatewayService.init();
         setDefaultTargetUrl(SettingConfig.DEFAULT_URL);

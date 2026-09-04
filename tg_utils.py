@@ -22,7 +22,15 @@ from tg_folders import (
     process_update_folders
 )
 
-SESSION_DIR = Path("var/session")
+# ВАЖНО: путь привязан к расположению ЭТОГО файла (tg_utils.py), а не к
+# текущей рабочей директории процесса (os.getcwd()). Раньше здесь было
+# SESSION_DIR = Path("var/session") — относительный путь, который
+# указывает в разные места в зависимости от того, откуда запущен процесс.
+# tg.py вычисляет свой SESSION_DIR тем же способом (через __file__), так
+# что при совместном расположении файлов оба пути гарантированно совпадают
+# независимо от того, что вызвало функции этого модуля и с каким cwd.
+BASE_DIR = Path(__file__).resolve().parent
+SESSION_DIR = BASE_DIR / "var" / "session"
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
@@ -54,6 +62,12 @@ DEVICE_PARAMS = {
 telegram_clients = {}
 telegram_locks = {}
 
+# Локи, защищающие именно СОЗДАНИЕ клиента для аккаунта (а не работу с уже
+# созданным клиентом — для этого служит telegram_locks). Нужны отдельно,
+# потому что telegram_locks[account_id] появляется только ПОСЛЕ того, как
+# клиент создан — то есть в момент самого создания защищать им ещё нечего.
+_client_creation_locks: dict[str, asyncio.Lock] = {}
+
 
 async def get_client(account_id: str, account_configs: dict):
     """
@@ -62,38 +76,61 @@ async def get_client(account_id: str, account_configs: dict):
     """
     account_id = str(account_id)
 
-    if account_id in telegram_clients:
-        client = telegram_clients[account_id]
+    # Быстрый путь: клиент уже существует — блокировка создания не нужна.
+    client = telegram_clients.get(account_id)
+    if client is not None:
         if client.is_connected():
             return client
         await client.connect()
         return client
 
-    config = account_configs[account_id]
-    session_path = build_session_path(f"account_{account_id}")
+    # Медленный путь — клиента ещё нет. Раньше здесь не было защиты: два
+    # параллельных первых запроса на один аккаунт могли одновременно
+    # пройти проверку "клиента нет" и создать ДВА TelegramClient на одном
+    # session-файле (await client.connect() ниже — точка, где event loop
+    # может переключиться на другую корутину). Это могло приводить к
+    # конфликтам доступа к session-файлу (SQLite) или рассинхрону состояния.
+    #
+    # dict.setdefault — синхронная операция без await внутри, поэтому она
+    # атомарна в рамках кооперативной модели asyncio (переключение между
+    # корутинами возможно только на await, а не посреди одной строки кода).
+    lock = _client_creation_locks.setdefault(account_id, asyncio.Lock())
 
-    client = TelegramClient(
-        session_path,
-        config["api_id"],
-        config["api_hash"],
-        device_model=DEVICE_PARAMS["device_model"],
-        system_version=DEVICE_PARAMS["system_version"],
-        app_version=DEVICE_PARAMS["app_version"],
-        lang_code=DEVICE_PARAMS["lang_code"],
-        system_lang_code=DEVICE_PARAMS["system_lang_code"]
-    )
+    async with lock:
+        # Пока мы ждали лок, другая корутина могла уже создать клиента —
+        # проверяем ещё раз (double-checked locking), чтобы не создать дубль.
+        client = telegram_clients.get(account_id)
+        if client is not None:
+            if client.is_connected():
+                return client
+            await client.connect()
+            return client
 
-    await client.connect()
+        config = account_configs[account_id]
+        session_path = build_session_path(f"account_{account_id}")
 
-    if not await client.is_user_authorized():
-        raise RuntimeError(f"Аккаунт {account_id} не авторизован")
+        client = TelegramClient(
+            session_path,
+            config["api_id"],
+            config["api_hash"],
+            device_model=DEVICE_PARAMS["device_model"],
+            system_version=DEVICE_PARAMS["system_version"],
+            app_version=DEVICE_PARAMS["app_version"],
+            lang_code=DEVICE_PARAMS["lang_code"],
+            system_lang_code=DEVICE_PARAMS["system_lang_code"]
+        )
 
-    telegram_clients[account_id] = client
-    telegram_locks[account_id] = asyncio.Lock()
+        await client.connect()
 
-    logger.info("Telegram client %s created", account_id)
+        if not await client.is_user_authorized():
+            raise RuntimeError(f"Аккаунт {account_id} не авторизован")
 
-    return client
+        telegram_clients[account_id] = client
+        telegram_locks[account_id] = asyncio.Lock()
+
+        logger.info("Telegram client %s created", account_id)
+
+        return client
 
 
 async def execute_telegram_action(

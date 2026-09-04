@@ -10,6 +10,7 @@ import ru.kryuch.krtg.searcher.integration.hh.HhService;
 import ru.kryuch.krtg.searcher.integration.hh.dto.HhSettingsDto;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsRequest;
 import ru.kryuch.krtg.searcher.integration.hh.dto.QuestionsResponse;
+import ru.kryuch.krtg.searcher.integration.hh.dto.VacancyResponseRequest;
 
 @RestController
 @RequestMapping("/api/hh")
@@ -26,5 +27,10 @@ public class HhController {
     @PostMapping("/questions")
     public QuestionsResponse getQuestionsAnswers(@RequestBody QuestionsRequest questionsRequest) {
         return hhService.getQuestionsAnswers(questionsRequest);
+    }
+
+    @PostMapping("/vacancy/response")
+    public Long vacancyResponse(@RequestBody VacancyResponseRequest vacancyResponseRequest) {
+        return hhService.vacancyResponse(vacancyResponseRequest);
     }
 }

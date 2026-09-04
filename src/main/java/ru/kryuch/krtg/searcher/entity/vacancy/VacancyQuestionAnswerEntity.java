@@ -17,7 +17,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import ru.kryuch.krtg.searcher.entity.BasedAccessEntity;
 
 import java.util.ArrayList;

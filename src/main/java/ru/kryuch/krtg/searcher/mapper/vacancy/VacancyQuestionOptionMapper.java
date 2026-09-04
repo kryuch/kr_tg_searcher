@@ -14,11 +14,7 @@ import ru.kryuch.krtg.searcher.mapper.TMapper;
 )
 public abstract class VacancyQuestionOptionMapper implements TMapper<VacancyQuestionOptionEntity, VacancyQuestionOptionDto> {
 
-    @Override
-    @Mapping(target = "question", ignore = true)
     public abstract VacancyQuestionOptionEntity toEntity(VacancyQuestionOptionDto dto);
 
-    @Override
-    @Mapping(target = "question", ignore = true)
     public abstract VacancyQuestionOptionEntity mergeToEntity(VacancyQuestionOptionDto dto, @MappingTarget VacancyQuestionOptionEntity entity);
 }
