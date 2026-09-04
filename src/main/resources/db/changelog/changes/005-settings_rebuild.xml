@@ -54,10 +54,43 @@
     </changeSet>
 
     <changeSet id="005-004-settings_rebuild_set_large" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="krrg_settings" columnName="is_large"/>
+        </preConditions>
         <sql>
             UPDATE krrg_settings
             SET is_large = true
             WHERE code IN ('hh_letter', 'ai_vacancy_promt', 'resume');
+        </sql>
+    </changeSet>
+
+    <!-- НОВЫЙ changeSet: Удаляем дубликаты перед созданием уникального ограничения -->
+    <changeSet id="005-004a-settings_rebuild_remove_duplicates" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM (
+                         SELECT code, COUNT(*)
+                         FROM krrg_settings
+                         GROUP BY code
+                         HAVING COUNT(*) > 1
+                     ) duplicates;
+            </sqlCheck>
+        </preConditions>
+
+        <comment>Удаляем дубликаты кодов в таблице krrg_settings</comment>
+        <sql>
+            WITH duplicates AS (
+                SELECT id, code,
+                       ROW_NUMBER() OVER (PARTITION BY code ORDER BY id) as rn
+                FROM krrg_settings
+            )
+            DELETE FROM krrg_settings
+            WHERE id IN (
+                SELECT id
+                FROM duplicates
+                WHERE rn > 1
+            );
         </sql>
     </changeSet>
 
@@ -80,11 +113,22 @@
 
     <changeSet id="005-006-settings_rebuild_set_uniqueconstraint_for_setting" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <uniqueConstraintExists
-                        constraintName="uk_setting_code"
-                        tableName="krrg_settings"/>
-            </not>
+            <and>
+                <not>
+                    <uniqueConstraintExists
+                            constraintName="uk_setting_code"
+                            tableName="krrg_settings"/>
+                </not>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*)
+                    FROM (
+                    SELECT code, COUNT(*)
+                    FROM krrg_settings
+                    GROUP BY code
+                    HAVING COUNT(*) > 1
+                    ) duplicates;
+                </sqlCheck>
+            </and>
         </preConditions>
 
         <addUniqueConstraint
@@ -193,7 +237,7 @@
         </createIndex>
     </changeSet>
 
-    <changeSet id="005-012-settings_rebuild_rename_group_title" author="Oleg V. Kryuchin">
+    <changeSet id="005-013-settings_rebuild_rename_group_title" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <columnExists tableName="krrg_setting_groups" columnName="name"/>
         </preConditions>
