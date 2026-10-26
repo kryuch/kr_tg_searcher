@@ -41,10 +41,19 @@ public enum SettingCode {
     HH_LOG("hh_log"),
     HH_LETTER("hh_letter"),
 
+    // HH (HeadHunter)
+    DEEPSEEK_ENABLE("deepseek_enable"),
+    DEEPSEEK_PAUSE("deepseek_pause"),
+   // HH_LOG("hh_log"),
+  //  HH_LETTER("hh_letter"),
+
     // Gmail
     GMAIL_EMAIL("gmail_email"),
     GMAIL_REFRESH_TOKEN("gmail_refresh_token"),
     GMAIL_SUBJECT("gmail_subject"),
+
+    GIGARECRUTER_ENABLE("gigarecruter_enable"),
+    GIGARECRUTER_BOTNAME("gigarecruter_bot_name"),
 
     // Admin
     PYTHON("python"),

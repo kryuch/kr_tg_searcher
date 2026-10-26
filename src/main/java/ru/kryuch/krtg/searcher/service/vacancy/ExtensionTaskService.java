@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kryuch.krtg.searcher.mapper.vacancy.VacancyResponseMapper;
-import ru.kryuch.krtg.searcher.dto.vacancy.ExtensionTaskResponse;
+import ru.kryuch.krtg.searcher.integration.deepseek.dto.DsTaskResult;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
-import ru.kryuch.krtg.searcher.repository.E;
 
 import java.util.List;
 
@@ -17,7 +16,7 @@ public class ExtensionTaskService {
   //  private final E taskRepository;
 
     @Transactional(readOnly = true)
-    public List<ExtensionTaskResponse> getNewTasks() {
+    public List<DsTaskResult> getNewTasks() {
 
         return null;/*taskRepository
                 .findByUserIdAndStatusOrderByCreatedAtAsc(
@@ -65,7 +64,7 @@ public class ExtensionTaskService {
       //  taskRepository.save(task);
     }
 
-    private ExtensionTaskResponse toResponse(VacancyOwnerOrganisationEntity task) {
+    private DsTaskResult toResponse(VacancyOwnerOrganisationEntity task) {
 return null;/*
         VacancyEntity vacancy = task.getVacancy();
 
