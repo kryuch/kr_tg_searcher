@@ -1,0 +1,1 @@
+package ru.kryuch.krtg.searcher.dto;import lombok.Data;import lombok.RequiredArgsConstructor;@Data@RequiredArgsConstructorpublic class SettingItemView {	private final String code;	private final String title;	private final Boolean isCheckbox;}

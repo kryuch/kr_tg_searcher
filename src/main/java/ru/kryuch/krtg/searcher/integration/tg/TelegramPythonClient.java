@@ -9,22 +9,6 @@ import ru.kryuch.krtg.searcher.config.TelegramSettingsResolver;
 import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
-import ru.kryuch.krtg.searcher.dto.SearchParams;
-import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
-import ru.kryuch.krtg.searcher.dto.VacancyInfo;
-import ru.kryuch.krtg.searcher.dto.VerifyTgCodeParam;
-import ru.kryuch.krtg.searcher.exception.TelegramClientException;
-import ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequest;
-import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
-import ru.kryuch.krtg.searcher.integration.dto.CreateFolderRequest;
-import ru.kryuch.krtg.searcher.integration.dto.CreateFolderResponse;
-import ru.kryuch.krtg.searcher.integration.dto.InitRequest;
-import ru.kryuch.krtg.searcher.integration.dto.RequestCodeResponse;
-import ru.kryuch.krtg.searcher.integration.dto.SearchRequest;
-import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByConcatUsername;
-import ru.kryuch.krtg.searcher.integration.dto.SendBulkMessageRequestByContactId;
-import ru.kryuch.krtg.searcher.integration.dto.UpdateFolderRequest;
-import ru.kryuch.krtg.searcher.integration.dto.VerifyCodeResponse;
 import ru.kryuch.krtg.searcher.util.PythonMessagesResponse;
 import ru.kryuch.krtg.searcher.util.SendResponse;
 
@@ -43,6 +27,7 @@ public class TelegramPythonClient {
 
     public void init(InitRequest initRequest) {
         String response = execute(
+        execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/init"),
                         initRequest,
@@ -73,7 +58,6 @@ public class TelegramPythonClient {
 
 
     public List<ChatInfo> findAllChats(Integer tgAccountId) {
-
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUri(buildUri("/api/chats/all"))
                 .queryParam("accountId", tgAccountId);
@@ -106,8 +90,27 @@ public class TelegramPythonClient {
                 : List.of(response);
     }
 
+
     public List<ChatResponse> searchChats(SearchRequest request) {
         log.info("TelegramPythonClient::searchChats (request = {}", request);
+
+    public List<TgUserAvatar> getAvatars(List <ChatKey> request) {
+        TgUserAvatar[] response = execute(
+                () -> restTemplate.postForObject(
+                        buildUri("/api/search/avatars"),
+                        request,
+                        TgUserAvatar[].class
+                ),
+                "Failed to search avatars"
+        );
+
+        return response == null
+                ? List.of()
+                : List.of(response);
+    }
+
+
+    public List<ChatResponse> searchChats(SearchRequest request) {
         ChatResponse[] response = execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/search"),
@@ -245,6 +248,7 @@ public class TelegramPythonClient {
         log.info("TelegramPythonClient::updateFolder (request = {})", request);
 
         Map<String, Object> response = execute(
+        return execute(
                 () -> restTemplate.postForObject(
                         buildUri("/api/folders/update"),
                         request,

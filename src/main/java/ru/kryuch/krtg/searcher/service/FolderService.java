@@ -13,7 +13,6 @@ import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
 import ru.kryuch.krtg.searcher.helper.FolderHelper;
-import ru.kryuch.krtg.searcher.integration.dto.CreateFolderRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
@@ -62,21 +61,20 @@ public class FolderService {
         createTargetFolder(tgAccountId);
 
         if (forceFlag) {
-            log.info("Удаление чатов из папки {} и самой папки", tgAccountId);
+            log.info("\t Удаление чатов из папки для аккаунта {}", tgAccountId);
 
             List<Integer> foundFolderIds = folderRepository.findIdsByTgId(tgAccountId);
-            log.info("Подзапрос нашел папки для tgId {}: {}", tgAccountId, foundFolderIds);
+            log.info("\t Подзапрос нашел папки для tgId {}: {}", tgAccountId, foundFolderIds);
 
             // 1. Удаляем связи
             int deletedChats = folderChatRepository.deleteByTgIdNative(tgAccountId);
-            log.info("Удалено связей в krtg_folder_chat: {}", deletedChats);
-            // 2. Удаляем папки
-            folderRepository.deleteByTgId(tgAccountId);
-          //  log.info("Удалено папок: {}", deletedFolders);
+            log.info("\t Удалено связей в krtg_folder_chat: {}", deletedChats);
         }
 
+        log.info("\t Будем обрабатывать папки");
         List<FolderInfo> folders = telegramPythonClient.findAllFolders(tgAccountId);
 
+        log.info("\t нашлось {}", folders);
         if (folders.isEmpty()) {
             return;
         }
@@ -163,10 +161,11 @@ public class FolderService {
     }
 
     private List <FolderEntity> buildFoldersToSave(
-            List<FolderInfo> folders, Map<Integer,
-            FolderEntity> existingFolders,
+            List<FolderInfo> folders,
+            Map<Integer, FolderEntity> existingFolders,
             Integer tgAccountId
     ) {
+        log.info("FolderService::buildFoldersToSave (folders = {}, existingFolders = {}, tgAccountId = {}", folders, existingFolders, tgAccountId);
         List<FolderEntity> foldersToSave = new ArrayList<>();
 
         for (FolderInfo folderInfo : folders) {
@@ -184,6 +183,9 @@ public class FolderService {
 
             foldersToSave.add(folderEntity);
         }
+
+        log.info("FolderService::buildFoldersToSave (return = {}", foldersToSave);
+
         return foldersToSave;
     }
 
@@ -197,5 +199,18 @@ public class FolderService {
             telegramPythonClient.createFolder(new CreateFolderRequest(tgAccountId, targetFolderTitle));
             log.info("createTargetFolder {} for accountId", targetFolderTitle, tgAccountId);
         }
+
+
+        Optional <FolderEntity> folderEntity = folderRepository.findTargetFolder(tgAccountId);
+        if (folderEntity.isEmpty()) {
+            FolderEntity folder = new FolderEntity();
+            folder.setId(folderInfo.get().getId());
+            folder.setTarget(true);
+            folder.setTgId(tgAccountId);
+            folder.setTitle(targetFolderTitle);
+            FolderEntity saved = folderRepository.save(folder);
+            log.info("Saved folder: id={}, target={}, tgId={}", saved.getId(), saved.getTarget(), saved.getTgId());
+        }
+
     }
 }

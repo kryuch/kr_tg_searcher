@@ -1,0 +1,45 @@
+<div class="icontent">
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="question" class="table-alias"> Вопрос</th>
+            <th id="type" class="table-alias"> Тип</th>
+            <th id="required" class="table-alias"> Обязательный</th>
+            <th id="status" class="table-alias"> Статус</th>
+            <th id="answer" class="table-alias"> Ответ</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${items.empty}">
+            <td colspan="6"> Тут пусто</td>
+        </tr>
+
+        <th:block th:each="answerItem, iStat : ${items}">
+            <tr>
+                <td><span th:text="${answerItem.questionText}"> Вопрос </span></td>
+                <td><span th:text="${answerItem.questionType}"> Тип </span></td>
+                <td><span th:text="${answerItem.required} ? 'Да' : 'Нет'"> Обязательный </span></td>
+                <td>
+                    <span th:text="${answerItem.answered} ? 'Отвечено' : 'Нет ответа'"
+                          th:class="${answerItem.answered} ? 'status-ok' : 'status-empty'"></span>
+                </td>
+                <td>
+                    <span th:if="${answerItem.questionType.name() == 'TEXT'}"
+                          th:text="${answerItem.textValue}"></span>
+                    <span th:if="${answerItem.questionType.name() == 'BOOLEAN'}"
+                          th:text="${answerItem.boolValue} ? 'Да' : 'Нет'"></span>
+                    <span th:if="${answerItem.questionType.name() == 'SINGLE_CHOICE' or answerItem.questionType.name() == 'MULTIPLE_CHOICE'}"
+                          th:text="${#strings.setJoin(answerItem.options.?[selectedOptionIds != null and selectedOptionIds.contains(id)].![text], ', ')}"></span>
+                </td>
+                <td class="settingbuttons">
+                    <a id="edit" class="btn-save" th:href="@{/vacancy/questions/answers/{id}/edit(id=${answerItem.questionId})}">
+                        <span th:text="${answerItem.answered} ? 'Изменить' : 'Ответить'"></span>
+                    </a>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</div>

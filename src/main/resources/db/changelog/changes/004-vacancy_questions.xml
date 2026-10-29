@@ -1,0 +1,259 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- ===================== krrg_vacancy_questions : table ===================== -->
+    <changeSet id="004-01-table-vacancy-questions" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="krrg_vacancy_questions"/></not>
+        </preConditions>
+
+        <createTable tableName="krrg_vacancy_questions">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="text" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="required" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ================ krrg_vacancy_question_options : table ================ -->
+    <changeSet id="004-02-table-vacancy-question-options" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="krrg_vacancy_question_options"/></not>
+        </preConditions>
+
+        <createTable tableName="krrg_vacancy_question_options">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="question_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INT"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_options : FK -> krrg_vacancy_questions -->
+    <changeSet id="004-03-fk-vacancy-question-options-question" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="krrg_vacancy_question_options"
+                                            foreignKeyName="fk_vacancy_question_options__question"/>
+            </not>
+        </preConditions>
+
+        <addForeignKeyConstraint
+                baseTableName="krrg_vacancy_question_options"
+                baseColumnNames="question_id"
+                constraintName="fk_vacancy_question_options__question"
+                referencedTableName="krrg_vacancy_questions"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_options : index on question_id -->
+    <changeSet id="004-04-idx-vacancy-question-options-question-id" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="krrg_vacancy_question_options"
+                             indexName="idx_vacancy_question_options__question_id"/>
+            </not>
+        </preConditions>
+
+        <createIndex indexName="idx_vacancy_question_options__question_id"
+                     tableName="krrg_vacancy_question_options">
+            <column name="question_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ================ krrg_vacancy_question_answers : table ================ -->
+    <changeSet id="004-05-table-vacancy-question-answers" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="krrg_vacancy_question_answers"/></not>
+        </preConditions>
+
+        <createTable tableName="krrg_vacancy_question_answers">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="question_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="text_value" type="VARCHAR(4000)"/>
+            <column name="bool_value" type="BOOLEAN"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answers : FK -> krrg_vacancy_questions -->
+    <changeSet id="004-06-fk-vacancy-question-answers-question" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="krrg_vacancy_question_answers"
+                                            foreignKeyName="fk_vacancy_question_answers__question"/>
+            </not>
+        </preConditions>
+
+        <addForeignKeyConstraint
+                baseTableName="krrg_vacancy_question_answers"
+                baseColumnNames="question_id"
+                constraintName="fk_vacancy_question_answers__question"
+                referencedTableName="krrg_vacancy_questions"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answers : index on user_id -->
+    <changeSet id="004-07-idx-vacancy-question-answers-user-id" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="krrg_vacancy_question_answers"
+                             indexName="idx_vacancy_question_answers__user_id"/>
+            </not>
+        </preConditions>
+
+        <createIndex indexName="idx_vacancy_question_answers__user_id"
+                     tableName="krrg_vacancy_question_answers">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answers : unique(question_id, user_id) -->
+    <changeSet id="004-08-uq-vacancy-question-answers-question-user" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="krrg_vacancy_question_answers"
+                             indexName="uq_vacancy_question_answers__question_user"/>
+            </not>
+        </preConditions>
+
+        <addUniqueConstraint
+                tableName="krrg_vacancy_question_answers"
+                columnNames="question_id, user_id"
+                constraintName="uq_vacancy_question_answers__question_user"/>
+    </changeSet>
+
+    <!-- ============ krrg_vacancy_question_answer_options : table ============ -->
+    <changeSet id="004-09-table-vacancy-question-answer-options" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="krrg_vacancy_question_answer_options"/></not>
+        </preConditions>
+
+        <createTable tableName="krrg_vacancy_question_answer_options">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="answer_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="option_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answer_options : FK -> krrg_vacancy_question_answers -->
+    <changeSet id="004-10-fk-vacancy-answer-options-answer" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="krrg_vacancy_question_answer_options"
+                                            foreignKeyName="fk_vacancy_answer_options__answer"/>
+            </not>
+        </preConditions>
+
+        <addForeignKeyConstraint
+                baseTableName="krrg_vacancy_question_answer_options"
+                baseColumnNames="answer_id"
+                constraintName="fk_vacancy_answer_options__answer"
+                referencedTableName="krrg_vacancy_question_answers"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answer_options : FK -> krrg_vacancy_question_options -->
+    <changeSet id="004-11-fk-vacancy-answer-options-option" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="krrg_vacancy_question_answer_options"
+                                            foreignKeyName="fk_vacancy_answer_options__option"/>
+            </not>
+        </preConditions>
+
+        <addForeignKeyConstraint
+                baseTableName="krrg_vacancy_question_answer_options"
+                baseColumnNames="option_id"
+                constraintName="fk_vacancy_answer_options__option"
+                referencedTableName="krrg_vacancy_question_options"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answer_options : index on answer_id -->
+    <changeSet id="004-12-idx-vacancy-answer-options-answer-id" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="krrg_vacancy_question_answer_options"
+                             indexName="idx_vacancy_answer_options__answer_id"/>
+            </not>
+        </preConditions>
+
+        <createIndex indexName="idx_vacancy_answer_options__answer_id"
+                     tableName="krrg_vacancy_question_answer_options">
+            <column name="answer_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answer_options : index on option_id -->
+    <changeSet id="004-13-idx-vacancy-answer-options-option-id" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="krrg_vacancy_question_answer_options"
+                             indexName="idx_vacancy_answer_options__option_id"/>
+            </not>
+        </preConditions>
+
+        <createIndex indexName="idx_vacancy_answer_options__option_id"
+                     tableName="krrg_vacancy_question_answer_options">
+            <column name="option_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- krrg_vacancy_question_answer_options : unique(answer_id, option_id) -->
+    <changeSet id="004-14-uq-vacancy-answer-options-answer-option" author="krtg">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="krrg_vacancy_question_answer_options"
+                             indexName="uq_vacancy_answer_options__answer_option"/>
+            </not>
+        </preConditions>
+
+        <addUniqueConstraint
+                tableName="krrg_vacancy_question_answer_options"
+                columnNames="answer_id, option_id"
+                constraintName="uq_vacancy_answer_options__answer_option"/>
+    </changeSet>
+
+</databaseChangeLog>

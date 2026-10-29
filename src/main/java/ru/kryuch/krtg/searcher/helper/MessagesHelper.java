@@ -2,6 +2,8 @@ package ru.kryuch.krtg.searcher.helper;
 
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
 import ru.kryuch.krtg.searcher.dto.VacancyOwnerInfo;
+import ru.kryuch.krtg.searcher.type.VacancyOwnerType;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -110,7 +112,7 @@ public class MessagesHelper {
         while (emailMatcher.find()) {
             String email = emailMatcher.group();
             emails.add(email);
-            ownersMap.put(email, createOwnerInfo(2, email));
+            ownersMap.put(email, createOwnerInfo(VacancyOwnerType.EMAIL, email));
         }
 
         // 2. Markdown ссылки на Telegram
@@ -120,7 +122,7 @@ public class MessagesHelper {
             String username = markdownMatcher.group(2);
             if (isValidTgContact(username)) {
                 String value = "@" + username;
-                ownersMap.putIfAbsent(value, createOwnerInfo(3, value));
+                ownersMap.putIfAbsent(value, createOwnerInfo(VacancyOwnerType.TG, value));
             }
         }
 
@@ -131,7 +133,7 @@ public class MessagesHelper {
             String username = directTgMatcher.group(1);
             if (isValidTgContact(username)) {
                 String value = "@" + username;
-                ownersMap.putIfAbsent(value, createOwnerInfo(3, value));
+                ownersMap.putIfAbsent(value, createOwnerInfo(VacancyOwnerType.TG, value));
             }
         }
 
@@ -148,7 +150,7 @@ public class MessagesHelper {
             boolean isPartOfEmail = emails.stream().anyMatch(email -> email.contains(username));
 
             if (!isPartOfEmail && !ownersMap.containsKey(fullUsername)) {
-                ownersMap.put(fullUsername, createOwnerInfo(3, fullUsername));
+                ownersMap.put(fullUsername, createOwnerInfo(VacancyOwnerType.TG, fullUsername));
             }
         }
 
@@ -156,13 +158,13 @@ public class MessagesHelper {
         Matcher phoneMatcher = PHONE_PATTERN.matcher(text);
         while (phoneMatcher.find()) {
             String value = phoneMatcher.group().trim();
-            ownersMap.putIfAbsent(value, createOwnerInfo(1, value));
+            ownersMap.putIfAbsent(value, createOwnerInfo(VacancyOwnerType.PHONE, value));
         }
 
         return new ArrayList<>(ownersMap.values());
     }
 
-    private static VacancyOwnerInfo createOwnerInfo(Integer type, String value) {
+    private static VacancyOwnerInfo createOwnerInfo(VacancyOwnerType type, String value) {
         VacancyOwnerInfo owner = new VacancyOwnerInfo();
         owner.setType(type);
         owner.setValue(value);

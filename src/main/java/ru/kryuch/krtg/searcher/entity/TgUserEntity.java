@@ -12,6 +12,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 
+
 @Entity
 @Table(name = "krrg_tg_users")
 @Getter
@@ -19,6 +20,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "avatar")
 public class TgUserEntity implements Serializable {
 
     @Id
@@ -28,5 +30,8 @@ public class TgUserEntity implements Serializable {
     private String username;
 
     private String name;
+
+    @Column(name = "avatar", columnDefinition = "TEXT")
+    private String avatar;
 
 }

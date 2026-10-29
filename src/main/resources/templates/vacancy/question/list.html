@@ -1,0 +1,40 @@
+<div class="icontent">
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="id" class="table-alias"> Id</th>
+            <th id="text" class="table-alias"> Текст вопроса</th>
+            <th id="type" class="table-alias"> Тип</th>
+            <th id="required" class="table-alias"> Обязательный</th>
+            <th id="options" class="table-alias"> Варианты</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${items.empty}">
+            <td colspan="6"> Тут пусто</td>
+        </tr>
+
+        <th:block th:each="questionItem, iStat : ${items}">
+            <tr>
+                <td><span th:text="${questionItem.id}"> Id </span></td>
+                <td><span th:text="${questionItem.text}"> Текст </span></td>
+                <td><span th:text="${questionItem.type}"> Тип </span></td>
+                <td><span th:text="${questionItem.required} ? 'Да' : 'Нет'"> Обязательный </span></td>
+                <td>
+                    <span th:if="${questionItem.options == null or questionItem.options.empty}">—</span>
+                    <span th:unless="${questionItem.options == null or questionItem.options.empty}"
+                          th:text="${questionItem.options.size()} + ' шт.'"></span>
+                </td>
+                <td class="settingbuttons">
+                    <a id="edit" class="btn-save" th:href="@{/vacancy/questions/{id}/edit(id=${questionItem.id})}">Изменить</a>
+                    <a id="remove" class="btn-save" th:href="@{/vacancy/questions/{id}/remove(id=${questionItem.id})}">Удалить</a>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+    <a class="save" type="submit" th:href="@{/vacancy/questions/add}">Добавить</a>
+</div>

@@ -1,0 +1,22 @@
+<div class="tgmultiselect">
+    <label>ТГ аккаунты:</label>
+    <select id="tgAccounts" name="tgAccountIds" multiple="multiple" class="form-control">
+        <option th:each="tgAccount : ${tgAccounts}"
+                th:value="${tgAccount.id}"
+                th:text="${tgAccount.description}"></option>
+    </select>
+    <script>
+        $(document).ready(function () {
+
+            jQuery('select[multiple]#tgAccounts').multiselect({
+                columns: 1,
+                search: true,
+                selectAll: true,
+                texts: {
+                    placeholder: 'Тг-аккаунты',
+                    search: 'Тг-аккаунты'
+                }
+            });
+        });
+    </script>
+</div>

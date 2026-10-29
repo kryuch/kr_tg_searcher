@@ -31,7 +31,7 @@ public class VacancyInfo {
 
     public String getTg() {
         Optional <VacancyOwnerInfo> vacancyOwnerInfo =
-                owners.stream().filter(item -> item.getType() == 3).findFirst();
+                owners.stream().filter(item -> VacancyOwnerType.TG.equals(item.getType())).findFirst();
         return (vacancyOwnerInfo.isPresent()) ? vacancyOwnerInfo.get().getValue() : null;
     }
 }

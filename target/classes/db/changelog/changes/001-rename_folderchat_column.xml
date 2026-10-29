@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="001-001-rename_folderchat_column" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists tableName="krrg_folder_chat" columnName="chat_id"/>
+                <not>
+                    <columnExists tableName="krrg_folder_chat" columnName="chat_user_id"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <sql>
+            ALTER TABLE krrg_folder_chat
+                RENAME COLUMN chat_id TO chat_user_id;
+        </sql>
+    </changeSet>
+
+    <changeSet id="001-002-update_folder_chat_index" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <!-- Проверяем, что constraint существует -->
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.table_constraints
+                WHERE table_name = 'krrg_folder_chat'
+                  AND constraint_name = 'krrg_folder_chat_pkey'
+            </sqlCheck>
+        </preConditions>
+
+        <!-- Удаляем PRIMARY KEY -->
+        <sql>
+            ALTER TABLE krrg_folder_chat DROP CONSTRAINT krrg_folder_chat_pkey;
+        </sql>
+
+        <!-- Создаем новый PRIMARY KEY -->
+        <sql>
+            ALTER TABLE krrg_folder_chat
+                ADD CONSTRAINT krrg_folder_chat_pkey PRIMARY KEY (chat_user_id, folder_id);
+        </sql>
+    </changeSet>
+
+    <changeSet id="001-003-check" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists tableName="krrg_folder_chat" columnName="chat_id"/>
+            </and>
+        </preConditions>
+
+        <sql>
+            ALTER TABLE krrg_folder_chat
+                DROP COLUMN chat_id;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

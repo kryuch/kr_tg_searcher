@@ -18,11 +18,6 @@ import ru.kryuch.krtg.searcher.dto.ChatInfo;
 import ru.kryuch.krtg.searcher.dto.CurrentUser;
 import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.entity.UserEntity;
-import ru.kryuch.krtg.searcher.helper.ChatHelper;
-import ru.kryuch.krtg.searcher.integration.dto.ChatResponse;
-import ru.kryuch.krtg.searcher.repository.TgAccountRepository;
-import ru.kryuch.krtg.searcher.repository.UserRepository;
-import ru.kryuch.krtg.searcher.type.PersonalChatType;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -41,6 +36,11 @@ public class CronService {
     private final SettingAccessService settingAccessService;
     private final ChatService chatService;
     private final UserRepository userRepository;
+/*
+    private final SettingAccessService settingAccessService;
+    private final ChatService chatService;
+    private final AuthHelper authHelper;
+>>>>>>> feature/deepseek
     private final TelegramMessagingService telegramMessagingService;
     private final TgAccountRepository tgAccountRepository;
     private final ChatHelper chatHelper;
@@ -64,9 +64,13 @@ public class CronService {
                 String cronLastRun = settingAccessService.getValueByCode(SettingConfig.CRON_LASTRUN_SETTING_CODE, userId);
 
                 if (shouldRun(cronTab, cronLastRun)) {
+<<<<<<< HEAD
                     SecurityContextHolder.getContext().setAuthentication(
                             createAuthentication(userId)
                     );
+=======
+                    authHelper.setAuth(userId);
+>>>>>>> feature/deepseek
 
                     log.info("Запуск задачи по расписанию: {}", cronTab);
                     doTask(userId);
@@ -74,16 +78,23 @@ public class CronService {
                     settingAccessService.setValueByCode(SettingConfig.CRON_LASTRUN_SETTING_CODE, now, userId);
                     log.info("Задача выполнена, обновлено время: {}", now);
                 }
+<<<<<<< HEAD
             }
             catch (Exception ex) {
                 log.error("Ошибка выполнения cron для пользователя {}", userId, ex);
             }
             finally {
+=======
+            } catch (Exception ex) {
+                log.error("Ошибка выполнения cron для пользователя {}", userId, ex);
+            } finally {
+>>>>>>> feature/deepseek
                 SecurityContextHolder.clearContext();
             }
         });
     }
 
+<<<<<<< HEAD
     private Authentication createAuthentication(Integer userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("Пользователь не найден: " + userId));
@@ -101,6 +112,8 @@ public class CronService {
         );
     }
 
+=======
+>>>>>>> feature/deepseek
     private boolean shouldRun(String cronTab, String cronLastRun) {
         if (cronTab == null || cronTab.isEmpty()) {
             return false;
@@ -154,6 +167,10 @@ public class CronService {
                         .minDiffDaysCount(Integer.valueOf(settingAccessService.getValueByCode(SettingConfig.MAX_DAY_SETTING_CODE, userId)))
                         .botType(PersonalChatType.PERSONAL)
                         .excludeStatusFlag(true)
+<<<<<<< HEAD
+=======
+                        .lastMessageType(SearchLastMessageType.ONLY)
+>>>>>>> feature/deepseek
                         .term(settingAccessService.getValueByCode(SettingConfig.TERM_SETTING_CODE, userId))
                         .lastMessage(settingAccessService.getValueByCode(SettingConfig.CRON_LASTMESSAGE_SETTING_CODE, userId))
                         .maxFoundCount(Integer.valueOf(settingAccessService.getValueByCode(SettingConfig.CRON_CHATS_COUNT, userId)))
@@ -167,16 +184,28 @@ public class CronService {
                 "Найдено {} чатов: {}",
                 chats.size(),
                 chats.stream()
+<<<<<<< HEAD
                         .map(item -> item.getUsername() + "(" + item.getId()+")")
                         .collect(Collectors.joining(", "))
         );
 
         List <ChatResponse> chatResponses = telegramMessagingService.sendToChats(
+=======
+                        .map(item -> item.getUsername() + "(" + item.getId() + ")")
+                        .collect(Collectors.joining(", "))
+        );
+
+        List<ChatResponse> chatResponses = telegramMessagingService.sendToChats(
+>>>>>>> feature/deepseek
                 settingAccessService.getValueByCode(SettingConfig.CRON_NEWMESSAGE_SETTING_CODE, userId),
                 false,
                 chatHelper.getChatIdsByChatInfo(chats)
         );
 
         log.info("Сообщение отправлено в " + chatResponses.stream().map(ChatResponse::getName).collect(Collectors.joining(", ")));
+<<<<<<< HEAD
     }
+=======
+    }*/
+
 }

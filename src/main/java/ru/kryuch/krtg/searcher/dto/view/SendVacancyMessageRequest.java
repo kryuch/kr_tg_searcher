@@ -1,0 +1,1 @@
+package ru.kryuch.krtg.searcher.dto.view;import lombok.Data;import ru.kryuch.krtg.searcher.dto.VacancyOwnerInfo;@Datapublic class SendVacancyMessageRequest {	private String message;	private VacancyOwnerInfo owner;	private Integer tgAccountId;}

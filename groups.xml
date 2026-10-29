@@ -85,6 +85,14 @@
         <parent>Паттерны (родитель)</parent>
     </group>
     <group>
+        <name>SSL</name>
+        <parent>DevOps</parent>
+    </group>
+    <group>
+        <name>Тестирование</name>
+        <parent>Java Spring</parent>
+    </group>
+    <group>
         <name>Spring</name>
         <parent>Java Spring</parent>
     </group>
@@ -138,6 +146,14 @@
     </group>
     <group>
         <name>Сборка</name>
+        <parent>DevOps</parent>
+    </group>
+    <group>
+        <name>JFR</name>
+        <parent>DevOps</parent>
+    </group>
+    <group>
+        <name>Авторизация</name>
         <parent>DevOps</parent>
     </group>
     <group>

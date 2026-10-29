@@ -1,0 +1,24 @@
+<div id="directionForm">
+    <form action="#"
+          th:action="@{/ignore/add}" th:object="${ignore}"
+          class="edit-form form-horizontal"
+          method="post">
+        <table>
+            <tr>
+                <td>
+                    <label for="username">Заголовок</label>
+                </td>
+                <td>
+                    <input type="text" th:field="*{username}" id="username" placeholder="username">
+                    <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+                </td>
+           </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button class="save" type="submit">Сохранить</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
