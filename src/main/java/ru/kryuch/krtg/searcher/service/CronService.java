@@ -1,41 +1,18 @@
 package ru.kryuch.krtg.searcher.service;
 
-import com.cronutils.model.Cron;
-import com.cronutils.model.CronType;
-import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.model.time.ExecutionTime;
-import com.cronutils.parser.CronParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import ru.kryuch.krtg.searcher.config.SettingConfig;
-import ru.kryuch.krtg.searcher.dto.ChatInfo;
-import ru.kryuch.krtg.searcher.dto.CurrentUser;
-import ru.kryuch.krtg.searcher.dto.SearchParams;
-import ru.kryuch.krtg.searcher.entity.UserEntity;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import ru.kryuch.krtg.searcher.repository.UserRepository;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CronService {
 
-    private final SettingAccessService settingAccessService;
-    private final ChatService chatService;
-    private final UserRepository userRepository;
+    //private final A settingAccessService;
+   // private final ChatService chatService;
+   // private final UserRepository userRepository;
 /*
     private final SettingAccessService settingAccessService;
     private final ChatService chatService;

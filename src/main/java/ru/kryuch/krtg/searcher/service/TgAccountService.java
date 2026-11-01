@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
+import ru.kryuch.krtg.searcher.integration.tg.dto.InitRequest;
 
 import java.util.List;
 

@@ -1,12 +1,15 @@
 package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
+import ru.kryuch.krtg.searcher.integration.tg.dto.FolderChatIdsRequestItem;
+import ru.kryuch.krtg.searcher.integration.tg.dto.UpdateFolderRequest;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
 import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
 import ru.kryuch.krtg.searcher.repository.FolderRepository;

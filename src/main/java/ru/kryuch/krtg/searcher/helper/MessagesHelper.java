@@ -2,7 +2,7 @@ package ru.kryuch.krtg.searcher.helper;
 
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
 import ru.kryuch.krtg.searcher.dto.VacancyOwnerInfo;
-import ru.kryuch.krtg.searcher.type.VacancyOwnerType;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancyOwnerType;
 
 import java.time.LocalDateTime;
 import java.util.*;

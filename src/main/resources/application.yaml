@@ -38,7 +38,6 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
 
->>>>>>> feature/deepseek
   liquibase:
     enabled: false  # Отключаем автоконфигурацию!
 

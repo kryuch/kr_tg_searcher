@@ -1,46 +1,5 @@
 <div class="icontent">
     <form action="#" th:action="@{/settings/save}" th:object="${items}"
-<<<<<<< HEAD
-          class="edit-form form-horizontal" method="post">
-        <div id="tabs">
-            <ul>
-                <li><a href="#tabs-cron">Крон</a></li>
-                <li><a href="#tabs-folder">Папка</a></li>
-                <li><a href="#tabs-other">Прочее</a></li>
-            </ul>
-
-            <!-- Вкладки Крон и Папка в цикле -->
-            <th:block th:each="entry : ${views}">
-                <div th:id="${entry.key}">
-                    <table class="list">
-                        <thead>
-                        <tr id="header">
-                            <th class="table-alias">Параметр</th>
-                            <th id="rate" class="table-description">Значение</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <th:block th:each="view : ${entry.value}">
-                            <tr>
-                                <td class="settingcode"><span th:text="${view.title}">Заголовок</span></td>
-                                <td th:id="${view.code}">
-                                    <input th:if="${view.isCheckbox}"
-                                           type="checkbox"
-                                           th:id="${view.code} + '_value'"/>
-                                    <span th:unless="${view.isCheckbox}">
-                                            <!-- Здесь будет значение из items.settings -->
-                                        </span>
-                                </td>
-                            </tr>
-                        </th:block>
-                        </tbody>
-                    </table>
-                </div>
-            </th:block>
-
-            <!-- Вкладка Прочее (отдельно, как было) -->
-            <div id="tabs-other">
-=======
           class="edit-form form-horizontal settingform" method="post">
         <div id="tabs">
             <ul>
@@ -50,7 +9,6 @@
             </ul>
 
             <div th:each="group : ${groups}" th:id="'tabs-' + ${group.code}">
->>>>>>> feature/deepseek
                 <table class="list">
                     <thead>
                     <tr id="header">
@@ -59,22 +17,6 @@
                     </tr>
                     </thead>
                     <tbody>
-<<<<<<< HEAD
-                    <tr th:if="${items.settings.empty}">
-                        <td colspan="2">Тут пусто</td>
-                    </tr>
-                    <th:block th:each="item, iter : *{settings}">
-                        <tr id="setting">
-                            <td id="code">
-                                <input th:field="*{settings[__${iter.index}__].code}" readonly="readonly"/>
-                            </td>
-                            <td id="value">
-                                <input th:field="*{settings[__${iter.index}__].value}"
-                                       th:data="*{settings[__${iter.index}__].code}"/>
-                            </td>
-                        </tr>
-                    </th:block>
-=======
                     <tr th:each="idx : ${items.groupedIndices[group.code]}"
                         th:class="${items.settings[idx].code == group.code + '_enable' or items.settings[idx].code == group.code + '_enabled'} ? 'settings-master-row' : ''">
                         <td class="settingcode"><span th:text="*{settings[__${idx}__].title}">Заголовок</span></td>
@@ -102,7 +44,6 @@
                                       th:field="*{settings[__${idx}__].stringValue}"></textarea>
                         </td>
                     </tr>
->>>>>>> feature/deepseek
                     </tbody>
                 </table>
             </div>
@@ -112,38 +53,6 @@
 
         <script>
             jQuery(function () {
-<<<<<<< HEAD
-                jQuery.each(["cron_time", "cron_lastmessage", "cron_newmessage", "cron_chats_count", "folder"], function (index, field) {
-                    var input = jQuery("input[data=" + field + "]");
-                    var td = input.parent();
-                    jQuery("td#" + field).html(td.html());
-                    td.parent().hide();
-                    td.remove();
-                })
-
-                jQuery.each(["term", "max_day", "cron_lastrun"], function (index, field) {
-                    var value = jQuery("input[data=" + field + "]").val();
-                    jQuery("td#" + field).html(value);
-                })
-
-                jQuery("input[data=cron_lastrun]").parents("tr").hide();
-                jQuery("input[data=cron_enable]").parents("tr").hide();
-
-                jQuery("#cron_enable_value").prop("checked", Number(jQuery("input[data=cron_enable]").val()) == 1);
-                jQuery("#folder_enable_value").prop("checked", Number(jQuery("input[data=folder_enable]").val()) == 1);
-                jQuery("#add_to_folder_value").prop("checked", Number(jQuery("input[data=add_to_folder]").val()) == 1);
-                jQuery("#tabs").tabs();
-
-                jQuery("#cron_enable_value").on("click", function() {
-                    jQuery("input[data=cron_enable]").val((jQuery("#cron_enable_value").prop("checked")) ? "1" : "0");
-                })
-                jQuery("#folder_enable_value").on("click", function() {
-                    jQuery("input[data=folder_enable]").val((jQuery("#folder_enable_value").prop("checked")) ? "1" : "0");
-                })
-                jQuery("#add_to_folder_value").on("click", function() {
-                    jQuery("input[data=add_to_folder]").val((jQuery("#add_to_folder_value").prop("checked")) ? "1" : "0");
-                })
-=======
                 jQuery("#tabs").tabs();
 
                 function updateGroupState($table) {
@@ -187,7 +96,6 @@
                         }
                     });
                 });
->>>>>>> feature/deepseek
             });
         </script>
     </form>

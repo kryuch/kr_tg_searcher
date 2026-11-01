@@ -22,16 +22,16 @@ import ru.kryuch.krtg.searcher.type.SettingType;
 
 @Entity
 @Table(
-        name = "krrg_settings",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_setting_code", columnNames = "code")
-        }
+    name = "krrg_settings",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_setting_code", columnNames = "code")
+    }
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SettingEntity extends BasedAccessEntity {
+public class SettingEntity extends TimestampedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

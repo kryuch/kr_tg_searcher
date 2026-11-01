@@ -7,6 +7,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.kryuch.krtg.searcher.dto.ChatKey;
+import ru.kryuch.krtg.searcher.dto.TgUserAvatar;
+import ru.kryuch.krtg.searcher.service.ChatService;
+import ru.kryuch.krtg.searcher.service.FolderChatService;
+import ru.kryuch.krtg.searcher.service.deepseek.GigaRecruiterService;
 
 import java.util.List;
 
@@ -15,16 +20,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatStatusController {
 
-    private final ChatService chatServiceImpl;
-    private final FolderChatService folderChatService;
     private final ChatService chatService;
     private final FolderChatService folderChatService;
-
     private final GigaRecruiterService gigaRecruiterService;
 
     @PostMapping("/update")
     public Boolean update(@Param("chatId") Long chatId, @Param("username") String username, @Param("name") String name, Integer status) {
-        return chatServiceImpl.update(chatId, username, name, status);
+        return chatService.update(chatId, username, name, status);
     }
 
     @PostMapping("/folder")

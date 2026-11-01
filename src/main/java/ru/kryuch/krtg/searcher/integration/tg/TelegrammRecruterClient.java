@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.Message;
 import ru.kryuch.krtg.searcher.integration.tg.dto.ChatIdsRequest;
-import ru.kryuch.krtg.searcher.integration.tg.dto.ChatIdsRequestItem;
-import ru.kryuch.krtg.searcher.integration.tg.dto.SendBulkMessageRequestByConcatUsername;
 import ru.kryuch.krtg.searcher.integration.tg.dto.SendBulkMessageRequestByContactId;
 import ru.kryuch.krtg.searcher.util.PythonMessagesResponse;
 
@@ -40,7 +38,7 @@ public class TelegrammRecruterClient {
                         .contacts(
                                 new ChatIdsRequest(
                                         List.of(
-                                                ChatIdsRequestItem.builder()
+                                                ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem.builder()
                                                         .id(chatKey.getUserId())
                                                         .tgAccountId(chatKey.getTgAccountId())
                                                         .build()

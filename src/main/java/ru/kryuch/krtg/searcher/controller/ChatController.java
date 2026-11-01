@@ -15,6 +15,14 @@ import ru.kryuch.krtg.searcher.dto.SearchParams;
 import ru.kryuch.krtg.searcher.dto.SendMessageParam;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.helper.ExportHelper;
+import ru.kryuch.krtg.searcher.integration.tg.dto.ChatResponse;
+import ru.kryuch.krtg.searcher.service.ChatExportService;
+import ru.kryuch.krtg.searcher.service.ChatService;
+import ru.kryuch.krtg.searcher.service.FolderChatService;
+import ru.kryuch.krtg.searcher.service.SettingService;
+import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
+import ru.kryuch.krtg.searcher.service.TgAccountService;
+import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
 import java.io.IOException;
