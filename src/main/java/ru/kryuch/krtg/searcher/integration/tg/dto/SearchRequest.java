@@ -4,6 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import ru.kryuch.krtg.searcher.dto.ChatKey;
+import ru.kryuch.krtg.searcher.type.PersonalChatType;
+import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 
 import java.util.List;
 
@@ -20,11 +24,7 @@ public class SearchRequest {
     PersonalChatType botType;
     PersonalChatType groupType;
     Boolean excludeStatusFlag;
-    List<ChatKey> excludeChats;
     SearchLastMessageType lastMessageType;
-    PersonalChatType botType;
-    PersonalChatType groupType;
-    Boolean excludeStatusFlag;
 
     @ToString.Exclude
     List<ChatKey> excludeChats;

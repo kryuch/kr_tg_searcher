@@ -1,14 +1,24 @@
 package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import ru.kryuch.krtg.searcher.config.SettingConfig;
+import ru.kryuch.krtg.searcher.dto.SendMessageParam;
+import ru.kryuch.krtg.searcher.helper.ChatHelper;
+import ru.kryuch.krtg.searcher.helper.FolderHelper;
+import ru.kryuch.krtg.searcher.integration.tg.dto.ChatIdsRequest;
+import ru.kryuch.krtg.searcher.integration.tg.dto.ChatResponse;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TelegramMessagingService {
 
     private final TelegramMessagingGateway telegramMessagingGateway;
@@ -28,7 +38,7 @@ public class TelegramMessagingService {
                 clearPrevious,
                 new ChatIdsRequest(
                         StreamSupport.stream(chatRepository.findAllById(ids).spliterator(), false)
-                                .map(item -> new ChatIdsRequestItem(item.getUser().getId(), item.getTgId()))
+                                .map(item -> new ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem(item.getUser().getId(), item.getTgId()))
                                 .toList()
                 )
         );

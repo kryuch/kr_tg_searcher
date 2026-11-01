@@ -1,14 +1,20 @@
 package ru.kryuch.krtg.searcher.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.MessagesHistory;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstafRequestDto;
+import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.helper.ChatAccessHelper;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
+import ru.kryuch.krtg.searcher.mapper.vacancy.VacancySkillstafRequestMapper;
 import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
-import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
+import ru.kryuch.krtg.searcher.repository.VacancyRepository;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancySource;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancyTgOwnerStatus;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
 import java.util.HashSet;
@@ -26,6 +32,20 @@ public class VacancyService {
 
     private static final String VACANCY_TERM_SETTING = "text_in_vacancy";
 
+    private final VacancyRepository vacancyRepository;
+    private final VacancySkillstafRequestMapper vacancySkillstafRequestMapper;
+
+    @Transactional
+    public Long add(VacancySkillstafRequestDto dto) {
+        VacancyEntity vacancy = vacancySkillstafRequestMapper.toEntity(dto);
+
+        if (vacancyRepository.existsByExternalIdAndSourceCode(vacancy.getExternalId(), VacancySource.SKILLSTAF.getCode())) {
+            throw new IllegalStateException(
+                "Вакансия уже добавлена, externalId=" + vacancy.getExternalId());
+        }
+
+        return vacancyRepository.save(vacancy).getId();
+    }
 
     public VacanciesContainer analyze(MessagesHistory messagesHistory) {
         VacanciesContainer vacanciesContainer = new VacanciesContainer();

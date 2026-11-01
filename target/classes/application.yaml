@@ -72,7 +72,6 @@ spring:
   sql:
     init:
       mode: never  # Отключаем, чтобы не мешал Liquibase
-
   ai:
     openai:
       api-key: dummy-key  # Временно, чтобы не падало при старте
@@ -82,3 +81,4 @@ spring:
 app:
   file-storage:
     path: /var/lib/krrg/files
+

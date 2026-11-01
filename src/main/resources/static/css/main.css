@@ -1112,18 +1112,12 @@ button.save#filter {
 
 .tgmultiselect .ms-options {
     z-index: 1;
-<<<<<<< HEAD
-    position: relative;
-=======
   /*  position: relative;*/
->>>>>>> feature/deepseek
 }
 
 form.synchr button.save {
     width: 256px;
     height: 32px;
-<<<<<<< HEAD
-=======
 }
 
 .description .description-full {
@@ -1173,5 +1167,4 @@ form.synchr button.save {
     height: 32px;
     margin-top: 16px;
     margin-left: 16px;
->>>>>>> feature/deepseek
 }

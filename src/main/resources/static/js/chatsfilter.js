@@ -65,7 +65,6 @@ function hideLoading(button) {
     $('#loading-overlay').hide();
 }
 
-<<<<<<< HEAD
 // ============================================================
 // Функции для работы с фильтрами (без изменений)
 // ============================================================
@@ -96,8 +95,6 @@ function applyFilter() {
 }
 
 // ============================================================
-=======
->>>>>>> feature/deepseek
 // Сохранение параметров поиска в cookies
 // ============================================================
 
@@ -128,12 +125,9 @@ function restoreSearchParamsFromCookies() {
     if (params.minDiffDaysCount) jQuery("#minDiffDaysCount").val(params.minDiffDaysCount);
     if (params.lastMessage) jQuery("#lastMessage").val(params.lastMessage);
     if (params.messagesCount) jQuery("#messagesCount").val(params.messagesCount);
-<<<<<<< HEAD
-=======
     if (params.lastMessageType !== undefined && params.lastMessageType !== null) {
         jQuery("#lastMessageType").val(params.lastMessageType);
     }
->>>>>>> feature/deepseek
 
     if (params.excludeStatusFlag !== undefined) {
         jQuery("#excludeStatusFlag").prop('checked', params.excludeStatusFlag === true || params.excludeStatusFlag === 'true');
@@ -211,11 +205,7 @@ function formSubmit(url, func, button) {
 
     // Скрываем спиннер через некоторое время (форма отправлена, но ответ ещё не пришёл)
     // Спиннер скроется после загрузки страницы
-<<<<<<< HEAD
-    setTimeout(function() {
-=======
     setTimeout(function () {
->>>>>>> feature/deepseek
         if (button) {
             hideLoading(button);
         }
@@ -317,10 +307,7 @@ jQuery(document).ready(function () {
             lastMessage: jQuery("#lastMessage").val(),
             groupType: jQuery("#groupType").val(),
             messagesCount: jQuery("#messagesCount").val(),
-<<<<<<< HEAD
-=======
             lastMessageType: jQuery("#lastMessageType").val(),
->>>>>>> feature/deepseek
             tgAccountIds: jQuery("#tgAccounts").val()
         };
 
@@ -340,17 +327,12 @@ jQuery(document).ready(function () {
         // AJAX запрос
         jQuery.ajax({
             url: action,
-<<<<<<< HEAD
-            type: "GET",
-            data: formData,
-=======
             type: "POST",
             data: formData,
             timeout: 0,
             beforeSend: function (xhr) {
                 xhr.setRequestHeader(csrfHeader, csrfToken);
             },
->>>>>>> feature/deepseek
             success: function (response) {
                 console.log("📥 Ответ от сервера:", response);
 
@@ -370,11 +352,7 @@ jQuery(document).ready(function () {
 
                 // Скрываем спиннер после успешного ответа
                 hideLoading($btn);
-<<<<<<< HEAD
-=======
-
                 loadMissingAvatars();
->>>>>>> feature/deepseek
             },
             error: function (xhr, status, error) {
                 console.error("❌ Ошибка:", error);
@@ -390,11 +368,7 @@ jQuery(document).ready(function () {
 
     // Если страница перезагрузилась после отправки формы,
     // убираем все спиннеры
-<<<<<<< HEAD
-    $('button').each(function() {
-=======
     $('button').each(function () {
->>>>>>> feature/deepseek
         var $btn = $(this);
         if ($btn.data('original-text')) {
             hideLoading($btn);

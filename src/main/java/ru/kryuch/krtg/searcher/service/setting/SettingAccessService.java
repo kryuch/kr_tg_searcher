@@ -137,8 +137,9 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
     }
 
     private SettingEntity resolveSettingDefinition(String code) {
-        return settingRepository.findByCode(code)
-                .orElseThrow(() -> new BusinessException("Неизвестный код настройки: " + code));
+   //     return settingRepository.findByCode(code)
+        //        .orElseThrow(() -> new BusinessException("Неизвестный код настройки: " + code));
+        return null;
     }
 
     private SettingValueEntity newValueEntity(SettingEntity definition, Integer userId) {

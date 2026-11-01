@@ -14,6 +14,10 @@ import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
+import ru.kryuch.krtg.searcher.helper.TgUserHelper;
+import ru.kryuch.krtg.searcher.mapper.ChatKeyMapper;
+import ru.kryuch.krtg.searcher.mapper.ChatMapper;
+import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 

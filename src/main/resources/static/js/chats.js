@@ -14,8 +14,6 @@ function showMessage(element, flag) {
     }
 }
 
-<<<<<<< HEAD
-=======
 function loadMissingAvatars() {
     console.log("🔍 Проверка аватаров...");
 
@@ -117,4 +115,3 @@ function loadMissingAvatars() {
             console.error("❌ Ошибка загрузки аватаров:", error);
         });
 }
->>>>>>> feature/deepseek

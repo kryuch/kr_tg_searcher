@@ -14,6 +14,7 @@ import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
 import ru.kryuch.krtg.searcher.helper.FolderHelper;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
+import ru.kryuch.krtg.searcher.integration.tg.dto.CreateFolderRequest;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
