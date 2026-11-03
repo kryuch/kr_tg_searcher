@@ -104,6 +104,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // System.out.println("PASSWORD FOR FIRST USER: " + (new BCryptPasswordEncoder()).encode("password"));
         return new BCryptPasswordEncoder();
     }
 

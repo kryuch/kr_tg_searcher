@@ -1,4 +1,4 @@
-<head th:fragment="employees-head(title)">
+<head th:fragment="employees-head">
     <meta charset="UTF-8">
     <link rel="stylesheet" th:href="@{/css/employees.css}">
     <link rel="stylesheet" th:href="@{/bootstrap-6.0.0-alpha.1-dist/css/bootstrap.css}">
@@ -27,13 +27,34 @@
         <a class="btn-solid btn-styled theme-primary" href="/ignore/list">Игнорирование</a>
         <a class="btn-solid btn-styled theme-primary" href="/user/files/">Файлы</a>
         <a class="btn-solid btn-styled theme-primary" href="/settings/">Настройки</a>
-        <a class="btn-solid btn-styled theme-secondary" href="/employees/">Сотрудники</a>
+
+        <a th:unless="${page.equals('/employees/')}" class="btn-solid theme-privary" th:href="@{/employees/}">Сотрудники</a>
+        <a th:if="${page.equals('/employees/')}" class="btn-solid theme-secondary" type="button" data-bs-toggle="menu" data-bs-placement="bottom-start" aria-expanded="false" href="/employees/">Сотрудники</a>
+        <div th:if="${page.equals('/employees/')}" class="menu">
+            <a class="menu-item" th:href="@{/employees/}">Сотрудники</a>
+            <a class="menu-item" th:href="@{/employees/directions/}">Направления разработки</a>
+            <!-- <a class="menu-item">Something else here</a> -->
+        </div>
     </div>
 </nav>
 
 <main th:fragment="employees-main" class="row">
     <h1 th:text="${title}"></h1>
     <div class="col p-4">
-        this is main
+        main
+    </div>
+</main>
+
+<main th:fragment="employees-directions" class="row">
+    <h1 th:text="${title}"></h1>
+    <div class="col p-4">
+        directions
+    </div>
+</main>
+
+<main th:fragment="employees-direction" class="row">
+    <h1 th:text="${title}"></h1>
+    <div class="col p-4">
+        directions
     </div>
 </main>
