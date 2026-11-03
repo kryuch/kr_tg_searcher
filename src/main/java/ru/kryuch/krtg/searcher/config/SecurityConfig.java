@@ -14,8 +14,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -44,7 +42,6 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-
         http
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
@@ -53,7 +50,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(csrf -> csrf.disable()) // токен не в cookie — CSRF тут не актуален
+                .csrf(csrf -> csrf.disable())
                 .addFilterBefore(
                         new ApiTokenAuthenticationFilter(apiTokenService, customUserDetailsService),
                         UsernamePasswordAuthenticationFilter.class
@@ -69,30 +66,23 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
+                // Используем правильный метод внедрения нашего провайдера аутентификации
+                .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/oauth2/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
-
-           /*     .oauth2Login(oauth -> oauth
-                        .authorizationEndpoint(authorization -> authorization
-                                .authorizationRequestResolver(authorizationRequestResolver())
-                        )
-                        .defaultSuccessUrl("/settings/gmail/connected", true)
-                )
-*/
                 .formLogin(form -> form
-                        .loginPage("/login/")
-                        .loginProcessingUrl("/login/")
-                        .defaultSuccessUrl("/chat/", true)
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/chat", true)
                         .successHandler(authenticationSuccessHandler)
                         .failureUrl("/login?error")
                         .usernameParameter("username")
                         .passwordParameter("password")
                         .permitAll()
                 )
-
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
@@ -100,13 +90,11 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-
                 .sessionManagement(session -> session
                         .maximumSessions(1)
                         .expiredUrl("/login?expired")
                         .maxSessionsPreventsLogin(false)
                 )
-
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/chat/status/**")
                 );
@@ -114,29 +102,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-  /*  @Bean
-    public OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
-        DefaultOAuth2AuthorizationRequestResolver resolver =
-                new DefaultOAuth2AuthorizationRequestResolver(
-                        clientRegistrationRepository,
-                        "/oauth2/authorization"
-                );
-
-        resolver.setAuthorizationRequestCustomizer(builder ->
-                builder.additionalParameters(params -> {
-                    params.put("access_type", "offline");
-                    params.put("prompt", "consent");
-                })
-        );
-
-        return resolver;
-    }*/
-
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
+        return new BCryptPasswordEncoder();
     }
 
+    // Spring Security 6 автоматически заберет этот бин провайдера 
+    // и свяжет его с формой авторизации и AuthenticationManager
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -145,8 +117,9 @@ public class SecurityConfig {
         return provider;
     }
 
+    // Безопасное получение AuthenticationManager без создания циклов зависимостей
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 

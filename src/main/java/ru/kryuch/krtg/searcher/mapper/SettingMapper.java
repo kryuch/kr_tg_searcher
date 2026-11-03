@@ -10,10 +10,7 @@ import ru.kryuch.krtg.searcher.entity.setting.SettingValueEntity;
 
 import java.util.List;
 
-@Mapper(
-        componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
+@Mapper(componentModel = "spring")
 public abstract class SettingMapper implements TMapper<SettingValueEntity, SettingDto> {
 
     @Mapping(target = "code", source = "setting.code")

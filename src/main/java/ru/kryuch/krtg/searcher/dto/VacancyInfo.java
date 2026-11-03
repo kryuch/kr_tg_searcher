@@ -14,6 +14,7 @@ import java.util.Optional;
 public class VacancyInfo {
 
     // название вакансии
+    @Builder.Default
     String title = "";
 
     // полный текст
