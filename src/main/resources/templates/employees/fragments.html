@@ -1,0 +1,39 @@
+<head th:fragment="employees-head(title)">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/employees.css}">
+    <link rel="stylesheet" th:href="@{/bootstrap-6.0.0-alpha.1-dist/css/bootstrap.css}">
+    <script type="module" th:src="@{/bootstrap-6.0.0-alpha.1-dist/js/bootstrap.bundle.min.js}"></script>
+    <title th:text="${title}">Default Title</title>
+</head>
+
+<header th:fragment="employees-header" class="row align-items-center p-3 employees-header">
+    <div class="col">
+        <img th:src="@{/css/images/logo.jpg}" class="logo">
+    </div>
+    <div class="col d-flex justify-content-end">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-solid theme-secondary">Выход</button>
+        </form>
+    </div>
+</header>
+
+<nav th:fragment="employees-menu" class="employees-menu row">
+    <div class="col pt-3 pb-3">
+        <a class="btn-solid btn-styled theme-primary" href="/chat/">Чаты</a>
+        <a class="btn-solid btn-styled theme-primary" href="/upload/">Загрузка</a>
+        <a class="btn-solid btn-styled theme-primary" href="/synchr/">Синхронизация</a>
+        <a class="btn-solid btn-styled theme-primary" href="/vacancy/questions/answers/">Вопросы</a>
+        <a class="btn-solid btn-styled theme-primary" href="/tg/list">ТГ</a>
+        <a class="btn-solid btn-styled theme-primary" href="/ignore/list">Игнорирование</a>
+        <a class="btn-solid btn-styled theme-primary" href="/user/files/">Файлы</a>
+        <a class="btn-solid btn-styled theme-primary" href="/settings/">Настройки</a>
+        <a class="btn-solid btn-styled theme-secondary" href="/employees/">Сотрудники</a>
+    </div>
+</nav>
+
+<main th:fragment="employees-main" class="row">
+    <h1 th:text="${title}"></h1>
+    <div class="col p-4">
+        this is main
+    </div>
+</main>
