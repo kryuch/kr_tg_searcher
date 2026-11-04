@@ -25,6 +25,7 @@ import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
 import ru.kryuch.krtg.searcher.type.vacancy.WorkFormat;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -115,6 +116,21 @@ public class VacancyEntity extends TimestampedEntity {
 
     @Column(nullable = false)
     private boolean indefinite;
+
+    @Column(length = 255)
+    private String citizenship;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "duration_text", length = 500)
+    private String durationText;
+
+    @Column(name = "rate_open", nullable = false)
+    private boolean rateOpen;
 
     @Column(name = "raw_text", columnDefinition = "text")
     private String rawText;

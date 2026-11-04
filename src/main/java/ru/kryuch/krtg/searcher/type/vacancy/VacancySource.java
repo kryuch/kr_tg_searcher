@@ -2,7 +2,7 @@ package ru.kryuch.krtg.searcher.type.vacancy;
 
 public enum VacancySource {
 
-    SKILLSTAF("SKILLSTAF", "skillstaf"),
+    SKILLSTAFF("SKILLSTAFF", "skillstaf"),
     HH("HH", "hh");
 
     final String code;

@@ -7,7 +7,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstafRequestDto;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
@@ -47,7 +47,7 @@ public abstract class VacancySkillstafRequestMapper {
     @Mapping(target = "ownerOrganisation", source = "industry", qualifiedByName = "toOrganisation")
     @Mapping(target = "category", source = "category", qualifiedByName = "toCategory")
     @Mapping(target = "grades", source = "grades", qualifiedByName = "toGrades")
-    public abstract VacancyEntity toEntity(VacancySkillstafRequestDto dto);
+    public abstract VacancyEntity toEntity(VacancySkillstaffRequestDto dto);
 
     @AfterMapping
     protected void clearDurationIfIndefinite(@MappingTarget VacancyEntity vacancy) {
@@ -57,13 +57,14 @@ public abstract class VacancySkillstafRequestMapper {
     }
 
     protected VacancySourceEntity resolveSource() {
-        return sourceRepository.findByCode(VacancySource.SKILLSTAF.getCode())
+        return sourceRepository.findByCode(VacancySource.SKILLSTAFF.getCode())
             .orElseThrow(() -> new IllegalStateException(
-                "Не найден источник вакансий: " + VacancySource.SKILLSTAF.getCode()));
+                "Не найден источник вакансий: " + VacancySource.SKILLSTAFF.getCode()));
     }
 
     @Named("toOrganisation")
     protected VacancyOwnerOrganisationEntity toOrganisation(String name) {
+        if (name == null) return null;
         String normalized = name.trim();
         return ownerOrganisationRepository.findByName(normalized)
             .orElseGet(() -> {
@@ -75,6 +76,7 @@ public abstract class VacancySkillstafRequestMapper {
 
     @Named("toCategory")
     protected VacancyCategoryEntity toCategory(String name) {
+        if (name == null) return null;
         String normalized = name.trim();
         return categoryRepository.findByName(normalized)
             .orElseGet(() -> {
@@ -107,7 +109,7 @@ public abstract class VacancySkillstafRequestMapper {
         return result;
     }
 
-    protected String resolveExternalId(VacancySkillstafRequestDto dto) {
+    protected String resolveExternalId(VacancySkillstaffRequestDto dto) {
         if (dto.getExternalId() != null && !dto.getExternalId().isBlank()) {
             return dto.getExternalId().trim();
         }
