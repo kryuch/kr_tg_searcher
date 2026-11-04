@@ -3,7 +3,8 @@
     <head th:replace="~{employees/fragments :: employees-head}"></head>
     <body class="container">
         <header th:replace="~{employees/fragments :: employees-header}"></header>
-        <nav th:replace="~{employees/fragments :: employees-menu}"></nav>
-        <main th:replace="~{employees/fragments :: ${pageTemplate}}" class="row"></main>
+        <nav    th:replace="~{employees/fragments :: employees-menu}"></nav>
+        <nav    th:replace="~{employees/fragments :: breadcrumb}"></nav>
+        <main   th:replace="~{__${pageTemplate}__ :: main}" class="row"></main>
     </body>
 </html>

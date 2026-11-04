@@ -19,42 +19,38 @@
 
 <nav th:fragment="employees-menu" class="employees-menu row">
     <div class="col pt-3 pb-3">
-        <a class="btn-solid btn-styled theme-primary" href="/chat/">Чаты</a>
-        <a class="btn-solid btn-styled theme-primary" href="/upload/">Загрузка</a>
-        <a class="btn-solid btn-styled theme-primary" href="/synchr/">Синхронизация</a>
-        <a class="btn-solid btn-styled theme-primary" href="/vacancy/questions/answers/">Вопросы</a>
-        <a class="btn-solid btn-styled theme-primary" href="/tg/list">ТГ</a>
-        <a class="btn-solid btn-styled theme-primary" href="/ignore/list">Игнорирование</a>
-        <a class="btn-solid btn-styled theme-primary" href="/user/files/">Файлы</a>
-        <a class="btn-solid btn-styled theme-primary" href="/settings/">Настройки</a>
-
-        <a th:unless="${page.equals('/employees/')}" class="btn-solid theme-privary" th:href="@{/employees/}">Сотрудники</a>
-        <a th:if="${page.equals('/employees/')}" class="btn-solid theme-secondary" type="button" data-bs-toggle="menu" data-bs-placement="bottom-start" aria-expanded="false" href="/employees/">Сотрудники</a>
-        <div th:if="${page.equals('/employees/')}" class="menu">
-            <a class="menu-item" th:href="@{/employees/}">Сотрудники</a>
-            <a class="menu-item" th:href="@{/employees/directions/}">Направления разработки</a>
-            <!-- <a class="menu-item">Something else here</a> -->
+        <div th:each="menuItem : ${menuItems}" class="d-inline-flex">
+            <a th:if="${! currentUri.startsWith(menuItem.path())}"
+               th:href="${menuItem.path()}"
+               th:text="${menuItem.name()}"
+               class="btn-solid btn-styled ms-3 theme-primary"></a>
+            <a th:if="${currentUri.startsWith(menuItem.path())}"
+               th:href="${menuItem.path()}"
+               th:text="${menuItem.name()}"
+               data-bs-toggle="menu"
+               data-bs-placement="bottom-start"
+               aria-expanded="false"
+               class="btn-solid btn-styled ms-3 theme-secondary"></a>
+            <div th:if="${currentUri.startsWith(menuItem.path())}" class="menu">
+                <a th:each="subMenuItem : ${menuItem.subMenuItems()}"
+                   class="menu-item"
+                   th:href="${subMenuItem.path()}"
+                   th:inline="text">[[${subMenuItem.name()}]]</a>
+            </div>
         </div>
     </div>
 </nav>
 
-<main th:fragment="employees-main" class="row">
-    <h1 th:text="${title}"></h1>
-    <div class="col p-4">
-        main
-    </div>
-</main>
-
-<main th:fragment="employees-directions" class="row">
-    <h1 th:text="${title}"></h1>
-    <div class="col p-4">
-        directions
-    </div>
-</main>
-
-<main th:fragment="employees-direction" class="row">
-    <h1 th:text="${title}"></h1>
-    <div class="col p-4">
-        directions
-    </div>
-</main>
+<nav th:fragment="breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <th:block th:each="breadcrumb : ${breadcrumbs}">
+            <li class="breadcrumb-item">
+                <a class="breadcrumb-link"
+                   th:classappend="${breadcrumb.path() == '#'} ? 'active' : ''"
+                   th:href="${breadcrumb.path()}"
+                   th:text="${breadcrumb.name()}"></a>
+            </li>
+            <li th:if="${breadcrumb.path() != '#'}" class="breadcrumb-divider"></li>
+        </th:block>
+    </ol>
+</nav>
