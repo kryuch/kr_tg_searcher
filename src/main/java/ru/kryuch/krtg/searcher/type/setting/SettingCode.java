@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.type;
+package ru.kryuch.krtg.searcher.type.setting;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +57,9 @@ public enum SettingCode {
 
     // Admin
     PYTHON("python"),
-    IGNORE_IF_NOT_FOUND("ignore_if_not_found");
+    IGNORE_IF_NOT_FOUND("ignore_if_not_found"),
+    SKILLSTAFF_TG_ACCOUNT("skillstaff_tgaccount"),
+    SKILLSTAFF_TG_USER("skillstaff_tguser");
 
     private final String code;
 

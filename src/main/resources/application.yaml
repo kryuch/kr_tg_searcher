@@ -94,10 +94,3 @@ skillstaff:
   import:
     enabled: true
     delay-ms: 60000
-    chats: 1:-1004328841552
-
-#logging:
- # level:
-  #  org.hibernate.SQL: DEBUG
-   # org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-   # org.hibernate.orm.jdbc.bind: TRACE

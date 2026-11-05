@@ -11,7 +11,7 @@ import ru.kryuch.krtg.searcher.integration.deepseek.dto.DsTaskResult;
 import ru.kryuch.krtg.searcher.integration.deepseek.mapper.DeepseekMapper;
 import ru.kryuch.krtg.searcher.service.SettingService;
 import ru.kryuch.krtg.searcher.type.DeepseekTaskStatus;
-import ru.kryuch.krtg.searcher.type.SettingCode;
+import ru.kryuch.krtg.searcher.type.setting.SettingCode;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
 import java.util.Optional;

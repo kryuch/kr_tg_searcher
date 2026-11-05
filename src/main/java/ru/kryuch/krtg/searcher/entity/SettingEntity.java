@@ -17,7 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.kryuch.krtg.searcher.entity.setting.SettingGroupEntity;
-import ru.kryuch.krtg.searcher.type.SettingType;
+import ru.kryuch.krtg.searcher.type.setting.SettingType;
 
 
 @Entity
@@ -56,4 +56,7 @@ public class SettingEntity extends TimestampedEntity {
 
     @Column(name = "is_large")
     private Boolean isLarge;
+
+    @Column(name = "is_admin")
+    private Boolean isAdmin;
 }

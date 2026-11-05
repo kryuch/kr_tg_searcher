@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.kryuch.krtg.searcher.dto.SettingDto;
 import ru.kryuch.krtg.searcher.dto.setting.SettingGroupDto;
 import ru.kryuch.krtg.searcher.dto.setting.SettingsCollection;
+import ru.kryuch.krtg.searcher.entity.SettingEntity;
 import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.mapper.setting.SettingGroupMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
@@ -16,6 +17,7 @@ import ru.kryuch.krtg.searcher.service.setting.SettingAccessService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -58,8 +60,13 @@ public class SettingService {
     }
 
     public String getValueByCode(String code) {
-        SettingDto setting = getByCode(code);
-        return setting.getValue();
+        Optional<SettingEntity> settingEntity = settingRepository.findByCode(code);
+        if (settingEntity.isPresent()) {
+            SettingDto setting =
+                (settingEntity.get().getIsAdmin()) ? settingAccessService.getAdminByCode(code) : getByCode(code);
+            return setting.getValue();
+        }
+        return null;
     }
 
     public void setValueByCode(String code, String value) {

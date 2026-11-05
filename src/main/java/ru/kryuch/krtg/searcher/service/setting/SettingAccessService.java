@@ -11,9 +11,8 @@ import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 import ru.kryuch.krtg.searcher.repository.setting.SettingValueRepository;
 import ru.kryuch.krtg.searcher.service.AbstractAccessService;
-import ru.kryuch.krtg.searcher.service.setting.SettingValueConverter;
-import ru.kryuch.krtg.searcher.type.SettingCode;
-import ru.kryuch.krtg.searcher.type.SettingType;
+import ru.kryuch.krtg.searcher.type.setting.SettingCode;
+import ru.kryuch.krtg.searcher.type.setting.SettingType;
 
 import java.util.List;
 import java.util.Map;
@@ -96,6 +95,13 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
     }
 
     @Transactional
+    public SettingDto getAdminByCode(String code) {
+        return mapper.fromEntity(
+            repository.findBySettingCode(code).get(0)
+        );
+    }
+
+    @Transactional
     public void setValueByCode(String code, String value) {
         setValueByCode(code, value, getCurrentUserId());
     }
@@ -137,9 +143,8 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
     }
 
     private SettingEntity resolveSettingDefinition(String code) {
-   //     return settingRepository.findByCode(code)
-        //        .orElseThrow(() -> new BusinessException("Неизвестный код настройки: " + code));
-        return null;
+        return settingRepository.findByCode(code)
+                .orElseThrow(() -> new BusinessException("Неизвестный код настройки: " + code));
     }
 
     private SettingValueEntity newValueEntity(SettingEntity definition, Integer userId) {

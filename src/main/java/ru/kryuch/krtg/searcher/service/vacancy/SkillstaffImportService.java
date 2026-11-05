@@ -30,8 +30,6 @@ public class SkillstaffImportService {
     private final SkillstaffMessageParser parser;
     private final VacancyService vacancyService;
 
-    private final ObjectProvider<ScheduledAnnotationBeanPostProcessor> schedulingProcessor;
-
     public ImportResult importChat(ChatKey chatKey) {
         PythonMessagesResponse response = telegramClient.getChatPreview(chatKey, MESSAGES_LIMIT);
         List<Message> messages = response == null || response.getMessages() == null

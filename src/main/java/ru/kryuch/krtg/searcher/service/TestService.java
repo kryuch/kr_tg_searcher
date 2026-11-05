@@ -5,10 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.helper.AuthHelper;
-import ru.kryuch.krtg.searcher.integration.deepseek.DeepseekClient;
 import ru.kryuch.krtg.searcher.service.deepseek.GigaRecruiterService;
 import ru.kryuch.krtg.searcher.service.setting.SettingAccessService;
-import ru.kryuch.krtg.searcher.type.SettingCode;
+import ru.kryuch.krtg.searcher.type.setting.SettingCode;
 
 @Slf4j
 @Service
