@@ -9,7 +9,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
+import ru.kryuch.krtg.searcher.service.SettingService;
 import ru.kryuch.krtg.searcher.service.vacancy.SkillstaffImportService;
+import ru.kryuch.krtg.searcher.type.setting.SettingCode;
 
 import java.util.List;
 
@@ -22,32 +24,20 @@ public class SkillstaffImportJob {
 
     private final SkillstaffImportService importService;
 
-    @Value("${skillstaff.import.chats:}")
-    private List<String> chats;
-
-    @PostConstruct
-    void init() {
-        log.info("SkillstaffImportJob создан, chats={}", chats);
-    }
+    private final SettingService settingService;
 
     @ConditionalOnProperty(name = "skillstaff.import.enabled", havingValue = "true")
     @Scheduled(
         initialDelayString = "${skillstaff.import.initial-delay-ms:30000}",
         fixedDelayString = "${skillstaff.import.delay-ms:60000}")
     public void run() {
-        log.info("Skillstaff import: запуск, чатов={}", chats.size());
-        for (String chat : chats) {
-            try {
-                importService.importChat(toChatKey(chat));
-            } catch (Exception e) {
-                log.error("Skillstaff: импорт чата {} завершился ошибкой", chat, e);
-            }
+        String tgAccountId = settingService.getValueByCode(SettingCode.SKILLSTAFF_TG_ACCOUNT.getCode());
+        String tgUserId = settingService.getValueByCode(SettingCode.SKILLSTAFF_TG_USER.getCode());
+        try {
+            importService.importChat(new ChatKey(Long.valueOf(tgUserId), Integer.valueOf(tgAccountId)));
+        } catch (Exception e) {
+            log.error("Skillstaff: импорт чата {}.{} завершился ошибкой", tgAccountId, tgUserId, e);
         }
     }
 
-    /** Формат: "accountId:chatId". */
-    private ChatKey toChatKey(String value) {
-        String[] parts = value.split(":");
-        return new ChatKey(Long.valueOf(parts[1].trim()), Integer.valueOf(parts[0].trim()));
-    }
 }

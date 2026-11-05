@@ -14,4 +14,5 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
     <include file="changes/007-deepseek.xml" relativeToChangelogFile="true"/>-->
     <include file="changes/008-vacancy_skillstaf.xml" relativeToChangelogFile="true"/>
     <include file="changes/009-vacancy_skillstaf_tg.xml" relativeToChangelogFile="true"/>
+    <include file="changes/010-settings_for_admin.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

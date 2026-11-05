@@ -16,7 +16,7 @@ import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 import ru.kryuch.krtg.searcher.repository.setting.SettingValueRepository;
-import ru.kryuch.krtg.searcher.type.SettingType;
+import ru.kryuch.krtg.searcher.type.setting.SettingType;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
 import java.util.*;
