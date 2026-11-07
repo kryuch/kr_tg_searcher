@@ -1,0 +1,14 @@
+<main th:fragment="main" class="row">
+    <h1 th:text="${title}"></h1>
+    <div class="col p-4">
+        <form th:action="@{/employees/universities/add/}"
+              th:method="POST">
+            <div class="mb-3">
+                <label class="form-label" for="name">Название:</label>
+                <input class="form-control" id="name" type="text" name="name" value="">
+                <div class="form-text">Название университета</div>
+            </div>
+            <button class="btn-solid theme-primary" type="submit">Добавить</button>
+        </form>
+    </div>
+</main>

@@ -24,7 +24,13 @@ public class MainMenuService {
             new MainMenuItem("Настройки", "/settings/", new ArrayList<>()),
             new MainMenuItem("Сотрудники", "/employees/", List.of(
                 new SubMenuItem("Сотрудники", "/employees/"),
-                new SubMenuItem("Направления разработки", "/employees/directions/")
+                new SubMenuItem("Направления разработки", "/employees/directions/"),
+                new SubMenuItem("Уровни разработчика", "/employees/grades/"),
+                new SubMenuItem("Навыки и технологии", "/employees/skills/"),
+                new SubMenuItem("Компании, в которых работал", "/employees/organizations/"),
+                new SubMenuItem("Университеты", "/employees/universities/"),
+                new SubMenuItem("Специальности", "/employees/specialties/"),
+                new SubMenuItem("Типы образования", "/employees/educationtypes/")
             ))
         );
     }

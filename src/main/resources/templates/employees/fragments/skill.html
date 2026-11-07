@@ -1,0 +1,38 @@
+<main th:fragment="main" class="row">
+    <h1 th:text="${title}"></h1>
+    <div class="col p-4">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Ид</th>
+                    <th scope="col">Название</th>
+                    <th scope="col">Операции</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${items}">
+                    <th scope="row" th:inline="text">[[${item.getId()}]]</th>
+                    <td th:inline="text">[[${item.getName()}]]</td>
+                    <td>
+                        <form th:action="@{/employees/skills/{id}/(id=${item.getId()})}"
+                              th:method="delete"
+                              class="d-inline-flex">
+                            <button type="submit"
+                                    onclick="return confirm('Вы уверены, что хотите удалить это направление?');"
+                                    class="btn-solid btn-styled theme-danger btn-xs">Удалить</button>
+                        </form>
+                        <a th:href="@{/employees/skills/{id}/(id=${item.getId()})}" class="btn-solid btn-styled theme-warning btn-xs">Редактировать</a>
+                    </td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td></td>
+                    <td>
+                        <a th:href="@{/employees/skills/add/}"
+                           class="btn-solid btn-styled theme-primary btn-sm">Добавить навык и технологию</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
