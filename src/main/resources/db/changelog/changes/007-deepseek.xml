@@ -4,7 +4,6 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-
     <changeSet id="007-01-deepseek_add_application_column" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <and>
@@ -14,7 +13,6 @@
                 </not>
             </and>
         </preConditions>
-
         <addColumn tableName="krrg_api_tokens">
             <column name="application" type="VARCHAR(32)" defaultValue="hh">
                 <constraints nullable="false"/>
@@ -31,7 +29,6 @@
                 </sqlCheck>
             </and>
         </preConditions>
-
         <insert tableName="krrg_setting_groups">
             <column name="code" value="deepseek"/>
             <column name="title" value="DeepSeek"/>
@@ -40,6 +37,11 @@
             <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
             <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
         </insert>
+        <rollback>
+            <delete tableName="krrg_setting_groups">
+                <where>code = 'deepseek'</where>
+            </delete>
+        </rollback>
     </changeSet>
 
     <changeSet id="007-03-deepseek_add_deepseek_enable" author="Oleg V. Kryuchin">
@@ -55,7 +57,6 @@
                 </sqlCheck>
             </and>
         </preConditions>
-
         <insert tableName="krrg_settings">
             <column name="code" value="deepseek_enable"/>
             <column name="title" value="Включено"/>
@@ -66,7 +67,6 @@
             <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
             <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
         </insert>
-
         <rollback>
             <delete tableName="krrg_settings">
                 <where>code = 'deepseek_enable'</where>
@@ -87,7 +87,6 @@
                 </sqlCheck>
             </and>
         </preConditions>
-
         <insert tableName="krrg_settings">
             <column name="code" value="deepseek_pause"/>
             <column name="title" value="Интервал запроса"/>
@@ -98,7 +97,6 @@
             <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
             <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
         </insert>
-
         <rollback>
             <delete tableName="krrg_settings">
                 <where>code = 'deepseek_pause'</where>
@@ -112,7 +110,6 @@
                 <tableExists tableName="krrg_deepseek_tasks_group"/>
             </not>
         </preConditions>
-
         <createTable tableName="krrg_deepseek_tasks_group">
             <column name="id" type="INT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -126,7 +123,6 @@
             <column name="created_at" type="TIMESTAMP"/>
             <column name="updated_at" type="TIMESTAMP"/>
         </createTable>
-
         <rollback>
             <dropTable tableName="krrg_deepseek_tasks_group" cascadeConstraints="true"/>
         </rollback>
@@ -141,7 +137,6 @@
                 </not>
             </and>
         </preConditions>
-
         <createIndex indexName="idx_deepseek_tasks_group_user_id"
                      tableName="krrg_deepseek_tasks_group">
             <column name="user_id"/>
@@ -154,7 +149,6 @@
                 <tableExists tableName="krrg_deepseek_task"/>
             </not>
         </preConditions>
-
         <createTable tableName="krrg_deepseek_task">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -168,7 +162,6 @@
             <column name="created_at" type="TIMESTAMP"/>
             <column name="updated_at" type="TIMESTAMP"/>
         </createTable>
-
         <rollback>
             <dropTable tableName="krrg_deepseek_task" cascadeConstraints="true"/>
         </rollback>
@@ -186,7 +179,6 @@
                 </not>
             </and>
         </preConditions>
-
         <addForeignKeyConstraint
                 baseTableName="krrg_deepseek_task"
                 baseColumnNames="group_id"
@@ -206,7 +198,6 @@
                 </not>
             </and>
         </preConditions>
-
         <createIndex indexName="idx_deepseek_task_group_id"
                      tableName="krrg_deepseek_task">
             <column name="group_id"/>
@@ -223,19 +214,34 @@
                 </not>
             </and>
         </preConditions>
-
         <createIndex indexName="idx_deepseek_task_is_done"
                      tableName="krrg_deepseek_task">
             <column name="is_done"/>
         </createIndex>
     </changeSet>
 
-
     <changeSet id="007-11-deepseek_status" author="Oleg V. Kryuchin">
-        <sql>
-           ALTER TABLE krrg_deepseek_task ADD column status varchar(64) default 'NEW';
-        ALTER TABLE krrg_deepseek_task ADD column error varchar(1024);
-        </sql>
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_deepseek_task"/>
+                <not>
+                    <columnExists tableName="krrg_deepseek_task" columnName="status"/>
+                </not>
+                <not>
+                    <columnExists tableName="krrg_deepseek_task" columnName="error"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_deepseek_task ADD COLUMN IF NOT EXISTS status VARCHAR(64) DEFAULT 'NEW';
+            ALTER TABLE krrg_deepseek_task ADD COLUMN IF NOT EXISTS error VARCHAR(1024);
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                ALTER TABLE krrg_deepseek_task DROP COLUMN IF EXISTS status;
+                ALTER TABLE krrg_deepseek_task DROP COLUMN IF EXISTS error;
+            ]]></sql>
+        </rollback>
     </changeSet>
 
     <changeSet id="007-12-deepseek_gigarecruter" author="Oleg V. Kryuchin">
@@ -247,7 +253,6 @@
                 </sqlCheck>
             </and>
         </preConditions>
-
         <insert tableName="krrg_setting_groups">
             <column name="code" value="gigarecruter"/>
             <column name="title" value="Гигарекрутер"/>
@@ -256,7 +261,6 @@
             <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
             <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
         </insert>
-
         <rollback>
             <delete tableName="krrg_setting_groups">
                 <where>code = 'gigarecruter'</where>
@@ -277,7 +281,6 @@
                 </sqlCheck>
             </and>
         </preConditions>
-
         <insert tableName="krrg_settings">
             <column name="code" value="gigarecruter_enable"/>
             <column name="title" value="Включено"/>
@@ -288,13 +291,11 @@
             <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
             <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
         </insert>
-
         <rollback>
             <delete tableName="krrg_settings">
                 <where>code = 'gigarecruter_enable'</where>
             </delete>
         </rollback>
-
     </changeSet>
 
     <changeSet id="007-14-deepseek_gigarecruter_botname" author="Oleg V. Kryuchin">
@@ -310,7 +311,6 @@
                 </sqlCheck>
             </and>
         </preConditions>
-
         <insert tableName="krrg_settings">
             <column name="code" value="bot_name"/>
             <column name="title" value="Имя бота"/>
@@ -321,7 +321,6 @@
             <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
             <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
         </insert>
-
         <rollback>
             <delete tableName="krrg_settings">
                 <where>code = 'bot_name'</where>
@@ -345,20 +344,16 @@
                 </not>
             </and>
         </preConditions>
-
-        <sql>
+        <sql><![CDATA[
             ALTER TABLE krrg_setting_values
             ALTER COLUMN string_value TYPE TEXT;
-        </sql>
-
+            ]]></sql>
         <rollback>
-            <sql>
+            <sql><![CDATA[
                 ALTER TABLE krrg_setting_values
                 ALTER COLUMN string_value TYPE VARCHAR(255);
-            </sql>
+            ]]></sql>
         </rollback>
-
-        <comment>Changed string_value column type to TEXT if it was not already TEXT</comment>
     </changeSet>
 
     <changeSet id="007-17-deepseek_description_value" author="Oleg V. Kryuchin">
@@ -377,17 +372,16 @@
                 </not>
             </and>
         </preConditions>
-
-        <sql>
+        <sql><![CDATA[
             ALTER TABLE krrg_deepseek_task
             ALTER COLUMN description TYPE TEXT;
-        </sql>
-
+            ]]></sql>
         <rollback>
-            <sql>
+            <sql><![CDATA[
                 ALTER TABLE krrg_deepseek_task
                 ALTER COLUMN description TYPE VARCHAR(255);
-            </sql>
+            ]]></sql>
         </rollback>
     </changeSet>
+
 </databaseChangeLog>
