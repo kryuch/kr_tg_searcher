@@ -1,12 +1,14 @@
 package ru.kryuch.krtg.searcher.controller;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import ru.kryuch.krtg.searcher.dto.BreadCrumb;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeDto;
 import ru.kryuch.krtg.searcher.entity.employee.DevelopmentDirectionEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EducationTypeEntity;
+import ru.kryuch.krtg.searcher.entity.employee.EmployeeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.GradeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.OrganizationEntity;
 import ru.kryuch.krtg.searcher.entity.employee.SkillEntity;
@@ -25,6 +29,7 @@ import ru.kryuch.krtg.searcher.entity.employee.SpecialtyEntity;
 import ru.kryuch.krtg.searcher.entity.employee.UniversityEntity;
 import ru.kryuch.krtg.searcher.repository.employee.DevelopmentDirectionRepository;
 import ru.kryuch.krtg.searcher.repository.employee.EducationTypeRepository;
+import ru.kryuch.krtg.searcher.repository.employee.EmployeeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.GradeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.OrganizationRepository;
 import ru.kryuch.krtg.searcher.repository.employee.SkillRepository;
@@ -45,6 +50,7 @@ public class EmployeesController {
     private final SkillRepository skillRepository;
     private final MainMenuService mainMenuService;
     private final HttpServletRequest httpServletRequest;
+    private final EmployeeRepository employeeRepository;
 
     public String common(String template, Model model) {
         model.addAttribute("menuItems", mainMenuService.getMenuItems());
@@ -56,8 +62,97 @@ public class EmployeesController {
     @GetMapping("/")
     public String getIndexPage(Model model) {
         model.addAttribute("title", "Сотрудники");
-        model.addAttribute("pageTemplate", "main");
+        model.addAttribute("pageTemplate", "employee");
+        model.addAttribute("items", employeeRepository.findAllByOrderByIdAsc());
         model.addAttribute("breadcrumbs", List.of(new BreadCrumb("Сотрудники", "#")));
+
+        return common("employees/index", model);
+    }
+
+    @GetMapping("/add/")
+    public String getEmployeeAddPage(Model model) {
+        model.addAttribute("title", "Добавить сотрудника");
+        model.addAttribute("pageTemplate", "employee-add");
+        model.addAttribute("form", new EmployeeDto());
+        model.addAttribute("breadcrumbs", List.of(
+            new BreadCrumb("Сотрудники", "/employees/"),
+            new BreadCrumb("Добавить сотрудника", "#")
+        ));
+
+        return common("employees/index", model);
+    }
+
+    @PostMapping("/add/")
+    public String postEmployeeAddPage(@ModelAttribute EmployeeDto employeeDto) {
+        EmployeeEntity employeeEntity = new EmployeeEntity();
+
+        employeeEntity.setLastName(employeeDto.getLastName());
+        employeeEntity.setFirstName(employeeDto.getFirstName());
+        employeeEntity.setMiddleName(employeeDto.getMiddleName());
+        employeeEntity.setGender(employeeDto.getGender());
+        employeeEntity.setBirthDate(employeeDto.getBirthDate());
+        employeeEntity.setCitizenship("");
+
+        employeeRepository.save(employeeEntity);
+
+        return "redirect:/employees/";
+    }
+
+    @DeleteMapping("/{id}/")
+    public String deleteEmployee(@PathVariable Long id) {
+        employeeRepository.deleteById(id);
+
+        return "redirect:/employees/";
+    }
+
+    @GetMapping("/{id}/")
+    public String getEmployeeEditPage(@PathVariable("id") Long id, Model model) {
+        EmployeeEntity entity = employeeRepository.findById(id).get();
+
+        EmployeeDto form = new EmployeeDto();
+        form.setLastName(entity.getLastName());
+        form.setFirstName(entity.getFirstName());
+        form.setMiddleName(entity.getMiddleName());
+        form.setBirthDate(entity.getBirthDate());
+        form.setGender(entity.getGender());
+        System.out.println("Gender: " + form.getGender());
+
+        model.addAttribute("title", "Редактировать сотрудника");
+        model.addAttribute("pageTemplate", "employee-edit");
+        model.addAttribute("id", id);
+        model.addAttribute("form", form);
+        model.addAttribute("breadcrumbs", List.of(
+            new BreadCrumb("Сотрудники", "/employees/"),
+            new BreadCrumb("Редактировать сотрудника", "#")
+        ));
+
+        return common("employees/index", model);
+    }
+
+    @PostMapping("/{id}/")
+    public String postEmployeeEditPage(@ModelAttribute EmployeeDto form, @PathVariable("id") Long id) {
+        EmployeeEntity entity = employeeRepository.findById(id).get();
+
+        entity.setLastName(form.getLastName());
+        entity.setFirstName(form.getFirstName());
+        entity.setMiddleName(form.getMiddleName());
+        entity.setGender(form.getGender());
+        entity.setBirthDate(form.getBirthDate());
+
+        employeeRepository.save(entity);
+        
+        return "redirect:/employees/";
+    }
+
+    @GetMapping("/profiles/")
+    public String getProfilesPage(Model model) {
+        model.addAttribute("title", "Профили");
+        model.addAttribute("pageTemplate", "profile");
+        model.addAttribute("items", new ArrayList<String>());
+        model.addAttribute("breadcrumbs", List.of(
+            new BreadCrumb("Сотрудники", "/employees/"),
+            new BreadCrumb("Профили", "#"))
+        );
 
         return common("employees/index", model);
     }

@@ -10,6 +10,10 @@ server:
   port: 8080
 
 spring:
+  mvc:
+    format:
+      date: yyyy-MM-dd
+
   application:
     name: krrg
   autoconfigure:

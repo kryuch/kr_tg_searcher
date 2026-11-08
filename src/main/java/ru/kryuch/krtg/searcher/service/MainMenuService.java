@@ -24,6 +24,7 @@ public class MainMenuService {
             new MainMenuItem("Настройки", "/settings/", new ArrayList<>()),
             new MainMenuItem("Сотрудники", "/employees/", List.of(
                 new SubMenuItem("Сотрудники", "/employees/"),
+                new SubMenuItem("Профили", "/employees/profiles/"),
                 new SubMenuItem("Направления разработки", "/employees/directions/"),
                 new SubMenuItem("Уровни разработчика", "/employees/grades/"),
                 new SubMenuItem("Навыки и технологии", "/employees/skills/"),

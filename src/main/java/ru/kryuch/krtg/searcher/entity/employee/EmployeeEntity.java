@@ -1,47 +1,45 @@
 package ru.kryuch.krtg.searcher.entity.employee;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
-@Table(name="krrg_employee_employee")
+@Table(name = "krrg_employee_employee")
 public class EmployeeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true, length = 100)
-    private String name;
+    @Column(name = "last_name", nullable = false, length = 100)
+    private String lastName;
 
-    public EmployeeEntity() {
-    }
+    @Column(name = "first_name", nullable = false, length = 100)
+    private String firstName;
 
-    public EmployeeEntity(String name) {
-        this.name = name;
-    }
+    @Column(name = "middle_name", nullable = false, length = 100)
+    private String middleName;
 
-    public EmployeeEntity(Long id, String name) {
-        this.id   = id;
-        this.name = name;
-    }
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "gender", nullable = false, length = 10)
+    private String gender;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "citizenship", nullable = false, length = 100)
+    private String citizenship;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 }
