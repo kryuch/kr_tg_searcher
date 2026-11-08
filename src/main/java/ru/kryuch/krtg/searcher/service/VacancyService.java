@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.MessagesHistory;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffEnrichRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestForEnrichmentResponse;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.helper.ChatAccessHelper;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
@@ -18,6 +20,7 @@ import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
 import ru.kryuch.krtg.searcher.repository.VacancyRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancySourceRepository;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancySource;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancyStatus;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancyTgOwnerStatus;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
@@ -29,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,8 +51,29 @@ public class VacancyService {
     private final VacancySkillstafRequestMapper vacancySkillstafRequestMapper;
 
     @Transactional
+    public VacancySkillstaffRequestForEnrichmentResponse getNewSkillstafItem() {
+        Optional <VacancyEntity> vacancyEntity =
+            vacancyRepository.findFirstBySourceCodeAndStatus(
+                VacancySource.SKILLSTAFF.getCode(),
+                VacancyStatus.NEW
+            );
+
+        if (vacancyEntity.isEmpty()) {
+            return new VacancySkillstaffRequestForEnrichmentResponse();
+        }
+
+        vacancyEntity.get().setStatus(VacancyStatus.IN_ENRICHMENT);
+        vacancyRepository.save(vacancyEntity.get());
+
+        return new VacancySkillstaffRequestForEnrichmentResponse(
+            true,
+            vacancyEntity.get().getId(),
+            vacancyEntity.get().getUrl()
+        );
+    }
+
+    @Transactional
     public Long add(VacancySkillstaffRequestDto dto) {
-        log.info("VacancyService::add ({})", dto);
         VacancyEntity vacancy = vacancySkillstafRequestMapper.toEntity(dto);
 
         if (vacancyRepository.existsByExternalIdAndSourceCode(vacancy.getExternalId(), VacancySource.SKILLSTAFF.getCode())) {
@@ -57,6 +82,25 @@ public class VacancyService {
         }
 
         return vacancyRepository.save(vacancy).getId();
+    }
+
+    @Transactional
+    public boolean enrich(VacancySkillstaffEnrichRequestDto dto, Long id) {
+        Optional <VacancyEntity> vacancy = vacancyRepository.findById(id);
+        if (vacancy.isEmpty()) {
+            log.error("VacancyService::enrich (skillstaf). No vacancy with id = {} ({})", id, dto);
+            return false;
+        }
+
+        try {
+            VacancyEntity vacancyEntity = vacancySkillstafRequestMapper.mergeToEntity(dto, vacancy.get());
+            vacancyEntity.setStatus(VacancyStatus.READY);
+            vacancyRepository.save(vacancyEntity);
+        }
+        catch (Exception ex) {
+            log.error("VacancyService::enrich (skillstaf). Saving error with id = {} ({}) {}", id, dto, ex);
+        }
+        return true;
     }
 
     @Transactional

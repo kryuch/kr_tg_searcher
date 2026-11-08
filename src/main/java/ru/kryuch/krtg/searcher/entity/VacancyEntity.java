@@ -22,6 +22,7 @@ import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancyStatus;
 import ru.kryuch.krtg.searcher.type.vacancy.WorkFormat;
 
 import java.math.BigDecimal;
@@ -134,4 +135,47 @@ public class VacancyEntity extends TimestampedEntity {
 
     @Column(name = "raw_text", columnDefinition = "text")
     private String rawText;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 16)
+    private VacancyStatus status;
+
+    @Column(name = "request_status", length = 50)
+    private String requestStatus;
+
+    @Column(name = "actual_on")
+    private LocalDate actualOn;
+
+    @Column(nullable = false)
+    private boolean extendable;
+
+    @Column(name = "workload_level", length = 50)
+    private String workloadLevel;
+
+    @Column(name = "workload_hours_per_month")
+    private Integer workloadHoursPerMonth;
+
+    @Column(name = "availability_utc_offset")
+    private Integer availabilityUtcOffset;
+
+    @Column(name = "client_payment_terms", columnDefinition = "text")
+    private String clientPaymentTerms;
+
+    @Column(name = "client_reviews_count")
+    private Integer clientReviewsCount;
+
+    @Column(columnDefinition = "text")
+    private String requirements;
+
+    @Column(name = "additional_requirements", columnDefinition = "text")
+    private String additionalRequirements;
+
+    @Column(name = "selection_stages", columnDefinition = "text")
+    private String selectionStages;
+
+    @Column(name = "joining_conditions", columnDefinition = "text")
+    private String joiningConditions;
+
+    @Column(name = "details_loaded", nullable = false)
+    private boolean detailsLoaded;
 }

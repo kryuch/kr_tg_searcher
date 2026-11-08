@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="011-001-add-status-to-vacancies" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <not>
+                    <columnExists tableName="krrg_vacancies" columnName="status"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancies
+                ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'NEW';
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS status;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 2. Установка статуса NEW всем существующим вакансиям -->
+    <changeSet id="011-002-set-status-new-for-existing-vacancies" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <columnExists tableName="krrg_vacancies" columnName="status"/>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            UPDATE krrg_vacancies
+            SET status = 'NEW'
+            WHERE status IS NULL OR status <> 'NEW';
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                -- Откат не имеет смысла: невозможно восстановить предыдущие значения статуса.
+                -- Оставляем пустой rollback.
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 3. Добавление полей для обогащения вакансии -->
+    <changeSet id="011-003-add-vacancy-enrichment-fields" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_vacancies"/>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS request_status VARCHAR(50);
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS actual_on DATE;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS extendable BOOLEAN NOT NULL DEFAULT FALSE;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS workload_level VARCHAR(50);
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS workload_hours_per_month INTEGER;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS availability_utc_offset INTEGER;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS client_payment_terms TEXT;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS client_reviews_count INTEGER;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS requirements TEXT;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS additional_requirements TEXT;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS selection_stages TEXT;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS joining_conditions TEXT;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS details_loaded BOOLEAN NOT NULL DEFAULT FALSE;
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS request_status;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS actual_on;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS extendable;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS workload_level;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS workload_hours_per_month;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS availability_utc_offset;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS client_payment_terms;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS client_reviews_count;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS requirements;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS additional_requirements;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS selection_stages;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS joining_conditions;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS details_loaded;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 4. Обновление CHECK-ограничения для status -->
+    <changeSet id="011-004-update-status-check-constraint" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <columnExists tableName="krrg_vacancies" columnName="status"/>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM pg_constraint WHERE conname = 'krrg_vacancies_status_check'
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancies DROP CONSTRAINT IF EXISTS krrg_vacancies_status_check;
+            ALTER TABLE krrg_vacancies ADD CONSTRAINT krrg_vacancies_status_check
+                CHECK (status IN ('NEW', 'IN_ENRICHMENT', 'ENRICHED', 'FAILED', 'SKIPPED'));
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                ALTER TABLE krrg_vacancies DROP CONSTRAINT IF EXISTS krrg_vacancies_status_check;
+                ALTER TABLE krrg_vacancies ADD CONSTRAINT krrg_vacancies_status_check
+                    CHECK (status IN ('NEW', 'ENRICHED', 'FAILED'));
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 5. Обновление CHECK-ограничения для status (добавление READY) -->
+    <changeSet id="011-005-update-status-check-constraint-ready" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <columnExists tableName="krrg_vacancies" columnName="status"/>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancies DROP CONSTRAINT IF EXISTS krrg_vacancies_status_check;
+            ALTER TABLE krrg_vacancies ADD CONSTRAINT krrg_vacancies_status_check
+                CHECK (status IN ('NEW', 'IN_ENRICHMENT', 'ENRICHED', 'FAILED', 'SKIPPED', 'READY'));
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                ALTER TABLE krrg_vacancies DROP CONSTRAINT IF EXISTS krrg_vacancies_status_check;
+                ALTER TABLE krrg_vacancies ADD CONSTRAINT krrg_vacancies_status_check
+                    CHECK (status IN ('NEW', 'IN_ENRICHMENT', 'ENRICHED', 'FAILED', 'SKIPPED'));
+            ]]></sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
