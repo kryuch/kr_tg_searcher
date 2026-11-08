@@ -7,12 +7,16 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancyQuestionDto;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffEnrichRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
+import ru.kryuch.krtg.searcher.entity.vacancy.VacancyQuestionEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
+import ru.kryuch.krtg.searcher.mapper.TMapper;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyCategoryRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyGradeRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyOwnerOrganisationRepository;
@@ -30,7 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public abstract class VacancySkillstafRequestMapper {
+public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQuestionEntity, VacancyQuestionDto> {
 
     @Autowired
     protected VacancySourceRepository sourceRepository;
@@ -48,6 +52,13 @@ public abstract class VacancySkillstafRequestMapper {
     @Mapping(target = "category", source = "category", qualifiedByName = "toCategory")
     @Mapping(target = "grades", source = "grades", qualifiedByName = "toGrades")
     public abstract VacancyEntity toEntity(VacancySkillstaffRequestDto dto);
+
+    @Mapping(target = "source", expression = "java(resolveSource())")
+    @Mapping(target = "ownerOrganisation", source = "industry", qualifiedByName = "toOrganisation")
+    @Mapping(target = "category", source = "category", qualifiedByName = "toCategory")
+    @Mapping(target = "grades", source = "grades", qualifiedByName = "toGrades")
+    @Mapping(target = "requestStatus", source = "status")
+    public abstract VacancyEntity mergeToEntity(VacancySkillstaffEnrichRequestDto dto, @MappingTarget VacancyEntity entity);
 
     @AfterMapping
     protected void clearDurationIfIndefinite(@MappingTarget VacancyEntity vacancy) {
