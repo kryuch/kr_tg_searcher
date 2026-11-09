@@ -6,13 +6,29 @@
                 <tr>
                     <th scope="col">Ид</th>
                     <th scope="col">Название</th>
+                    <th scope="col">ФИО</th>
+                    <th scope="col">Направления</th>
+                    <th scope="col">Уровень</th>
+                    <th scope="col">Навыки</th>
+                    <th scope="col">Компании</th>
+                    <th scope="col">Университеты</th>
+                    <th scope="col">Специальности</th>
+                    <th scope="col">Типы образования</th>
                     <th scope="col">Операции</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="item : ${items}">
                     <th scope="row" th:inline="text">[[${item.getId()}]]</th>
-                    <td th:inline="text">[[${item.getName()}]]</td>
+                    <td th:inline="text">[[${item.name}]]</td>
+                    <td th:inline="text">[[${item.employeeFio}]]</td>
+                    <td th:inline="text">[[${item.directionNames}]]</td>
+                    <td th:inline="text">[[${item.grade.name}]]</td>
+                    <td th:inline="text">[[${item.skillNames}]]</td>
+                    <td th:inline="text">[[${item.organizationNames}]]</td>
+                    <td th:inline="text">[[${item.universityNames}]]</td>
+                    <td th:inline="text">[[${item.specialtyNames}]]</td>
+                    <td th:inline="text">[[${item.educationTypeNames}]]</td>
                     <td>
                         <form th:action="@{/employees/universities/{id}/(id=${item.getId()})}"
                               th:method="delete"
@@ -25,12 +41,11 @@
                     </td>
                 </tr>
                 <tr>
-                    <th></th>
-                    <td></td>
-                    <td>
+                    <td colspan="10" class="text-center">
                         <a th:href="@{/employees/universities/add/}"
                            class="btn-solid btn-styled theme-primary btn-sm">Добавить университет</a>
                     </td>
+                    <td></td>
                 </tr>
             </tbody>
         </table>

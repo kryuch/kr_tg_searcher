@@ -1,7 +1,6 @@
 package ru.kryuch.krtg.searcher.controller;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -32,6 +31,7 @@ import ru.kryuch.krtg.searcher.repository.employee.EducationTypeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.EmployeeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.GradeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.OrganizationRepository;
+import ru.kryuch.krtg.searcher.repository.employee.ProfileRepository;
 import ru.kryuch.krtg.searcher.repository.employee.SkillRepository;
 import ru.kryuch.krtg.searcher.repository.employee.SpecialtyRepository;
 import ru.kryuch.krtg.searcher.repository.employee.UniversityRepository;
@@ -51,6 +51,7 @@ public class EmployeesController {
     private final MainMenuService mainMenuService;
     private final HttpServletRequest httpServletRequest;
     private final EmployeeRepository employeeRepository;
+    private final ProfileRepository profileRepository;
 
     public String common(String template, Model model) {
         model.addAttribute("menuItems", mainMenuService.getMenuItems());
@@ -148,7 +149,7 @@ public class EmployeesController {
     public String getProfilesPage(Model model) {
         model.addAttribute("title", "Профили");
         model.addAttribute("pageTemplate", "profile");
-        model.addAttribute("items", new ArrayList<String>());
+        model.addAttribute("items", profileRepository.findAllByOrderByIdAscWithDetails());
         model.addAttribute("breadcrumbs", List.of(
             new BreadCrumb("Сотрудники", "/employees/"),
             new BreadCrumb("Профили", "#"))

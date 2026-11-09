@@ -1,12 +1,15 @@
 package ru.kryuch.krtg.searcher.entity.employee;
 
 import java.time.LocalDate;
+import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
@@ -38,6 +41,13 @@ public class EmployeeEntity {
 
     @Column(name = "citizenship", nullable = false, length = 100)
     private String citizenship;
+
+    @OneToMany(
+        mappedBy = "employee",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    private Set<ProfileEntity> employeeProfiles;
 
     @Version
     @Column(name = "version", nullable = false)
