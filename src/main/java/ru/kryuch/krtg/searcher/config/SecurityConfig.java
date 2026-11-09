@@ -46,18 +46,18 @@ public class SecurityConfig {
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .securityMatcher("/api/**")
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/init", "/api/auth/login").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(csrf -> csrf.disable()) // токен не в cookie — CSRF тут не актуален
-                .addFilterBefore(
-                        new ApiTokenAuthenticationFilter(apiTokenService, customUserDetailsService),
-                        UsernamePasswordAuthenticationFilter.class
-                );
+            .securityMatcher("/api/**")
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/init", "/api/auth/login").permitAll()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .csrf(csrf -> csrf.disable()) // токен не в cookie — CSRF тут не актуален
+            .addFilterBefore(
+                new ApiTokenAuthenticationFilter(apiTokenService, customUserDetailsService),
+                UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }
@@ -69,47 +69,47 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/oauth2/**")
-                        .permitAll()
-                        .anyRequest().authenticated()
-                )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/oauth2/**")
+                .permitAll()
+                .anyRequest().authenticated()
+            )
 
-           /*     .oauth2Login(oauth -> oauth
-                        .authorizationEndpoint(authorization -> authorization
-                                .authorizationRequestResolver(authorizationRequestResolver())
-                        )
-                        .defaultSuccessUrl("/settings/gmail/connected", true)
-                )
-*/
-                .formLogin(form -> form
-                        .loginPage("/login/")
-                        .loginProcessingUrl("/login/")
-                        .defaultSuccessUrl("/chat/", true)
-                        .successHandler(authenticationSuccessHandler)
-                        .failureUrl("/login?error")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .permitAll()
-                )
+            /*     .oauth2Login(oauth -> oauth
+                         .authorizationEndpoint(authorization -> authorization
+                                 .authorizationRequestResolver(authorizationRequestResolver())
+                         )
+                         .defaultSuccessUrl("/settings/gmail/connected", true)
+                 )
+ */
+            .formLogin(form -> form
+                .loginPage("/login/")
+                .loginProcessingUrl("/login/")
+                .defaultSuccessUrl("/chat/", true)
+                .successHandler(authenticationSuccessHandler)
+                .failureUrl("/login?error")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .permitAll()
+            )
 
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
 
-                .sessionManagement(session -> session
-                        .maximumSessions(1)
-                        .expiredUrl("/login?expired")
-                        .maxSessionsPreventsLogin(false)
-                )
+            .sessionManagement(session -> session
+                .maximumSessions(1)
+                .expiredUrl("/login?expired")
+                .maxSessionsPreventsLogin(false)
+            )
 
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/chat/status/**")
-                );
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/chat/status/**")
+            );
 
         return http.build();
     }

@@ -38,6 +38,7 @@ public interface TgUserRepository extends CrudRepository<TgUserEntity, Long> {
                 .collect(Collectors.toSet());
     }
 
+
     default Set<String> findNoExistingUsername(Set<String> usernames) {
         if (usernames == null || usernames.isEmpty()) {
             return Set.of();
@@ -59,4 +60,5 @@ public interface TgUserRepository extends CrudRepository<TgUserEntity, Long> {
                 .filter(username -> !existingUsernames.contains(username))
                 .collect(Collectors.toSet());
     }
+
 }

@@ -25,7 +25,7 @@ def group_chats_by_account(data, client=None):
             print(f"⚠️ Пропускаем чат {chat_id}: tgAccountId = None")
             continue
 
-        tg_account_id = int(tg_account_id_raw) if tg_account_id_raw is not None else None
+        tg_account_id = str(tg_account_id_raw) if tg_account_id_raw is not None else None
 
         if not chat_id:
             continue

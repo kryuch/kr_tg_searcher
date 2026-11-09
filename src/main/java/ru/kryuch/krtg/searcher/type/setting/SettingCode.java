@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.type;
+package ru.kryuch.krtg.searcher.type.setting;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -41,14 +41,25 @@ public enum SettingCode {
     HH_LOG("hh_log"),
     HH_LETTER("hh_letter"),
 
+    // HH (HeadHunter)
+    DEEPSEEK_ENABLE("deepseek_enable"),
+    DEEPSEEK_PAUSE("deepseek_pause"),
+   // HH_LOG("hh_log"),
+  //  HH_LETTER("hh_letter"),
+
     // Gmail
     GMAIL_EMAIL("gmail_email"),
     GMAIL_REFRESH_TOKEN("gmail_refresh_token"),
     GMAIL_SUBJECT("gmail_subject"),
 
+    GIGARECRUTER_ENABLE("gigarecruter_enable"),
+    GIGARECRUTER_BOTNAME("gigarecruter_bot_name"),
+
     // Admin
     PYTHON("python"),
-    IGNORE_IF_NOT_FOUND("ignore_if_not_found");
+    IGNORE_IF_NOT_FOUND("ignore_if_not_found"),
+    SKILLSTAFF_TG_ACCOUNT("skillstaff_tgaccount"),
+    SKILLSTAFF_TG_USER("skillstaff_tguser");
 
     private final String code;
 

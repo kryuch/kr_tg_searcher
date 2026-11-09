@@ -10,6 +10,10 @@ server:
   port: 8080
 
 spring:
+  task:
+    scheduling:
+      pool:
+        size: 4
   application:
     name: krrg
   servlet:
@@ -52,7 +56,7 @@ spring:
       write-dates-as-timestamps: false
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/krrg
+    url: jdbc:postgresql://localhost:5432/krrg_new1
     driver-class-name: org.postgresql.Driver
     username: krrg
     password: H.hbr2123
@@ -64,6 +68,10 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
         format_sql: true
         jdbc:
           lob:
@@ -72,7 +80,6 @@ spring:
   sql:
     init:
       mode: never  # Отключаем, чтобы не мешал Liquibase
-
   ai:
     openai:
       api-key: dummy-key  # Временно, чтобы не падало при старте
@@ -82,3 +89,8 @@ spring:
 app:
   file-storage:
     path: /var/lib/krrg/files
+
+skillstaff:
+  import:
+    enabled: true
+    delay-ms: 60000

@@ -21,4 +21,3 @@ public interface SettingRepository extends CrudRepository<SettingEntity, Long> {
 
     List<SettingEntity> findByCodeIn(Collection<String> codes);
 }
-

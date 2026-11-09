@@ -21,10 +21,11 @@ public class SearchParams {
     Integer maxFoundCount = 10;
     Integer minDiffDaysCount = 7;
     String lastMessage = "";
-    SearchLastMessageType lastMessageType;
     PersonalChatType botType = PersonalChatType.PERSONAL;
     PersonalChatType groupType = PersonalChatType.PERSONAL;
     Boolean excludeStatusFlag = true;
+
+    SearchLastMessageType lastMessageType;
 
     @ToString.Exclude
     List<ChatKey> excludeChats = new ArrayList<>();

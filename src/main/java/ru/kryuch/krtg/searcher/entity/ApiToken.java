@@ -27,6 +27,8 @@ public class ApiToken {
     @Column(nullable = false)
     private String username;
 
+    private String application;
+
     @Column(nullable = false)
     private Instant createdAt;
 
