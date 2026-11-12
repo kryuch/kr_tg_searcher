@@ -2,6 +2,7 @@ package ru.kryuch.krtg.searcher.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.repository.query.Param;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +11,7 @@ import ru.kryuch.krtg.searcher.dto.ChatKey;
 import ru.kryuch.krtg.searcher.dto.TgUserAvatar;
 import ru.kryuch.krtg.searcher.service.ChatService;
 import ru.kryuch.krtg.searcher.service.FolderChatService;
+import ru.kryuch.krtg.searcher.service.deepseek.GigaRecruiterService;
 
 import java.util.List;
 
@@ -20,6 +22,7 @@ public class ChatStatusController {
 
     private final ChatService chatService;
     private final FolderChatService folderChatService;
+    private final GigaRecruiterService gigaRecruiterService;
 
     @PostMapping("/update")
     public Boolean update(@Param("chatId") Long chatId, @Param("username") String username, @Param("name") String name, Integer status) {
@@ -34,6 +37,13 @@ public class ChatStatusController {
     @PostMapping("/avatars")
     public List <TgUserAvatar> avatars(@RequestBody List <ChatKey> keys) {
         return chatService.getAvatars(keys);
+    }
+
+
+    @GetMapping("/test")
+    public String test() {
+      //   gigaRecruiterService.communicate();
+         return "A";
     }
 
 

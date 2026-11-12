@@ -1,15 +1,17 @@
-package ru.kryuch.krtg.searcher.type;
+package ru.kryuch.krtg.searcher.type.vacancy;
 
-public enum VacancyTgOwnerStatus {
+public enum VacancyOwnerType {
 
-    EXIST(1, "имеется"),
-    NEW(2, "новый");
+    PHONE(1, "телефон"),
+    EMAIL(2, "email"),
+    TG(3, "тг"),
+    OTHER(4, "другое");
 
 
     final Integer type;
     final String value;
 
-    VacancyTgOwnerStatus(Integer type, String value) {
+    VacancyOwnerType(Integer type, String value) {
         this.type = type;
         this.value = value;
     }
@@ -21,5 +23,4 @@ public enum VacancyTgOwnerStatus {
     public Integer getType() {
         return type;
     }
-
 }

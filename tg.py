@@ -1,4 +1,3 @@
-import os
 import asyncio
 import threading
 import logging
@@ -54,6 +53,8 @@ print("✅ Логирование настроено!")
 
 app = Flask(__name__)
 
+# Путь привязан к расположению файла, а не к cwd процесса.
+# tg_utils.py вычисляет SESSION_DIR тем же способом.
 BASE_DIR = Path(__file__).resolve().parent
 SESSION_DIR = BASE_DIR / 'var' / 'session'
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
@@ -95,20 +96,30 @@ def run_async(coro):
 
     return future.result()
 
+@app.after_request
+def add_charset(response):
+    if response.content_type == 'application/json':
+        response.content_type = 'application/json; charset=utf-8'
+    return response
 
 # ============================================================
 #  ФУНКЦИЯ ПАРАЛЛЕЛЬНОГО ПОИСКА ПО ВСЕМ АККАУНТАМ
 # ============================================================
 
 async def search_all_accounts(tg_accounts, params):
+    # Храним id аккаунтов рядом с задачами: аккаунты, которых нет в
+    # account_configs, пропускаются, и zip по исходному списку
+    # сопоставил бы результаты с неправильными аккаунтами.
+    account_ids = []
     tasks = []
 
     for account in tg_accounts:
-        account_id = str(account) if not isinstance(account, dict) else str(account.get('id'))
+        account_id = str(account.get('id')) if isinstance(account, dict) else str(account)
 
         if account_id not in account_configs:
             continue
 
+        account_ids.append(account_id)
         tasks.append(
             execute_telegram_action(
                 account_id,
@@ -123,9 +134,7 @@ async def search_all_accounts(tg_accounts, params):
 
     all_results = []
 
-    for account, found_chats in zip(tg_accounts, results):
-        account_id = str(account) if not isinstance(account, dict) else str(account.get('id'))
-
+    for account_id, found_chats in zip(account_ids, results):
         if isinstance(found_chats, Exception):
             print(f"❌ Ошибка аккаунта {account_id}: {found_chats}")
             continue
@@ -311,14 +320,17 @@ def verify_code_endpoint():
     Ожидает: { "tgAccountId": 1, "code": "12345", "password": "optional" }
     """
     try:
-        data = request.json
+        data = request.json or {}
         print(f"🔵 Данные: {data}")
-        account_id = str(data.get('tgAccountId'))
+
+        raw_account_id = data.get('tgAccountId')
         code = data.get('code')
         password = data.get('password')
 
-        if not account_id:
+        if raw_account_id is None:
             return jsonify({'error': 'Не указан tgAccountId'}), 400
+
+        account_id = str(raw_account_id)
 
         if not code:
             return jsonify({'error': 'Не указан код'}), 400
@@ -327,7 +339,6 @@ def verify_code_endpoint():
         if not config:
             return jsonify({'error': f'Аккаунт {account_id} не найден'}), 404
 
-        phone = config['phone']
         session_name = f"account_{account_id}"
 
         auth = pending_auth.get(account_id)
@@ -357,9 +368,14 @@ def verify_code_endpoint():
 
         if result.get('status') == 'success':
             pending_auth.pop(account_id, None)
-            return result
+            return jsonify({
+                'success': True,
+                'status': 'success',
+                'message': result.get('message') or 'Аккаунт успешно авторизован'
+            })
         elif result.get('status') == 'password_required':
             return jsonify({
+                'success': False,
                 'status': 'password_required',
                 'message': 'Требуется пароль двухфакторной аутентификации'
             }), 400
@@ -372,7 +388,7 @@ def verify_code_endpoint():
 
 
 # ============================================================
-#  НОВЫЙ ЭНДПОИНТ ДЛЯ АВАТАРОВ
+#  ЭНДПОИНТ ДЛЯ АВАТАРОВ (отдельно от поиска, чтобы search был быстрым)
 # ============================================================
 
 @app.route('/api/search/avatars', methods=['POST'])
@@ -586,13 +602,9 @@ def create_folder_endpoint():
         if account_id not in account_configs:
             return jsonify({'error': f'Аккаунт {account_id} не найден'}), 404
 
-        # ВАЖНО: раньше здесь client получался напрямую через get_client(),
-        # а create_folder вызывался в обход execute_telegram_action —
-        # то есть без per-account лока. Это давало гонку: два параллельных
-        # запроса на создание папки для одного аккаунта могли вычислить
-        # одинаковый new_folder_id (max(id)+1) и один перезаписать фильтр
-        # другого. Теперь операция идёт через execute_telegram_action, как
-        # и все остальные, и сериализуется тем же локом аккаунта.
+        # Операция идёт через execute_telegram_action, чтобы сериализоваться
+        # per-account локом. Иначе два параллельных запроса могли вычислить
+        # одинаковый new_folder_id (max(id)+1), и один перезаписал бы другой.
         result = run_async(
             execute_telegram_action(account_id, account_configs, create_folder, title, chat_ids)
         )
@@ -675,5 +687,5 @@ def shutdown():
 atexit.register(shutdown)
 
 if __name__ == '__main__':
-    print("🚀 Сервер на http://localhost:")
+    print("🚀 Сервер на http://localhost:8081")
     app.run(host='127.0.0.1', port=8081, debug=False, use_reloader=False)

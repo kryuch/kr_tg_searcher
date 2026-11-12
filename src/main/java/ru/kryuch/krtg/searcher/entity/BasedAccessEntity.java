@@ -2,6 +2,8 @@ package ru.kryuch.krtg.searcher.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import lombok.Data;
+
 import lombok.Getter;
 import lombok.Setter;
 

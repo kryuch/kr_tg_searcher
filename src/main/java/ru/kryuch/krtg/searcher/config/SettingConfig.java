@@ -18,6 +18,7 @@ public class SettingConfig {
     public static String FOLDER_ENABLE_SETTING_CODE = "folder_enable";
     public static String FOLDER_ADDING_SETTING_CODE = "add_to_folder";
     public static String FOLDER_NAME_SETTING_CODE = "folder";
+
     public static String AI_ENABLE_SETTING_CODE = "ai_enable";
     public static String AI_API_KEY_SETTING_CODE = "ai_api_key";
     public static String AI_MODEL_SETTING_CODE = "ai_model";

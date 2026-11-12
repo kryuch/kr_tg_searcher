@@ -15,10 +15,11 @@ public class ApiTokenService {
 
     private final ApiTokenRepository apiTokenRepository;
 
-    public ApiToken issueToken(String username) {
+    public ApiToken issueToken(String username, String application) {
         ApiToken token = new ApiToken();
-        token.setToken(KeyGenerators.string().generateKey() + KeyGenerators.string().generateKey()); // ~16 байт hex, можно заменить на SecureRandom-based генератор подлиннее
+        token.setToken(KeyGenerators.string().generateKey() + KeyGenerators.string().generateKey());
         token.setUsername(username);
+        token.setApplication(application);
         token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS));
         return apiTokenRepository.save(token);
