@@ -1,0 +1,74 @@
+<div class="icontent">
+    <form th:action="@{/vacancies/}" method="get" style="margin: 12px 0">
+        <label>Создана с
+            <input type="date" name="createdFrom" th:value="${vfilter.createdFrom}"/>
+        </label>
+        <label>по
+            <input type="date" name="createdTo" th:value="${vfilter.createdTo}"/>
+        </label>
+
+        <label>Статус
+            <select name="status">
+                <option value="">Все</option>
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                        th:selected="${s == vfilter.status}">Подбор</option>
+            </select>
+        </label>
+
+        <label>Режим работы
+            <select name="workFormat">
+                <option value="">Все</option>
+                <option th:each="wf : ${workFormats}" th:value="${wf.name()}" th:text="${wf.title}"
+                        th:selected="${wf == vfilter.workFormat}">Удалённо</option>
+            </select>
+        </label>
+
+        <button type="submit">Применить</button>
+        <a th:href="@{/vacancies/}">Сбросить</a>
+    </form>
+    <h2>Вакансии <small th:text="'(всего: ' + ${vacancies.totalElements} + ')'"></small></h2>
+
+    <p th:if="${vacancies.empty}">Вакансий пока нет.</p>
+
+    <table class="list" th:unless="${vacancies.empty}">
+        <thead>
+        <tr>
+            <th>№ заявки</th>
+            <th>Название</th>
+            <th>Грейды</th>
+            <th>Заказчик</th>
+            <th>Ставка</th>
+            <th>Кол-во</th>
+            <th>Формат</th>
+            <th>Источник</th>
+            <th>Добавлена</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="v : ${vacancies.content}">
+            <td th:text="${v.externalId}"><a th:href="@{/vacancies/{id}(id=${v.id})}" th:text="${v.title}">93803</a></td>
+            <td><a th:href="@{/vacancies/{id}(id=${v.id})}" th:text="${v.title}">Название</a></td>
+            <td th:text="${#strings.listJoin(v.grades, ', ')}">Senior</td>
+            <td th:text="${v.organisation}">Банки и финансы</td>
+            <td th:text="${v.rateText}">Открытая</td>
+            <td th:text="${v.specialistsCount}">1</td>
+            <td th:text="${v.workFormatText}">Удалённо</td>
+            <td th:text="${v.source}">Skillstaff</td>
+            <td th:text="${v.createdAt != null} ? ${#temporals.format(v.createdAt, 'dd.MM.yyyy HH:mm')} : '—'">01.01.2026</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="pagination" th:if="${totalPages > 1}" style="margin: 12px 0">
+        <span th:if="${currentPage > 1}" style="margin: 0 4px">
+            <a th:href="@{/vacancies/(page=${currentPage - 1})} + ${vfilterQuery}">&laquo; Назад</a>
+        </span>
+        <span th:each="p : ${#numbers.sequence(pageFrom, pageTo)}" style="margin: 0 4px">
+            <strong th:if="${p == currentPage}" th:text="${p}">1</strong>
+            <a th:unless="${p == currentPage}" th:href="@{/vacancies/(page=${p})} + ${vfilterQuery}" th:text="${p}">2</a>
+        </span>
+        <span th:if="${currentPage < totalPages}" style="margin: 0 4px">
+            <a th:href="@{/vacancies/(page=${currentPage + 1})} + ${vfilterQuery}">Вперёд &raquo;</a>
+        </span>
+    </div>
+</div>

@@ -1,14 +1,22 @@
 package ru.kryuch.krtg.searcher.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.dto.MessagesHistory;
 import ru.kryuch.krtg.searcher.dto.VacanciesContainer;
 import ru.kryuch.krtg.searcher.dto.VacancyInfo;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancyDetailsDto;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancyFilter;
+import ru.kryuch.krtg.searcher.dto.vacancy.VacancyListItemDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffEnrichRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestForEnrichmentResponse;
@@ -16,9 +24,11 @@ import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.helper.ChatAccessHelper;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
 import ru.kryuch.krtg.searcher.mapper.vacancy.VacancySkillstafRequestMapper;
+import ru.kryuch.krtg.searcher.mapper.vacancy.VacancyViewMapper;
 import ru.kryuch.krtg.searcher.repository.IgnoreRepository;
 import ru.kryuch.krtg.searcher.repository.VacancyRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancySourceRepository;
+import ru.kryuch.krtg.searcher.specification.VacancySpecifications;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancySource;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancyStatus;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancyTgOwnerStatus;
@@ -49,6 +59,33 @@ public class VacancyService {
     private final VacancyRepository vacancyRepository;
     private final VacancySourceRepository vacancySourceRepository;
     private final VacancySkillstafRequestMapper vacancySkillstafRequestMapper;
+    private final VacancyViewMapper vacancyViewMapper;
+
+    private static final int PAGE_SIZE = 25;
+
+    @Transactional
+    public Page<VacancyListItemDto> findPage(VacancyFilter filter, int page) {
+        Pageable pageable = PageRequest.of(
+            Math.max(page, 1) - 1,
+            PAGE_SIZE,
+            Sort.by(Sort.Direction.DESC, "id"));
+        return vacancyRepository
+            .findAll(VacancySpecifications.byFilter(filter), pageable)
+            .map(vacancyViewMapper::toListItem);
+    }
+
+
+    @Transactional
+    public VacancyDetailsDto getById(Long id) {
+        return vacancyRepository.findWithDetailsById(id)
+            .map(vacancyViewMapper::toDetails)
+            .orElseThrow(() -> new EntityNotFoundException("Вакансия не найдена: " + id));
+    }
+
+    @Transactional
+    public List<String> findStatuses() {
+        return vacancyRepository.findDistinctStatuses();
+    }
 
     @Transactional
     public VacancySkillstaffRequestForEnrichmentResponse getNewSkillstafItem() {

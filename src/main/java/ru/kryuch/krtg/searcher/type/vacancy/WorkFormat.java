@@ -1,8 +1,14 @@
 package ru.kryuch.krtg.searcher.type.vacancy;
 
-public enum WorkFormat {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-    ON_SITE,
-    REMOTE,
-    HYBRID
+@Getter
+@RequiredArgsConstructor
+public enum WorkFormat {
+    ON_SITE("На территории клиента"),
+    REMOTE("Удалённо"),
+    HYBRID("Гибрид");
+
+    private final String title;
 }
