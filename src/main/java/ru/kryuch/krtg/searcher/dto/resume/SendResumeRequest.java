@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export.entity;
+package ru.kryuch.krtg.searcher.dto.resume;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

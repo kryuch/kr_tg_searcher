@@ -1,6 +1,6 @@
-package ru.kryuch.krtg.searcher.resume_export;
+package ru.kryuch.krtg.searcher.resume_export.model;
 
-import ru.kryuch.krtg.searcher.resume_export.entity.ResumeDto;
+import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

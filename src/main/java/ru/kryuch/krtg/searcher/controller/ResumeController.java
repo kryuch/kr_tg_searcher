@@ -6,16 +6,13 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.kryuch.krtg.searcher.exception.UnsupportedFormatException;
-import ru.kryuch.krtg.searcher.resume_export.ResumeGeneratorService;
-import ru.kryuch.krtg.searcher.resume_export.entity.SendResumeRequest;
+import ru.kryuch.krtg.searcher.service.ResumeGeneratorService;
+import ru.kryuch.krtg.searcher.dto.resume.SendResumeRequest;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor

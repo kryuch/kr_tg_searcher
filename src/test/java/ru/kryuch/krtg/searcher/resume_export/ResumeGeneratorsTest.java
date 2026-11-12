@@ -6,7 +6,10 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.kryuch.krtg.searcher.resume_export.entity.ResumeDto;
+import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
+import ru.kryuch.krtg.searcher.resume_export.generator.docx.DocxGenerator;
+import ru.kryuch.krtg.searcher.resume_export.generator.pdf.PdfGenerator;
+import ru.kryuch.krtg.searcher.resume_export.generator.pdf.ResumeFontProvider;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;

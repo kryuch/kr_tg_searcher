@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export.entity;
+package ru.kryuch.krtg.searcher.dto.resume;
 
 import lombok.Data;
 import lombok.Getter;

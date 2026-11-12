@@ -1,11 +1,12 @@
-package ru.kryuch.krtg.searcher.resume_export;
+package ru.kryuch.krtg.searcher.resume_export.generator.pdf;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 import ru.kryuch.krtg.searcher.exception.ResumeGenerationException;
-import ru.kryuch.krtg.searcher.resume_export.entity.DocumentGenerator;
-import ru.kryuch.krtg.searcher.resume_export.entity.ResumeDto;
+import ru.kryuch.krtg.searcher.resume_export.ResumeHtmlRenderer;
+import ru.kryuch.krtg.searcher.resume_export.generator.DocumentGenerator;
+import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
 
 import java.io.ByteArrayOutputStream;
 

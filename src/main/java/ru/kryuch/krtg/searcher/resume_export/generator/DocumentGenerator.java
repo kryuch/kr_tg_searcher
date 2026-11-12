@@ -1,4 +1,6 @@
-package ru.kryuch.krtg.searcher.resume_export.entity;
+package ru.kryuch.krtg.searcher.resume_export.generator;
+
+import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
 
 public interface DocumentGenerator {
     byte[] generate(ResumeDto resume);
