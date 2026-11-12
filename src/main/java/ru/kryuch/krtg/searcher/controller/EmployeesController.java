@@ -37,21 +37,24 @@ import ru.kryuch.krtg.searcher.repository.employee.SpecialtyRepository;
 import ru.kryuch.krtg.searcher.repository.employee.UniversityRepository;
 import ru.kryuch.krtg.searcher.service.MainMenuService;
 
+import ru.kryuch.krtg.searcher.service.employee.*;
+
 @Controller
 @RequestMapping("/employees")
 @RequiredArgsConstructor
 public class EmployeesController {
-    private final DevelopmentDirectionRepository developmentDirectionRepository;
-    private final GradeRepository gradeRepository;
-    private final SpecialtyRepository specialtyRepository;
-    private final EducationTypeRepository educationTypeRepository;
-    private final OrganizationRepository organizationRepository;
-    private final UniversityRepository universityRepository;
-    private final SkillRepository skillRepository;
-    private final MainMenuService mainMenuService;
+    private final EmployeeService employeeService;
+    private final ProfileService profileService;
+    private final GradeService gradeService;
+    private final SkillService skillService;
+    private final OrganizationService organizationService;
+    private final UniversityService universityService;
+    private final SpecialtyService specialtyService;
+    private final EducationTypeService educationTypeService;
+    private final DevelopmentDirectionService developmentDirectionService;
+
     private final HttpServletRequest httpServletRequest;
-    private final EmployeeRepository employeeRepository;
-    private final ProfileRepository profileRepository;
+    private final MainMenuService mainMenuService;
 
     public String common(String template, Model model) {
         model.addAttribute("menuItems", mainMenuService.getMenuItems());
