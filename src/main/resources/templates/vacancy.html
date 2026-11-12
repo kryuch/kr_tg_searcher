@@ -1,0 +1,139 @@
+<div class="icontent">
+    <p><a th:href="@{/vacancies/}">&larr; Все вакансии</a></p>
+
+    <h2 th:text="${vacancy.title}">Название</h2>
+
+    <p th:unless="${vacancy.detailsLoaded}">
+        Показано краткое описание из Telegram, полное описание ещё не загружено.
+    </p>
+
+    <table class="list">
+        <tbody>
+        <tr>
+            <th scope="row">№ заявки</th>
+            <td th:text="${vacancy.externalId}">93803</td>
+        </tr>
+        <tr th:if="${vacancy.url != null}">
+            <th scope="row">Ссылка</th>
+            <td><a th:href="${vacancy.url}" target="_blank" rel="noopener noreferrer" th:text="${vacancy.url}"></a></td>
+        </tr>
+        <tr th:if="${vacancy.status != null}">
+            <th scope="row">Статус</th>
+            <td th:text="${vacancy.status}">Подбор</td>
+        </tr>
+        <tr th:if="${vacancy.actualOn != null}">
+            <th scope="row">Актуально на</th>
+            <td th:text="${#temporals.format(vacancy.actualOn, 'dd.MM.yyyy')}">05.11.2026</td>
+        </tr>
+        <tr>
+            <th scope="row">Источник</th>
+            <td th:text="${vacancy.source}">Skillstaff</td>
+        </tr>
+        <tr>
+            <th scope="row">Заказчик</th>
+            <td th:text="${vacancy.organisation}">Банки и финансы</td>
+        </tr>
+        <tr th:if="${vacancy.category != null}">
+            <th scope="row">Категория</th>
+            <td th:text="${vacancy.category}">Категория</td>
+        </tr>
+        <tr>
+            <th scope="row">Грейды</th>
+            <td th:text="${#strings.listJoin(vacancy.grades, ', ')}">Senior</td>
+        </tr>
+        <tr>
+            <th scope="row">Ставка</th>
+            <td th:text="${vacancy.rateText}">Открытая</td>
+        </tr>
+        <tr th:if="${vacancy.specialistsCount != null}">
+            <th scope="row">Количество специалистов</th>
+            <td th:text="${vacancy.specialistsCount}">1</td>
+        </tr>
+        <tr>
+            <th scope="row">Формат работы</th>
+            <td th:text="${vacancy.workFormatText}">Удалённо</td>
+        </tr>
+        <tr th:if="${vacancy.location != null}">
+            <th scope="row">Локация</th>
+            <td th:text="${vacancy.location}">Россия</td>
+        </tr>
+        <tr th:if="${vacancy.citizenship != null}">
+            <th scope="row">Гражданство</th>
+            <td th:text="${vacancy.citizenship}">РФ</td>
+        </tr>
+        <tr th:if="${vacancy.availabilityUtcOffset != null}">
+            <th scope="row">Доступность</th>
+            <td th:text="'UTC ' + (${vacancy.availabilityUtcOffset} >= 0 ? '+' : '') + ${vacancy.availabilityUtcOffset}">UTC +3</td>
+        </tr>
+        <tr th:if="${vacancy.indefinite or vacancy.durationText != null or vacancy.durationMonths != null}">
+            <th scope="row">Длительность</th>
+            <td>
+                <span th:if="${vacancy.indefinite}">Бессрочно</span>
+                <span th:if="${!vacancy.indefinite and vacancy.durationText != null}" th:text="${vacancy.durationText}"></span>
+                <span th:if="${!vacancy.indefinite and vacancy.durationText == null and vacancy.durationMonths != null}"
+                      th:text="${vacancy.durationMonths} + ' мес.'"></span>
+                <span th:if="${vacancy.extendable}">(возможна пролонгация)</span>
+            </td>
+        </tr>
+        <tr th:if="${vacancy.startDate != null or vacancy.endDate != null}">
+            <th scope="row">Период</th>
+            <td>
+                <span th:if="${vacancy.startDate != null}"
+                      th:text="'с ' + ${#temporals.format(vacancy.startDate, 'dd.MM.yyyy')}"></span>
+                <span th:if="${vacancy.endDate != null}"
+                      th:text="'до ' + ${#temporals.format(vacancy.endDate, 'dd.MM.yyyy')}"></span>
+            </td>
+        </tr>
+        <tr th:if="${vacancy.workloadLevel != null or vacancy.workloadHoursPerMonth != null}">
+            <th scope="row">Объём участия</th>
+            <td>
+                <span th:if="${vacancy.workloadLevel != null}" th:text="${vacancy.workloadLevel}"></span>
+                <span th:if="${vacancy.workloadHoursPerMonth != null}"
+                      th:text="'~' + ${vacancy.workloadHoursPerMonth} + ' ч/мес'"></span>
+            </td>
+        </tr>
+        <tr th:if="${vacancy.clientPaymentTerms != null}">
+            <th scope="row">Условия оплаты клиента</th>
+            <td th:text="${vacancy.clientPaymentTerms}">Условия</td>
+        </tr>
+        <tr th:if="${vacancy.clientReviewsCount != null}">
+            <th scope="row">Отзывов о клиенте</th>
+            <td th:text="${vacancy.clientReviewsCount}">4</td>
+        </tr>
+        <tr>
+            <th scope="row">Добавлена</th>
+            <td th:text="${vacancy.createdAt != null} ? ${#temporals.format(vacancy.createdAt, 'dd.MM.yyyy HH:mm')} : '—'">01.01.2026</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <th:block th:if="${vacancy.description != null}">
+        <h3>Описание проекта и команды</h3>
+        <div style="white-space: pre-wrap" th:text="${vacancy.description}"></div>
+    </th:block>
+
+    <th:block th:if="${vacancy.requirements != null}">
+        <h3>Обязательные требования</h3>
+        <div style="white-space: pre-wrap" th:text="${vacancy.requirements}"></div>
+    </th:block>
+
+    <th:block th:if="${vacancy.additionalRequirements != null}">
+        <h3>Дополнительные требования</h3>
+        <div style="white-space: pre-wrap" th:text="${vacancy.additionalRequirements}"></div>
+    </th:block>
+
+    <th:block th:if="${vacancy.selectionStages != null}">
+        <h3>Этапы отбора</h3>
+        <div style="white-space: pre-wrap" th:text="${vacancy.selectionStages}"></div>
+    </th:block>
+
+    <th:block th:if="${vacancy.joiningConditions != null}">
+        <h3>Условия выхода на проект</h3>
+        <div style="white-space: pre-wrap" th:text="${vacancy.joiningConditions}"></div>
+    </th:block>
+
+    <details th:if="${vacancy.rawText != null}">
+        <summary>Исходный текст</summary>
+        <pre style="white-space: pre-wrap" th:text="${vacancy.rawText}"></pre>
+    </details>
+</div>

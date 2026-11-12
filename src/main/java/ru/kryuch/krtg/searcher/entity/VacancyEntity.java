@@ -18,6 +18,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
@@ -71,6 +72,7 @@ public class VacancyEntity extends TimestampedEntity {
     @JoinColumn(name = "category_id")
     private VacancyCategoryEntity category;
 
+    @BatchSize(size = 25)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "krrg_vacancy_grade_link",
