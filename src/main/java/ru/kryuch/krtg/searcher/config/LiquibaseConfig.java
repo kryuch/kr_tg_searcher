@@ -13,13 +13,14 @@ public class LiquibaseConfig {
 
     @Bean
     public ApplicationRunner liquibaseRunner(DataSource dataSource) {
-        return args -> {
-            SpringLiquibase liquibase = new SpringLiquibase();
-            liquibase.setDataSource(dataSource);
-            liquibase.setChangeLog("classpath:db/changelog/db.changelog-master.xml");
-            // Проверяем, не запущен ли уже Liquibase
-            liquibase.setShouldRun(false); // или проверять DATABASECHANGELOG
-            liquibase.afterPropertiesSet();
+        return new ApplicationRunner() {
+            @Override
+            public void run(ApplicationArguments args) throws Exception {
+                SpringLiquibase liquibase = new SpringLiquibase();
+                liquibase.setDataSource(dataSource);
+                liquibase.setChangeLog("classpath:db/changelog/db.changelog-master.xml");
+                liquibase.afterPropertiesSet();
+            }
         };
     }
 }
