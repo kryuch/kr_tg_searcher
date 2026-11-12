@@ -200,6 +200,10 @@ color: transparent;}
 .chatstatus3 {
     background-color: #afd9ee;
 }
+.chatstatus5 {
+    background-color: darkcyan;
+}
+
 .vacancy3 {
     background-color: #afd9ee;
 }
@@ -824,6 +828,17 @@ table {
 }
 .btn-remove {
     background: #d14a4a;
+    border-radius: 5px;
+    padding: 5px;
+    box-sizing: border-box;
+    color: #FFF;
+    display: block;
+    text-align: center;
+    max-width: 130px;
+    font-size: small;
+}
+.btn-pause {
+    background: lightblue;
     border-radius: 5px;
     padding: 5px;
     box-sizing: border-box;

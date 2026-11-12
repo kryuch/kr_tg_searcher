@@ -32,7 +32,7 @@ import ru.kryuch.krtg.searcher.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
-    private final ClientRegistrationRepository clientRegistrationRepository;
+//    private final ClientRegistrationRepository clientRegistrationRepository;
     private final ApiTokenService apiTokenService;
 
     @Lazy
