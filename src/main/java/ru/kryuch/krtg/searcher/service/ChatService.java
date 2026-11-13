@@ -18,7 +18,6 @@ import ru.kryuch.krtg.searcher.helper.TgUserHelper;
 import ru.kryuch.krtg.searcher.mapper.ChatKeyMapper;
 import ru.kryuch.krtg.searcher.mapper.ChatMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
-import ru.kryuch.krtg.searcher.repository.TgUserRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 

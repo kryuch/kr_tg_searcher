@@ -7,102 +7,123 @@
 
     <changeSet id="005-001-settings_rebuild_add_isactive" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="krrg_setting_groups" columnName="is_active"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_setting_groups"/>
+                <not>
+                    <columnExists tableName="krrg_setting_groups" columnName="is_active"/>
+                </not>
+            </and>
         </preConditions>
-        <sql>
+        <sql><![CDATA[
             ALTER TABLE krrg_setting_groups
                 ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT true;
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>ALTER TABLE krrg_setting_groups DROP COLUMN is_active;</sql>
+            <sql><![CDATA[
+                ALTER TABLE krrg_setting_groups DROP COLUMN IF EXISTS is_active;
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <changeSet id="005-002-settings_rebuild_enabled_to_hh_enable" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="1">
-                SELECT COUNT(*)
-                FROM krrg_settings
-                WHERE code = 'hh_enabled';
-            </sqlCheck>
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM krrg_settings WHERE code = 'hh_enabled'
+                </sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM krrg_settings WHERE code = 'hh_enable'
+                </sqlCheck>
+            </and>
         </preConditions>
-        <sql>
+        <sql><![CDATA[
             UPDATE krrg_settings
             SET code = 'hh_enable'
             WHERE code = 'hh_enabled';
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>UPDATE krrg_settings SET code = 'hh_enabled' WHERE code = 'hh_enable';</sql>
+            <sql><![CDATA[
+                UPDATE krrg_settings SET code = 'hh_enabled' WHERE code = 'hh_enable';
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <changeSet id="005-003-settings_rebuild_add_large" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="krrg_settings" columnName="is_large"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <not>
+                    <columnExists tableName="krrg_settings" columnName="is_large"/>
+                </not>
+            </and>
         </preConditions>
-        <sql>
+        <sql><![CDATA[
             ALTER TABLE krrg_settings
                 ADD COLUMN is_large BOOLEAN NOT NULL DEFAULT false;
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>ALTER TABLE krrg_settings DROP COLUMN is_large;</sql>
+            <sql><![CDATA[
+                ALTER TABLE krrg_settings DROP COLUMN IF EXISTS is_large;
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <changeSet id="005-004-settings_rebuild_set_large" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <columnExists tableName="krrg_settings" columnName="is_large"/>
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <columnExists tableName="krrg_settings" columnName="is_large"/>
+            </and>
         </preConditions>
-        <sql>
+        <sql><![CDATA[
             UPDATE krrg_settings
             SET is_large = true
             WHERE code IN ('hh_letter', 'ai_vacancy_promt', 'resume');
-        </sql>
+            ]]></sql>
     </changeSet>
 
     <!-- Удаляем дубликаты перед созданием уникального ограничения -->
     <changeSet id="005-004a-settings_rebuild_remove_duplicates" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                SELECT COUNT(*)
-                FROM (
-                         SELECT code, COUNT(*)
-                         FROM krrg_settings
-                         GROUP BY code
-                         HAVING COUNT(*) > 1
-                     ) duplicates;
-            </sqlCheck>
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*)
+                    FROM (
+                    SELECT code
+                    FROM krrg_settings
+                    GROUP BY code
+                    HAVING COUNT(*) > 1
+                    ) duplicates
+                </sqlCheck>
+            </and>
         </preConditions>
-
-        <comment>Удаляем дубликаты кодов в таблице krrg_settings</comment>
-        <sql>
+        <sql><![CDATA[
             WITH duplicates AS (
-                SELECT id, code,
-                       ROW_NUMBER() OVER (PARTITION BY code ORDER BY id) as rn
+                SELECT id,
+                       ROW_NUMBER() OVER (PARTITION BY code ORDER BY id) AS rn
                 FROM krrg_settings
             )
             DELETE FROM krrg_settings
-            WHERE id IN (
-                SELECT id
-                FROM duplicates
-                WHERE rn > 1
-            );
-        </sql>
+            WHERE id IN (SELECT id FROM duplicates WHERE rn > 1);
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[SELECT 1;]]></sql>
+        </rollback>
     </changeSet>
 
     <changeSet id="005-005-settings_rebuild_set_uniqueconstraint_for_group" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <uniqueConstraintExists
-                        constraintName="uk_setting_group_code"
-                        tableName="krrg_setting_groups"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_setting_groups"/>
+                <not>
+                    <uniqueConstraintExists
+                            constraintName="uk_setting_group_code"
+                            tableName="krrg_setting_groups"/>
+                </not>
+            </and>
         </preConditions>
-
         <addUniqueConstraint
                 constraintName="uk_setting_group_code"
                 tableName="krrg_setting_groups"
@@ -114,6 +135,7 @@
     <changeSet id="005-006-settings_rebuild_set_uniqueconstraint_for_setting" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <and>
+                <tableExists tableName="krrg_settings"/>
                 <not>
                     <uniqueConstraintExists
                             constraintName="uk_setting_code"
@@ -122,15 +144,14 @@
                 <sqlCheck expectedResult="0">
                     SELECT COUNT(*)
                     FROM (
-                    SELECT code, COUNT(*)
+                    SELECT code
                     FROM krrg_settings
                     GROUP BY code
                     HAVING COUNT(*) > 1
-                    ) duplicates;
+                    ) duplicates
                 </sqlCheck>
             </and>
         </preConditions>
-
         <addUniqueConstraint
                 constraintName="uk_setting_code"
                 tableName="krrg_settings"
@@ -141,31 +162,32 @@
 
     <changeSet id="005-007-settings_rebuild_set_uniqueconstraint_for_values" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <uniqueConstraintExists
-                        constraintName="uk_setting_value_user_setting"
-                        tableName="krrg_setting_values"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_setting_values"/>
+                <not>
+                    <uniqueConstraintExists
+                            constraintName="uk_setting_value_user_setting"
+                            tableName="krrg_setting_values"/>
+                </not>
+            </and>
         </preConditions>
-
         <addUniqueConstraint
                 constraintName="uk_setting_value_user_setting"
                 tableName="krrg_setting_values"
                 columnNames="user_id, setting_id"/>
     </changeSet>
 
-    <!-- УДАЛЕН changeSet 005-008, так как он дублирует 005-006 -->
-    <!-- Теперь нумерация идет с 005-009 -->
-
     <changeSet id="005-009-settings_rebuild_index_group_id" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists
-                        indexName="idx_setting_group_id"
-                        tableName="krrg_settings"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <not>
+                    <indexExists
+                            indexName="idx_setting_group_id"
+                            tableName="krrg_settings"/>
+                </not>
+            </and>
         </preConditions>
-
         <createIndex
                 indexName="idx_setting_group_id"
                 tableName="krrg_settings">
@@ -175,13 +197,15 @@
 
     <changeSet id="005-010-settings_rebuild_index" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists
-                        indexName="uk_setting_value_user_setting"
-                        tableName="krrg_setting_values"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_setting_values"/>
+                <not>
+                    <indexExists
+                            indexName="uk_setting_value_user_setting"
+                            tableName="krrg_setting_values"/>
+                </not>
+            </and>
         </preConditions>
-
         <createIndex
                 indexName="uk_setting_value_user_setting"
                 tableName="krrg_setting_values"
@@ -193,13 +217,15 @@
 
     <changeSet id="005-011-settings_rebuild_index_setting_id" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists
-                        indexName="idx_setting_value_setting_id"
-                        tableName="krrg_setting_values"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_setting_values"/>
+                <not>
+                    <indexExists
+                            indexName="idx_setting_value_setting_id"
+                            tableName="krrg_setting_values"/>
+                </not>
+            </and>
         </preConditions>
-
         <createIndex
                 indexName="idx_setting_value_setting_id"
                 tableName="krrg_setting_values">
@@ -209,13 +235,15 @@
 
     <changeSet id="005-012-settings_rebuild_index_user_id" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <indexExists
-                        indexName="idx_setting_value_user_id"
-                        tableName="krrg_setting_values"/>
-            </not>
+            <and>
+                <tableExists tableName="krrg_setting_values"/>
+                <not>
+                    <indexExists
+                            indexName="idx_setting_value_user_id"
+                            tableName="krrg_setting_values"/>
+                </not>
+            </and>
         </preConditions>
-
         <createIndex
                 indexName="idx_setting_value_user_id"
                 tableName="krrg_setting_values">
@@ -225,9 +253,14 @@
 
     <changeSet id="005-013-settings_rebuild_rename_group_title" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <columnExists tableName="krrg_setting_groups" columnName="name"/>
+            <and>
+                <tableExists tableName="krrg_setting_groups"/>
+                <columnExists tableName="krrg_setting_groups" columnName="name"/>
+                <not>
+                    <columnExists tableName="krrg_setting_groups" columnName="title"/>
+                </not>
+            </and>
         </preConditions>
-
         <renameColumn
                 tableName="krrg_setting_groups"
                 oldColumnName="name"

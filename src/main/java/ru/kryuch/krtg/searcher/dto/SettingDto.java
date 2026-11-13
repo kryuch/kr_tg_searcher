@@ -1,7 +1,7 @@
 package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Data;
-import ru.kryuch.krtg.searcher.type.SettingType;
+import ru.kryuch.krtg.searcher.type.setting.SettingType;
 
 @Data
 public class SettingDto {

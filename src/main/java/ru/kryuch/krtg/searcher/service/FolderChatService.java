@@ -7,9 +7,9 @@ import ru.kryuch.krtg.searcher.dto.FolderInfo;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
 import ru.kryuch.krtg.searcher.helper.ChatHelper;
+import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.integration.tg.dto.FolderChatIdsRequestItem;
 import ru.kryuch.krtg.searcher.integration.tg.dto.UpdateFolderRequest;
-import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
 import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
 import ru.kryuch.krtg.searcher.repository.FolderRepository;
@@ -50,7 +50,6 @@ public class FolderChatService {
 
     public boolean updateLinksToTarget(List<Long> chatUserIds, Integer tgId, Boolean status) {
         log.info("FolderChatService::updateLinksToTarget (chatUserIds={}, tg={}, status={}", chatUserIds, tgId, status.toString());
-
         FolderEntity folderEntity = folderRepository.findTargetFolder(tgId)
                 .orElseThrow(() ->
                         new IllegalStateException("Не настроена целевая папка"));
