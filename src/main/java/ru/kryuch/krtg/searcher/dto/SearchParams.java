@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchParams {
+
     @Builder.Default
     String term = "Java";
 
