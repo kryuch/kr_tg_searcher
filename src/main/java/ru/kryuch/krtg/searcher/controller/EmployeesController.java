@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.stringtemplate.v4.compiler.CodeGenerator.primary_return;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,15 @@ public class EmployeesController {
     private final SpecialtyService specialtyService;
     private final EducationTypeService educationTypeService;
     private final EmployeeDevelopmentDirectionService developmentDirectionService;
+    private final EmployeeRepository employeeRepository;
+    private final EmployeeProfileRepository employeeProfileRepository;
+    private final DevelopmentDirectionRepository developmentDirectionRepository;
+    private final GradeRepository gradeRepository;
+    private final SkillRepository skillRepository;
+    private final OrganizationRepository organizationRepository;
+    private final UniversityRepository universityRepository;
+    private final SpecialtyRepository specialtyRepository;
+    private final EducationTypeRepository educationTypeRepository;
 
     private final HttpServletRequest httpServletRequest;
     private final MainMenuService mainMenuService;

@@ -5,27 +5,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <!-- 0. Восстановление автоинкремента для krrg_settings.id -->
-    <changeSet id="003-000-fix-krrg-settings-id-auto-increment" author="Oleg V. Kryuchin">
-        <preConditions onFail="MARK_RAN">
-            <and>
-                <tableExists tableName="krrg_settings"/>
-                <columnExists tableName="krrg_settings" columnName="id"/>
-            </and>
-        </preConditions>
-        <sql><![CDATA[
-            CREATE SEQUENCE IF NOT EXISTS krrg_settings_id_seq;
-            ALTER TABLE krrg_settings ALTER COLUMN id SET DEFAULT nextval('krrg_settings_id_seq');
-            SELECT setval('krrg_settings_id_seq', COALESCE((SELECT MAX(id) FROM krrg_settings), 0));
-            ]]></sql>
-        <rollback>
-            <sql><![CDATA[
-                ALTER TABLE krrg_settings ALTER COLUMN id DROP DEFAULT;
-                DROP SEQUENCE IF EXISTS krrg_settings_id_seq;
-            ]]></sql>
-        </rollback>
-    </changeSet>
-
     <!-- 1. sort_order для krrg_settings: всем по умолчанию 3 -->
     <changeSet id="003-001-add-sort-order-to-settings" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
