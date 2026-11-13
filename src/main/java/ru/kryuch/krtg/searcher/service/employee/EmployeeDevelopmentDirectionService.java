@@ -12,7 +12,7 @@ import ru.kryuch.krtg.searcher.repository.employee.DevelopmentDirectionRepositor
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class DevelopmentDirectionService {
+public class EmployeeDevelopmentDirectionService {
 
     private final DevelopmentDirectionRepository developmentDirectionRepository;
 
