@@ -140,7 +140,7 @@ public class VacancyEntity extends TimestampedEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 16)
-    private VacancyStatus status;
+    private VacancyStatus status = VacancyStatus.NEW;;
 
     @Column(name = "request_status", length = 50)
     private String requestStatus;
