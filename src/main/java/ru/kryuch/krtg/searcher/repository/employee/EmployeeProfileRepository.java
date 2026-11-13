@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import ru.kryuch.krtg.searcher.entity.employee.ProfileEntity;
 
 @Repository
-public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
+public interface EmployeeProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
     @Query("""
         SELECT          DISTINCT p

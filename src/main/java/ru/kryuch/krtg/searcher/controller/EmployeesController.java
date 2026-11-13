@@ -31,7 +31,7 @@ import ru.kryuch.krtg.searcher.repository.employee.EducationTypeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.EmployeeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.GradeRepository;
 import ru.kryuch.krtg.searcher.repository.employee.OrganizationRepository;
-import ru.kryuch.krtg.searcher.repository.employee.ProfileRepository;
+import ru.kryuch.krtg.searcher.repository.employee.EmployeeProfileRepository;
 import ru.kryuch.krtg.searcher.repository.employee.SkillRepository;
 import ru.kryuch.krtg.searcher.repository.employee.SpecialtyRepository;
 import ru.kryuch.krtg.searcher.repository.employee.UniversityRepository;
@@ -152,7 +152,7 @@ public class EmployeesController {
     public String getProfilesPage(Model model) {
         model.addAttribute("title", "Профили");
         model.addAttribute("pageTemplate", "profile");
-        model.addAttribute("items", profileRepository.findAllByOrderByIdAscWithDetails());
+        model.addAttribute("items", employeeProfileRepository.findAllByOrderByIdAscWithDetails());
         model.addAttribute("breadcrumbs", List.of(
             new BreadCrumb("Сотрудники", "/employees/"),
             new BreadCrumb("Профили", "#"))

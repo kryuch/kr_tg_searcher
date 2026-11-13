@@ -7,21 +7,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import ru.kryuch.krtg.searcher.entity.employee.ProfileEntity;
-import ru.kryuch.krtg.searcher.repository.employee.ProfileRepository;
+import ru.kryuch.krtg.searcher.repository.employee.EmployeeProfileRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ProfileService {
+public class EmployeeProfileService {
 
-    private final ProfileRepository profileRepository;
+    private final EmployeeProfileRepository employeeProfileRepository;
 
     public List<ProfileEntity> findAll() {
-        return profileRepository.findAllByOrderByIdAscWithDetails();
+        return employeeProfileRepository.findAllByOrderByIdAscWithDetails();
     }
 
     public ProfileEntity findById(Long id) {
-        return profileRepository.findById(id)
+        return employeeProfileRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Profile not found: " + id
             ));
@@ -29,11 +29,11 @@ public class ProfileService {
 
     @Transactional
     public ProfileEntity save(ProfileEntity entity) {
-        return profileRepository.save(entity);
+        return employeeProfileRepository.save(entity);
     }
 
     @Transactional
     public void deleteById(Long id) {
-        profileRepository.deleteById(id);
+        employeeProfileRepository.deleteById(id);
     }
 }
