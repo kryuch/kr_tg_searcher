@@ -13,7 +13,6 @@ import java.util.Optional;
 @Builder
 public class VacancyInfo {
 
-    // название вакансии
     @Builder.Default
     String title = "";
 
