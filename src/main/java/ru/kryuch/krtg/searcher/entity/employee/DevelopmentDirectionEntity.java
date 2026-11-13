@@ -6,9 +6,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "krrg_employee_development_direction")
+@NoArgsConstructor
 public class DevelopmentDirectionEntity {
 
     @Id
@@ -18,9 +20,6 @@ public class DevelopmentDirectionEntity {
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
-
-    public DevelopmentDirectionEntity() {
-    }
 
     public DevelopmentDirectionEntity(String name) {
         this.name = name;
