@@ -953,6 +953,10 @@ tr.filter td.colid {
 tr.filter td.col .ms-options-wrap {
     max-width: 350px !important;
 }
+.filter .message {
+    width: 300px;
+}
+
 .groupcontainer {
     margin-top: 16px;
     margin-left: 4px;
