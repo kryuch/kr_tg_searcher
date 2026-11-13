@@ -80,8 +80,8 @@ public class SecurityConfig {
                  )
  */
             .formLogin(form -> form
-                .loginPage("/login/")
-                .loginProcessingUrl("/login/")
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
                 .defaultSuccessUrl("/chat/", true)
                 .successHandler(authenticationSuccessHandler)
                 .failureUrl("/login?error")
