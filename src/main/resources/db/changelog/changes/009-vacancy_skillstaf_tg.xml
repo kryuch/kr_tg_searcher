@@ -29,9 +29,14 @@
 
     <changeSet id="009-002-rename-source-to-skillstaff" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="krrg_vacancy_sources"/>
+            <and>
+                <tableExists tableName="krrg_vacancy_sources"/>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM krrg_vacancy_sources WHERE code = 'SKILLSTAFF'
+                </sqlCheck>
+            </and>
         </preConditions>
-        <sql>
+        <sql><![CDATA[
             UPDATE krrg_vacancy_sources
             SET code = 'SKILLSTAFF', name = 'Skillstaff', updated_at = now()
             WHERE code IN ('SKILLSTAF', 'ORDER');
@@ -39,12 +44,12 @@
             INSERT INTO krrg_vacancy_sources (code, name, created_at, updated_at)
             SELECT 'SKILLSTAFF', 'Skillstaff', now(), now()
                 WHERE NOT EXISTS (SELECT 1 FROM krrg_vacancy_sources WHERE code = 'SKILLSTAFF');
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>
+            <sql><![CDATA[
                 UPDATE krrg_vacancy_sources SET code = 'SKILLSTAF', name = 'Skillstaf'
                 WHERE code = 'SKILLSTAFF';
-            </sql>
+            ]]></sql>
         </rollback>
     </changeSet>
 
