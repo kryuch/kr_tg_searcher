@@ -111,6 +111,7 @@ public class VacancyService {
 
     @Transactional
     public Long add(VacancySkillstaffRequestDto dto) {
+        log.info("VacancyService::add (VacancySkillstaffRequestDto = {})", dto);
         VacancyEntity vacancy = vacancySkillstafRequestMapper.toEntity(dto);
 
         if (vacancyRepository.existsByExternalIdAndSourceCode(vacancy.getExternalId(), VacancySource.SKILLSTAFF.getCode())) {
@@ -118,7 +119,9 @@ public class VacancyService {
                 "Вакансия уже добавлена, externalId=" + vacancy.getExternalId());
         }
 
-        return vacancyRepository.save(vacancy).getId();
+        Long id = vacancyRepository.save(vacancy).getId();
+        log.info("VacancyService::add (saved; id = {})", id);
+        return id;
     }
 
     @Transactional
