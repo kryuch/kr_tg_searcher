@@ -158,13 +158,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- RBAC Contract -->
-        <dependency>
-            <groupId>ru.cosysoft.kiberpride</groupId>
-            <artifactId>rbac-contract</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
         <!-- Spring AI -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
