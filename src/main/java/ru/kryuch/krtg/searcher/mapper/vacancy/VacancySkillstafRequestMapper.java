@@ -57,6 +57,7 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
     @Mapping(target = "ownerOrganisation", source = "industry", qualifiedByName = "toOrganisation")
     @Mapping(target = "category", source = "category", qualifiedByName = "toCategory")
     @Mapping(target = "grades", source = "grades", qualifiedByName = "toGrades")
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "requestStatus", source = "status")
     public abstract VacancyEntity mergeToEntity(VacancySkillstaffEnrichRequestDto dto, @MappingTarget VacancyEntity entity);
 
