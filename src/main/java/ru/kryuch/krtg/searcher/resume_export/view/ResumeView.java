@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export.model;
+package ru.kryuch.krtg.searcher.resume_export.view;
 
 import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
 
@@ -11,6 +11,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
+// TODO: разделить логику, суперспагеттикласс
 public record ResumeView(
         String fullName,
         String meta,

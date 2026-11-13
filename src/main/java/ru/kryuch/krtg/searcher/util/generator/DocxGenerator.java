@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export.generator.docx;
+package ru.kryuch.krtg.searcher.util.generator;
 
 import lombok.RequiredArgsConstructor;
 import org.docx4j.convert.in.xhtml.XHTMLImporterImpl;
@@ -6,8 +6,7 @@ import org.docx4j.model.structure.PageSizePaper;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.springframework.stereotype.Component;
 import ru.kryuch.krtg.searcher.exception.ResumeGenerationException;
-import ru.kryuch.krtg.searcher.resume_export.ResumeHtmlRenderer;
-import ru.kryuch.krtg.searcher.resume_export.generator.DocumentGenerator;
+import ru.kryuch.krtg.searcher.resume_export.html.ResumeHtmlRenderer;
 import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
 
 import java.io.ByteArrayOutputStream;

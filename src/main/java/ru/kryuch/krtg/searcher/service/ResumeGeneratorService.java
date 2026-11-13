@@ -3,7 +3,7 @@ package ru.kryuch.krtg.searcher.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.kryuch.krtg.searcher.exception.UnsupportedFormatException;
-import ru.kryuch.krtg.searcher.resume_export.generator.DocumentGenerator;
+import ru.kryuch.krtg.searcher.util.generator.DocumentGenerator;
 import ru.kryuch.krtg.searcher.dto.resume.SendResumeRequest;
 
 import java.util.Map;

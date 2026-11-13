@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export.generator;
+package ru.kryuch.krtg.searcher.util.generator;
 
 import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
 

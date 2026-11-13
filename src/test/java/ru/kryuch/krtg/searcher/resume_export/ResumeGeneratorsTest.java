@@ -7,9 +7,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
-import ru.kryuch.krtg.searcher.resume_export.generator.docx.DocxGenerator;
-import ru.kryuch.krtg.searcher.resume_export.generator.pdf.PdfGenerator;
-import ru.kryuch.krtg.searcher.resume_export.generator.pdf.ResumeFontProvider;
+import ru.kryuch.krtg.searcher.resume_export.html.ResumeHtmlRenderer;
+import ru.kryuch.krtg.searcher.util.generator.DocxGenerator;
+import ru.kryuch.krtg.searcher.util.generator.PdfGenerator;
+import ru.kryuch.krtg.searcher.util.generator.ResumeFontProvider;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;

@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export;
+package ru.kryuch.krtg.searcher.resume_export.html;
 
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
@@ -7,7 +7,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
-import ru.kryuch.krtg.searcher.resume_export.model.ResumeView;
+import ru.kryuch.krtg.searcher.resume_export.view.ResumeView;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;

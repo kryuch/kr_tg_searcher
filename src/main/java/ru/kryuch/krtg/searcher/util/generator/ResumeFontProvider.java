@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export.generator.pdf;
+package ru.kryuch.krtg.searcher.util.generator;
 
 import com.lowagie.text.pdf.BaseFont;
 import jakarta.annotation.PostConstruct;
