@@ -49,10 +49,13 @@ public class SkillstaffImportService {
         for (Message message : ordered) {
             for (VacancySkillstaffRequestDto dto : parser.parse(message)) {
                 try {
+                    log.info("SkillstaffImportService::importChat::afterParse (VacancySkillstaffRequestDto={}", dto);
                     if (vacancyService.exists(dto.getExternalId())) {
+                        log.info("SkillstaffImportService::importChat::skipped (externalId={}", dto.getExternalId());
                         skipped++;
                         continue;
                     }
+
                     vacancyService.add(dto);
                     added++;
                 } catch (VacancyAlreadyExistsException e) {
