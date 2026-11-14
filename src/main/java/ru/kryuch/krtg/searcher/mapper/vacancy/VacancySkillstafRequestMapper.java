@@ -10,15 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyQuestionDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffEnrichRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
+import ru.kryuch.krtg.searcher.entity.GradeEntity;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyQuestionEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
 import ru.kryuch.krtg.searcher.mapper.TMapper;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyCategoryRepository;
-import ru.kryuch.krtg.searcher.repository.vacancy.VacancyGradeRepository;
+import ru.kryuch.krtg.searcher.repository.GradeRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyOwnerOrganisationRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancySourceRepository;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancySource;
@@ -41,7 +41,7 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
     @Autowired
     protected VacancyCategoryRepository categoryRepository;
     @Autowired
-    protected VacancyGradeRepository gradeRepository;
+    protected GradeRepository gradeRepository;
     @Autowired
     protected VacancyOwnerOrganisationRepository ownerOrganisationRepository;
 
@@ -99,19 +99,19 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
     }
 
     @Named("toGrades")
-    protected Set<VacancyGradeEntity> toGrades(Set<String> codes) {
+    protected Set<GradeEntity> toGrades(Set<String> codes) {
         Set<String> normalized = codes.stream()
             .map(code -> code.trim().toUpperCase(Locale.ROOT))
             .collect(Collectors.toSet());
 
-        Map<String, VacancyGradeEntity> existing = gradeRepository.findByCodeIn(normalized).stream()
-            .collect(Collectors.toMap(VacancyGradeEntity::getCode, grade -> grade));
+        Map<String, GradeEntity> existing = gradeRepository.findByCodeIn(normalized).stream()
+            .collect(Collectors.toMap(GradeEntity::getCode, grade -> grade));
 
-        Set<VacancyGradeEntity> result = new HashSet<>();
+        Set<GradeEntity> result = new HashSet<>();
         for (String code : normalized) {
-            VacancyGradeEntity grade = existing.get(code);
+            GradeEntity grade = existing.get(code);
             if (grade == null) {
-                grade = new VacancyGradeEntity();
+                grade = new GradeEntity();
                 grade.setCode(code);
                 grade.setName(code);
                 grade = gradeRepository.save(grade);

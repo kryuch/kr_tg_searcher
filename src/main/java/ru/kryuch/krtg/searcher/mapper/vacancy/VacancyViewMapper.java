@@ -7,8 +7,8 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyDetailsDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyListItemDto;
+import ru.kryuch.krtg.searcher.entity.GradeEntity;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
 
 import java.util.Comparator;
 import java.util.List;
@@ -33,13 +33,13 @@ public interface VacancyViewMapper {
     }
 
     @Named("gradeNames")
-    default List<String> gradeNames(Set<VacancyGradeEntity> grades) {
+    default List<String> gradeNames(Set<GradeEntity> grades) {
         if (grades == null) {
             return List.of();
         }
         return grades.stream()
-            .sorted(Comparator.comparing(VacancyGradeEntity::getSortOrder))
-            .map(VacancyGradeEntity::getName)
+            .sorted(Comparator.comparing(GradeEntity::getSortOrder))
+            .map(GradeEntity::getName)
             .toList();
     }
 }
