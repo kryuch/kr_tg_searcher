@@ -65,6 +65,36 @@ function hideLoading(button) {
     $('#loading-overlay').hide();
 }
 
+// ============================================================
+// Функции для работы с фильтрами (без изменений)
+// ============================================================
+
+function applyFilter() {
+    var formData = {
+        term: document.getElementById('term')?.value || '',
+        maxFoundCount: document.getElementById('maxFoundCount')?.value || '',
+        minDiffDaysCount: document.getElementById('minDiffDaysCount')?.value || '',
+        excludeStatusFlag: document.getElementById('excludeStatusFlag')?.checked || false,
+        excludeBotFlag: document.getElementById('excludeBotFlag')?.checked || false,
+        excludeGroupFlag: document.getElementById('excludeGroupFlag')?.checked || false
+    };
+
+    var params = new URLSearchParams();
+    for (var key in formData) {
+        if (formData[key] !== '' && formData[key] !== false) {
+            params.append(key, formData[key]);
+        }
+    }
+
+    fetch('/chat/search?' + params.toString())
+        .then(response => response.text())
+        .then(html => {
+            document.querySelector('.econtent').innerHTML = html;
+        })
+        .catch(err => console.error('Ошибка фильтрации:', err));
+}
+
+// ============================================================
 // Сохранение параметров поиска в cookies
 // ============================================================
 
@@ -322,7 +352,6 @@ jQuery(document).ready(function () {
 
                 // Скрываем спиннер после успешного ответа
                 hideLoading($btn);
-
                 loadMissingAvatars();
             },
             error: function (xhr, status, error) {

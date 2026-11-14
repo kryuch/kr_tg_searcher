@@ -19,16 +19,53 @@ async def get_avatar(client, entity):
     return None
 
 
+def _parse_last_message_type(raw, last_message):
+    """
+    Приводит lastMessageType к числу: 0 = IGNORE, 1 = ONLY, -1 = EXCLUDE.
+
+    Если поле не прислано (или пустое/некорректное), действует прежнее
+    поведение: непустой lastMessage -> ONLY, пустой -> IGNORE.
+    """
+    default = 1 if last_message else 0
+
+    if raw is None or raw == '':
+        return default
+
+    if isinstance(raw, str):
+        value = raw.strip().upper()
+        if value == 'EXCLUDE':
+            return -1
+        if value == 'ONLY':
+            return 1
+        if value == 'IGNORE':
+            return 0
+        try:
+            raw = int(value)
+        except ValueError:
+            return default
+
+    if raw in (-1, 0, 1):
+        return raw
+
+    return default
+
+
 def prepare_search_params(data):
     """
     Подготавливает параметры поиска из запроса.
     """
-    # Обрабатываем excludeChats
+    # Обрабатываем excludeChats.
+    # Ключ приводим к int: search_chats ищет по int(account_id), а из JSON
+    # tgAccountId может прийти и строкой.
     exclude_chats = {}
     for item in data.get('excludeChats', []):
         tg_account_id = item.get('tgAccountId')
         user_id = item.get('userId')
         if tg_account_id is not None and user_id is not None:
+            try:
+                tg_account_id = int(tg_account_id)
+            except (TypeError, ValueError):
+                continue
             if tg_account_id not in exclude_chats:
                 exclude_chats[tg_account_id] = set()
             exclude_chats[tg_account_id].add(user_id)
@@ -39,22 +76,7 @@ def prepare_search_params(data):
     last_message = data.get('lastMessage')
     last_message = last_message.strip() if last_message else ''
 
-    last_message_type = data.get('lastMessageType', 0)
-    if last_message_type is None:
-        last_message_type = 0
-
-    if isinstance(last_message_type, str):
-        if last_message_type == 'EXCLUDE':
-            last_message_type = -1
-        elif last_message_type == 'ONLY':
-            last_message_type = 1
-        elif last_message_type == 'IGNORE':
-            last_message_type = 0
-        else:
-            try:
-                last_message_type = int(last_message_type)
-            except ValueError:
-                last_message_type = 0
+    last_message_type = _parse_last_message_type(data.get('lastMessageType'), last_message)
 
     return {
         'term': term,
@@ -72,6 +94,7 @@ def prepare_search_params(data):
 async def search_chats(client, params, account_id):
     """
     Поиск чатов по параметрам с учётом исключений для конкретного аккаунта.
+    Аватары здесь не загружаются: они запрашиваются отдельно (/api/search/avatars).
 
     Args:
         client: Telethon клиент
@@ -80,7 +103,7 @@ async def search_chats(client, params, account_id):
     """
     term = params.get('term', 'Java')
     last_message = params.get('lastMessage', '').strip()
-    max_found_count = params.get('maxFoundCount', 16)
+    max_found_count = params.get('maxFoundCount', 10)
     last_message_type = params.get('lastMessageType', 0)
     min_diff_days_count = params.get('minDiffDaysCount', 0)
     bot_type = params.get('botType', 'PERSONAL')
@@ -139,26 +162,29 @@ async def search_chats(client, params, account_id):
         try:
             async for m in client.iter_messages(d.id, search=term, limit=1):
                 if m.text and term.lower() in m.text.lower():
-                    if last_message_type != 0:
-                       try:
-                           last_msg = None
-                           async for msg in client.iter_messages(d.id, limit=1):
-                               last_msg = msg
-                               break
+                    # Фильтр по последнему сообщению:
+                    #  1 (ONLY)    - последнее сообщение содержит lastMessage
+                    # -1 (EXCLUDE) - последнее сообщение НЕ содержит lastMessage
+                    #  0 (IGNORE)  - фильтр выключен
+                    # Пустой lastMessage фильтр не включает: '' in text всегда
+                    # True, и EXCLUDE отсёк бы вообще все чаты.
+                    if last_message_type != 0 and last_message:
+                        try:
+                            last_msg = None
+                            async for msg in client.iter_messages(d.id, limit=1):
+                                last_msg = msg
+                                break
 
-                           last_msg_text = last_msg.text if last_msg and last_msg.text else ''
-                           last_message_lower = last_message.lower()
-                           last_msg_text_lower = last_msg_text.lower()
+                            last_msg_text = last_msg.text if last_msg and last_msg.text else ''
+                            contains = last_message.lower() in last_msg_text.lower()
 
-                           if last_message_type == 1:
-                               if last_message_lower not in last_msg_text_lower:
-                                   continue
-                           elif last_message_type == -1:
-                               if last_message_lower in last_msg_text_lower:
-                                   continue
-                       except Exception as e:
-                           print(f"Ошибка при проверке lastMessage для {d.name}: {e}")
-                           continue
+                            if last_message_type == 1 and not contains:
+                                continue
+                            elif last_message_type == -1 and contains:
+                                continue
+                        except Exception as e:
+                            print(f"Ошибка при проверке lastMessage для {d.name}: {e}")
+                            continue
 
                     username = getattr(d.entity, 'username', None)
                     if not username:
@@ -166,13 +192,10 @@ async def search_chats(client, params, account_id):
                         if phone:
                             username = phone
 
-                    # УДАЛЕНО: avatar = await get_avatar(client, d.entity)
-
                     chat_info = {
                         'id': d.id,
                         'name': d.name,
                         'username': username
-                        # УДАЛЕНО: 'avatar': avatar
                     }
 
                     if messages_count > 0:

@@ -7,7 +7,14 @@
     <!-- ================ krrg_vacancy_owner_organisation : table ================ -->
     <changeSet id="006-01-vacancy-owner-organisation-table" author="krtg">
         <preConditions onFail="MARK_RAN">
-            <not><tableExists tableName="krrg_vacancy_owner_organisation"/></not>
+            <and>
+                <not>
+                    <tableExists tableName="krrg_vacancy_owner_organisation"/>
+                </not>
+                <not>
+                    <tableExists tableName="krrg_vacancy_owner_organisations"/>
+                </not>
+            </and>
         </preConditions>
 
         <createTable tableName="krrg_vacancy_owner_organisation">
@@ -75,7 +82,6 @@
         <preConditions onFail="MARK_RAN">
             <and>
                 <tableExists tableName="krrg_vacancies"/>
-                <tableExists tableName="krrg_vacancy_owner_organisation"/>
                 <columnExists tableName="krrg_vacancies" columnName="owner_organisation_id"/>
                 <not>
                     <foreignKeyConstraintExists foreignKeyTableName="krrg_vacancies"
@@ -84,13 +90,16 @@
             </and>
         </preConditions>
 
-        <addForeignKeyConstraint
-                baseTableName="krrg_vacancies"
-                baseColumnNames="owner_organisation_id"
-                constraintName="fk_vacancies__owner_organisation"
-                referencedTableName="krrg_vacancy_owner_organisation"
-                referencedColumnNames="id"
-                onDelete="RESTRICT"/>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancies
+            DROP CONSTRAINT IF EXISTS fk_vacancies__owner_organisation;
+
+            ALTER TABLE krrg_vacancies
+                ADD CONSTRAINT fk_vacancies__owner_organisation
+                    FOREIGN KEY (owner_organisation_id)
+                        REFERENCES krrg_vacancy_owner_organisations (id)
+                        ON DELETE RESTRICT;
+            ]]></sql>
     </changeSet>
 
     <!-- krrg_vacancies : index on owner_organisation_id -->
@@ -120,16 +129,20 @@
                 <columnExists tableName="krrg_vacancies" columnName="external_id"/>
                 <columnExists tableName="krrg_vacancies" columnName="source"/>
                 <not>
-                    <indexExists tableName="krrg_vacancies"
-                                 indexName="uq_vacancies__external_id_source"/>
+                    <uniqueConstraintExists tableName="krrg_vacancies"
+                                            constraintName="uq_vacancies__external_id_source"/>
                 </not>
             </and>
         </preConditions>
 
-        <addUniqueConstraint
-                tableName="krrg_vacancies"
-                columnNames="external_id, source"
-                constraintName="uq_vacancies__external_id_source"/>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancies
+            DROP CONSTRAINT IF EXISTS uq_vacancies__external_id_source;
+
+            ALTER TABLE krrg_vacancies
+                ADD CONSTRAINT uq_vacancies__external_id_source
+                    UNIQUE (external_id, source);
+            ]]></sql>
     </changeSet>
 
     <!-- ===================== krrg_vacancy_responses : table ===================== -->
@@ -169,13 +182,16 @@
             </and>
         </preConditions>
 
-        <addForeignKeyConstraint
-                baseTableName="krrg_vacancy_responses"
-                baseColumnNames="vacancy_id"
-                constraintName="fk_vacancy_responses__vacancy"
-                referencedTableName="krrg_vacancies"
-                referencedColumnNames="id"
-                onDelete="CASCADE"/>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancy_responses
+            DROP CONSTRAINT IF EXISTS fk_vacancy_responses__vacancy;
+
+            ALTER TABLE krrg_vacancy_responses
+                ADD CONSTRAINT fk_vacancy_responses__vacancy
+                    FOREIGN KEY (vacancy_id)
+                        REFERENCES krrg_vacancies (id)
+                        ON DELETE CASCADE;
+            ]]></sql>
     </changeSet>
 
     <!-- krrg_vacancy_responses : index on user_id -->
@@ -205,16 +221,20 @@
                 <columnExists tableName="krrg_vacancy_responses" columnName="vacancy_id"/>
                 <columnExists tableName="krrg_vacancy_responses" columnName="user_id"/>
                 <not>
-                    <indexExists tableName="krrg_vacancy_responses"
-                                 indexName="uq_vacancy_responses__vacancy_user"/>
+                    <uniqueConstraintExists tableName="krrg_vacancy_responses"
+                                            constraintName="uq_vacancy_responses__vacancy_user"/>
                 </not>
             </and>
         </preConditions>
 
-        <addUniqueConstraint
-                tableName="krrg_vacancy_responses"
-                columnNames="vacancy_id, user_id"
-                constraintName="uq_vacancy_responses__vacancy_user"/>
+        <sql><![CDATA[
+            ALTER TABLE krrg_vacancy_responses
+            DROP CONSTRAINT IF EXISTS uq_vacancy_responses__vacancy_user;
+
+            ALTER TABLE krrg_vacancy_responses
+                ADD CONSTRAINT uq_vacancy_responses__vacancy_user
+                    UNIQUE (vacancy_id, user_id);
+            ]]></sql>
     </changeSet>
 
 </databaseChangeLog>

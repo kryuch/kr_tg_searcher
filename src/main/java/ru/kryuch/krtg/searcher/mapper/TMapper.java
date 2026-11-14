@@ -2,6 +2,7 @@ package ru.kryuch.krtg.searcher.mapper;
 
 import org.mapstruct.MappingTarget;
 
+
 import java.util.Collection;
 import java.util.List;
 
@@ -16,4 +17,5 @@ public interface TMapper<TEntity, TDto> {
     TEntity toEntity(TDto dto);
 
     TEntity mergeToEntity(TDto dto, @MappingTarget TEntity entity);
+
 }

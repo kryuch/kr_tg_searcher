@@ -12,7 +12,7 @@ import lombok.Setter;
 import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 
 @Entity
-@Table(name = "krrg_vacancy_owner_organisation")
+@Table(name = "krrg_vacancy_owner_organisations")
 @Getter
 @Setter
 @NoArgsConstructor

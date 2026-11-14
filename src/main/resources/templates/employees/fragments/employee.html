@@ -1,0 +1,51 @@
+<main th:fragment="main" class="row">
+    <h1 th:text="${title}"></h1>
+    <div class="col p-4">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Ид</th>
+                    <th scope="col">Фамилия</th>
+                    <th scope="col">Имя</th>
+                    <th scope="col">Отчество</th>
+                    <th scope="col">Пол</th>
+                    <th scope="col">Дата рождения</th>
+                    <th scope="col">Профили</th>
+                    <th scope="col">Операции</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${items}">
+                    <th scope="row" th:inline="text">[[${item.getId()}]]</th>
+                    <td th:inline="text">[[${item.getLastName()}]]</td>
+                    <td th:inline="text">[[${item.getFirstName()}]]</td>
+                    <td th:inline="text">[[${item.getMiddleName()}]]</td>
+                    <td th:switch="${item.getGender()}">
+                        <th:block th:case="MALE">Мужской</th:block>
+                        <th:block th:case="FEMALE">Женский</th:block>
+                    </td>
+                    <td th:inline="text">[[${item.getBirthDate()}]]</td>
+                    <td th:inline="text"></td>
+                    <td>
+                        <form th:action="@{/employees/{id}/(id=${item.getId()})}"
+                              th:method="delete"
+                              class="d-inline-flex">
+                            <button type="submit"
+                                    onclick="return confirm('Вы уверены, что хотите удалить этого сотрудника?');"
+                                    class="btn-solid btn-styled theme-danger btn-xs">Удалить</button>
+                        </form>
+                        <a th:href="@{/employees/{id}/(id=${item.getId()})}" class="btn-solid btn-styled theme-warning btn-xs">Редактировать</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-center" colspan="6">
+                        <a th:href="@{/employees/add/}"
+                           class="btn-solid btn-styled theme-primary btn-sm">Добавить сотрудника</a>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>

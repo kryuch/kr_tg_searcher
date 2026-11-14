@@ -11,5 +11,5 @@ import java.util.List;
 public class ChatIdsRequest {
 
     @ToString.Exclude
-    private List<ChatIdsRequestItem> chatIds;
+    private List<ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem> chatIds;
 }

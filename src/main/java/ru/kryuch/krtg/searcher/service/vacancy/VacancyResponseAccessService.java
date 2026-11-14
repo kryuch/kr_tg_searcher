@@ -13,7 +13,6 @@ import ru.kryuch.krtg.searcher.repository.VacancyRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyOwnerOrganisationRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyResponseRepository;
 import ru.kryuch.krtg.searcher.service.AbstractAccessService;
-import ru.kryuch.krtg.searcher.type.VacancySource;
 
 import java.util.List;
 
@@ -22,7 +21,7 @@ public class VacancyResponseAccessService extends AbstractAccessService<Long, Va
 
 
     // сервис интеграции работает только с одной площадкой
-    private static final VacancySource SOURCE = VacancySource.HH;
+   // private static final WorkFormat SOURCE = WorkFormat.HH;
 
     private final VacancyRepository vacancyRepository;
     private final VacancyOwnerOrganisationRepository ownerOrganisationRepository;
@@ -63,8 +62,8 @@ public class VacancyResponseAccessService extends AbstractAccessService<Long, Va
     }
 
     private VacancyEntity resolveVacancy(VacancyResponseRequestDto dto) {
-        return vacancyRepository.findByExternalIdAndSource(dto.getExternalId(), SOURCE)
-                .orElseGet(() -> createVacancy(dto));
+        return null;//vacancyRepository.findByExternalIdAndSource(dto.getExternalId(), SOURCE)
+                //.orElseGet(() -> createVacancy(dto));
     }
 
     private VacancyEntity createVacancy(VacancyResponseRequestDto dto) {
@@ -72,7 +71,7 @@ public class VacancyResponseAccessService extends AbstractAccessService<Long, Va
 
         VacancyEntity vacancy = new VacancyEntity();
         vacancy.setExternalId(dto.getExternalId());
-        vacancy.setSource(SOURCE);
+   //     vacancy.setSource(SOURCE);
         vacancy.setUrl(dto.getUrl());
         vacancy.setTitle(dto.getTitle());
         vacancy.setDescription(dto.getDescription());

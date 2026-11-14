@@ -52,7 +52,7 @@ public class SettingValueEntity extends BasedAccessEntity {
     @Column(name = "double_value")
     private Double doubleValue;
 
-    @Column(name = "string_value")
+    @Column(name = "string_value", columnDefinition = "text")
     private String stringValue;
 
     public SettingValueEntity(SettingEntity setting, Integer userId) {

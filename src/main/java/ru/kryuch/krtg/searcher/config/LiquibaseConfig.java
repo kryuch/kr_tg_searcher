@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
-//@Configuration
+@Configuration
 public class LiquibaseConfig {
-/*
+
     @Bean
     public ApplicationRunner liquibaseRunner(DataSource dataSource) {
         return new ApplicationRunner() {
@@ -19,8 +19,8 @@ public class LiquibaseConfig {
                 SpringLiquibase liquibase = new SpringLiquibase();
                 liquibase.setDataSource(dataSource);
                 liquibase.setChangeLog("classpath:db/changelog/db.changelog-master.xml");
-                liquibase.afterPropertiesSet();  // Запускаем миграции
+                liquibase.afterPropertiesSet();
             }
         };
-    }*/
+    }
 }

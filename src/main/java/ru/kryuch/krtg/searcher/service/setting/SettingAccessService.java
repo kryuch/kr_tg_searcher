@@ -11,8 +11,8 @@ import ru.kryuch.krtg.searcher.mapper.SettingMapper;
 import ru.kryuch.krtg.searcher.repository.SettingRepository;
 import ru.kryuch.krtg.searcher.repository.setting.SettingValueRepository;
 import ru.kryuch.krtg.searcher.service.AbstractAccessService;
-import ru.kryuch.krtg.searcher.service.setting.SettingValueConverter;
-import ru.kryuch.krtg.searcher.type.SettingType;
+import ru.kryuch.krtg.searcher.type.setting.SettingCode;
+import ru.kryuch.krtg.searcher.type.setting.SettingType;
 
 import java.util.List;
 import java.util.Map;
@@ -87,10 +87,17 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
         return changed;
     }
 
-
+    @Transactional
     public SettingDto getByCode(String code) {
         return mapper.fromEntity(
                 repository.findBySettingCodeAndUserId(code, getCurrentUserId()).orElse(null)
+        );
+    }
+
+    @Transactional
+    public SettingDto getAdminByCode(String code) {
+        return mapper.fromEntity(
+            repository.findBySettingCode(code).get(0)
         );
     }
 
@@ -108,8 +115,9 @@ public class SettingAccessService extends AbstractAccessService<Long, SettingVal
         repository.save(entity);
     }
 
-    public Map<Integer, String> findAllCronEnabled() {
-        return repository.findBySettingCode(SettingConfig.CRON_ENABLE_SETTING_CODE).stream()
+    @Transactional
+    public Map<Integer, String> findAllCronEnabled(SettingCode settingCode) {
+        return repository.findBySettingCode(settingCode.getCode()).stream()
                 .collect(Collectors.toMap(
                         SettingValueEntity::getUserId,
                         entity -> mapper.fromEntity(entity).getValue()

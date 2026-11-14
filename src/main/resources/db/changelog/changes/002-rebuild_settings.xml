@@ -7,7 +7,12 @@
 
     <!-- 1. Таблица групп настроек -->
     <changeSet id="002-001-create-setting-groups" author="Oleg V. Kryuchin">
-        <sql>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="krrg_setting_groups"/>
+            </not>
+        </preConditions>
+        <sql><![CDATA[
             CREATE TABLE krrg_setting_groups
             (
                 id         BIGSERIAL PRIMARY KEY,
@@ -16,64 +21,95 @@
                 created_at TIMESTAMP,
                 updated_at TIMESTAMP
             );
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>DROP TABLE krrg_setting_groups;</sql>
+            <sql><![CDATA[DROP TABLE IF EXISTS krrg_setting_groups;]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 1b. Добавление колонки name в krrg_setting_groups, если её нет -->
+    <changeSet id="002-001b-add-name-to-setting-groups" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_setting_groups"/>
+                <not>
+                    <columnExists tableName="krrg_setting_groups" columnName="name"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_setting_groups ADD COLUMN name VARCHAR(255);
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                ALTER TABLE krrg_setting_groups DROP COLUMN IF EXISTS name;
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 2. Наполнение справочника групп -->
     <changeSet id="002-002-insert-groups" author="Oleg V. Kryuchin">
-        <sql>
-            INSERT INTO krrg_setting_groups (code, name, created_at, updated_at)
-            VALUES ('general', 'Общее', now(), now()),
-                   ('folder', 'Папка HR', now(), now()),
-                   ('cron', 'Крон', now(), now()),
-                   ('ai', 'ИИ', now(), now()),
-                   ('admin', 'Администрирование', now(), now()),
-                   ('gmail', 'Gmail', now(), now());
-        </sql>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_setting_groups"/>
+        </preConditions>
+        <sql><![CDATA[
+            INSERT INTO krrg_setting_groups (code, name, title, created_at, updated_at)
+            VALUES ('general', 'Общее', 'Общее', now(), now()),
+                   ('folder', 'Папка HR', 'Папка HR', now(), now()),
+                   ('cron', 'Крон', 'Крон', now(), now()),
+                   ('ai', 'ИИ', 'ИИ', now(), now()),
+                   ('admin', 'Администрирование', 'Администрирование', now(), now()),
+                   ('gmail', 'Gmail', 'Gmail', now(), now())
+                ON CONFLICT (code) DO NOTHING;
+            ]]></sql>
         <rollback>
-            <sql>
+            <sql><![CDATA[
                 DELETE FROM krrg_setting_groups WHERE code IN ('general','folder','cron','ai','admin','gmail');
-            </sql>
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 3. Новые nullable-колонки в krrg_settings -->
     <changeSet id="002-003-add-group-and-type-columns" author="Oleg V. Kryuchin">
-        <sql>
-            ALTER TABLE krrg_settings
-                ADD COLUMN group_id BIGINT,
-                ADD COLUMN setting_type VARCHAR(20);
-        </sql>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_settings"/>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_settings ADD COLUMN IF NOT EXISTS group_id BIGINT;
+            ALTER TABLE krrg_settings ADD COLUMN IF NOT EXISTS setting_type VARCHAR(20);
+            ]]></sql>
         <rollback>
-            <sql>
-                ALTER TABLE krrg_settings DROP COLUMN group_id, DROP COLUMN setting_type;
-            </sql>
+            <sql><![CDATA[
+                ALTER TABLE krrg_settings DROP COLUMN IF EXISTS group_id;
+                ALTER TABLE krrg_settings DROP COLUMN IF EXISTS setting_type;
+            ]]></sql>
         </rollback>
     </changeSet>
 
+    <!-- 3b. Добавление title в krrg_settings, если его нет -->
     <changeSet id="002-003b-add-group-and-type-columns" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="krrg_settings" columnName="title"/>
             </not>
         </preConditions>
-        <sql>
-            ALTER TABLE krrg_settings
-                ADD COLUMN title varchar(1024);
-        </sql>
+        <sql><![CDATA[
+            ALTER TABLE krrg_settings ADD COLUMN title varchar(1024);
+            ]]></sql>
         <rollback>
-            <sql>
-                ALTER TABLE krrg_settings DROP COLUMN title;
-            </sql>
+            <sql><![CDATA[
+                ALTER TABLE krrg_settings DROP COLUMN IF EXISTS title;
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 4. Заполнение setting_type / title / group_id по code -->
     <changeSet id="002-004-fill-type-title-group-by-code" author="Oleg V. Kryuchin">
-        <sql>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_settings"/>
+            <tableExists tableName="krrg_setting_groups"/>
+        </preConditions>
+        <sql><![CDATA[
             UPDATE krrg_settings s
             SET setting_type = m.setting_type,
                 title        = m.title,
@@ -107,46 +143,54 @@
             ) AS m(code, setting_type, title, group_code)
             JOIN krrg_setting_groups g ON g.code = m.group_code
             WHERE s.code = m.code;
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>
+            <sql><![CDATA[
                 UPDATE krrg_settings SET setting_type = NULL, title = NULL, group_id = NULL;
-            </sql>
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 4b. Устаревшее свойство tg_folder — удаляем, т.к. больше не используется -->
     <changeSet id="002-004b-delete-obsolete-tg_folder" author="Oleg V. Kryuchin">
-        <sql>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_settings"/>
+        </preConditions>
+        <sql><![CDATA[
             DELETE FROM krrg_settings WHERE code = 'tg_folder';
-        </sql>
+            ]]></sql>
         <rollback>
-            <!-- Удалённые данные не восстановить миграцией; при необходимости — из бэкапа. -->
-            <sql>SELECT 1;</sql>
+            <sql><![CDATA[SELECT 1;]]></sql>
         </rollback>
     </changeSet>
 
+    <!-- 4c. Добавление created_at / updated_at в krrg_settings, если их нет -->
     <changeSet id="002-004c-add-createdattosetting" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="krrg_settings" columnName="created_at"/>
             </not>
         </preConditions>
-        <sql>
+        <sql><![CDATA[
             ALTER TABLE krrg_settings ADD COLUMN created_at TIMESTAMP;
             ALTER TABLE krrg_settings ADD COLUMN updated_at TIMESTAMP;
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>
-                ALTER TABLE krrg_settings DROP COLUMN created_at;
-                ALTER TABLE krrg_settings DROP COLUMN updated_at;
-            </sql>
+            <sql><![CDATA[
+                ALTER TABLE krrg_settings DROP COLUMN IF EXISTS created_at;
+                ALTER TABLE krrg_settings DROP COLUMN IF EXISTS updated_at;
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 5. Таблица значений -->
     <changeSet id="002-005-create-setting-values" author="Oleg V. Kryuchin">
-        <sql>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="krrg_setting_values"/>
+            </not>
+        </preConditions>
+        <sql><![CDATA[
             CREATE TABLE krrg_setting_values
             (
                 id           BIGSERIAL PRIMARY KEY,
@@ -163,15 +207,24 @@
                 CONSTRAINT uq_setting_values_setting_user
                     UNIQUE (setting_id, user_id)
             );
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>DROP TABLE krrg_setting_values;</sql>
+            <sql><![CDATA[DROP TABLE IF EXISTS krrg_setting_values;]]></sql>
         </rollback>
     </changeSet>
 
-    <!-- 6. Перенос существующих значений -->
-    <changeSet id="002-006-migrate-existing-values" author="Oleg V. Kryuchin">
-        <sql>
+    <!-- 6a. Перенос значений с user_id (если колонка есть) -->
+    <changeSet id="002-006a-migrate-existing-values-with-user" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <tableExists tableName="krrg_setting_values"/>
+                <columnExists tableName="krrg_settings" columnName="user_id"/>
+                <columnExists tableName="krrg_settings" columnName="setting_value"/>
+                <columnExists tableName="krrg_settings" columnName="setting_type"/>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
             INSERT INTO krrg_setting_values (setting_id, user_id, bool_value, int_value, double_value, string_value,
                                              created_at, updated_at)
             SELECT s.id,
@@ -184,41 +237,74 @@
                    s.updated_at
             FROM krrg_settings s
             WHERE s.setting_value IS NOT NULL;
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>DELETE FROM krrg_setting_values;</sql>
+            <sql><![CDATA[DELETE FROM krrg_setting_values;]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 6b. Перенос значений без user_id (если колонки user_id нет, но есть setting_value) -->
+    <changeSet id="002-006b-migrate-existing-values-without-user" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <tableExists tableName="krrg_setting_values"/>
+                <not>
+                    <columnExists tableName="krrg_settings" columnName="user_id"/>
+                </not>
+                <columnExists tableName="krrg_settings" columnName="setting_value"/>
+                <columnExists tableName="krrg_settings" columnName="setting_type"/>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            INSERT INTO krrg_setting_values (setting_id, user_id, bool_value, int_value, double_value, string_value,
+                                             created_at, updated_at)
+            SELECT s.id,
+                   NULL,
+                   CASE WHEN s.setting_type = 'BOOLEAN' THEN NULLIF(s.setting_value, '')::boolean ELSE NULL END,
+                   CASE WHEN s.setting_type = 'INTEGER' THEN COALESCE(NULLIF(s.setting_value, '')::integer, 0) ELSE NULL END,
+                   CASE WHEN s.setting_type = 'DOUBLE'  THEN NULLIF(s.setting_value, '')::double precision ELSE NULL END,
+                   CASE WHEN s.setting_type = 'STRING'  THEN s.setting_value ELSE NULL END,
+                   s.created_at,
+                   s.updated_at
+            FROM krrg_settings s
+            WHERE s.setting_value IS NOT NULL;
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[DELETE FROM krrg_setting_values;]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 7. NOT NULL после того, как все строки гарантированно заполнены -->
     <changeSet id="002-007-set-not-null-constraints" author="Oleg V. Kryuchin">
-        <sql>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_settings"/>
+        </preConditions>
+        <sql><![CDATA[
             ALTER TABLE krrg_settings
                 ALTER COLUMN setting_type SET NOT NULL,
             ALTER COLUMN group_id SET NOT NULL,
                 ALTER COLUMN title SET NOT NULL;
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>
+            <sql><![CDATA[
                 ALTER TABLE krrg_settings
-                ALTER COLUMN setting_type DROP NOT NULL,
-                ALTER COLUMN group_id DROP NOT NULL,
-                ALTER COLUMN title DROP NOT NULL;
-            </sql>
+                    ALTER COLUMN setting_type DROP NOT NULL,
+                    ALTER COLUMN group_id DROP NOT NULL,
+                    ALTER COLUMN title DROP NOT NULL;
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 7b. Восстановление krrg_setting_groups (была случайно удалена вручную)
          и пересчёт group_id в krrg_settings заново по code, без опоры на старые id -->
     <changeSet id="002-007b-recreate-setting-groups" author="Oleg V. Kryuchin">
-        <!-- 1. Создаем таблицу если её нет -->
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="krrg_setting_groups"/>
             </not>
         </preConditions>
-
-        <sql>
+        <sql><![CDATA[
             CREATE TABLE krrg_setting_groups
             (
                 id         BIGSERIAL PRIMARY KEY,
@@ -227,10 +313,8 @@
                 created_at TIMESTAMP,
                 updated_at TIMESTAMP
             );
-        </sql>
-
-        <!-- 2. Вставляем группы, если их нет (ON CONFLICT DO NOTHING) -->
-        <sql>
+            ]]></sql>
+        <sql><![CDATA[
             INSERT INTO krrg_setting_groups (code, name, created_at, updated_at)
             VALUES ('general', 'Общее', now(), now()),
                    ('folder', 'Папка HR', now(), now()),
@@ -239,10 +323,8 @@
                    ('admin', 'Администрирование', now(), now()),
                    ('gmail', 'Gmail', now(), now())
                 ON CONFLICT (code) DO NOTHING;
-        </sql>
-
-        <!-- 3. Обновляем group_id, только если он еще не установлен -->
-        <sql>
+            ]]></sql>
+        <sql><![CDATA[
             UPDATE krrg_settings s
             SET group_id = g.id
                 FROM (VALUES
@@ -274,36 +356,50 @@
         ) AS m(code, group_code)
         JOIN krrg_setting_groups g ON g.code = m.group_code
             WHERE s.code = m.code AND s.group_id IS NULL;
-        </sql>
-
+            ]]></sql>
         <rollback>
-            <sql>DROP TABLE krrg_setting_groups;</sql>
+            <sql><![CDATA[DROP TABLE IF EXISTS krrg_setting_groups;]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 8. FK на группу -->
     <changeSet id="002-008-add-group-fk" author="Oleg V. Kryuchin">
-        <sql>
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <tableExists tableName="krrg_setting_groups"/>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            -- Удаляем существующее ограничение, если оно есть
+            ALTER TABLE krrg_settings DROP CONSTRAINT IF EXISTS fk_settings_group;
+
+            -- Добавляем ограничение заново
             ALTER TABLE krrg_settings
                 ADD CONSTRAINT fk_settings_group
                     FOREIGN KEY (group_id) REFERENCES krrg_setting_groups (id);
-        </sql>
+            ]]></sql>
         <rollback>
-            <sql>ALTER TABLE krrg_settings DROP CONSTRAINT fk_settings_group;</sql>
+            <sql><![CDATA[
+                ALTER TABLE krrg_settings DROP CONSTRAINT IF EXISTS fk_settings_group;
+            ]]></sql>
         </rollback>
     </changeSet>
 
     <!-- 9. Удаление старых колонок -->
     <changeSet id="002-009-drop-old-columns" author="Oleg V. Kryuchin">
-        <sql>
-            ALTER TABLE krrg_settings
-            DROP COLUMN setting_value,
-                DROP COLUMN user_id;
-        </sql>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_settings"/>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_settings DROP COLUMN IF EXISTS setting_value;
+            ALTER TABLE krrg_settings DROP COLUMN IF EXISTS user_id;
+            ]]></sql>
         <rollback>
-            <sql>
-                ALTER TABLE krrg_settings ADD COLUMN setting_value TEXT, ADD COLUMN user_id INTEGER;
-            </sql>
+            <sql><![CDATA[
+                ALTER TABLE krrg_settings ADD COLUMN setting_value TEXT;
+                ALTER TABLE krrg_settings ADD COLUMN user_id INTEGER;
+            ]]></sql>
         </rollback>
     </changeSet>
 

@@ -50,6 +50,8 @@ public class ChatSynchronizationService {
             for (ChatInfo chatInfo : chats) {
 
                 ChatEntity chatEntity = chatMap.get(chatInfo.getId());
+
+
                 if (chatEntity == null || chatEntity.getTgId() == null) {
                     if (chatEntity == null) {
                         chatEntity = chatMapper.toEntity(chatInfo);
@@ -60,6 +62,7 @@ public class ChatSynchronizationService {
 
                 TgUserEntity tgUserEntity = tgUserMap.get(chatInfo.getId());
                 if (chatEntity.getUser() == null) {
+
                     if (tgUserEntity == null) {
                         tgUserEntity = chatUserMapper.toEntity(chatInfo);
                         tgUserEntities.add(tgUserEntity);
@@ -67,6 +70,7 @@ public class ChatSynchronizationService {
 
                     chatEntity.setUser(tgUserEntity);
                 }
+
                 else {
                     // если пользователь есть, но не сохранилось почему-то username
                     if (!Objects.equals(tgUserEntity.getUsername(), chatInfo.getUsername()) || !Objects.equals(tgUserEntity.getName(), chatInfo.getName())) {
@@ -75,6 +79,7 @@ public class ChatSynchronizationService {
                         tgUserEntities.add(tgUserEntity);
                     }
                 }
+
             }
 
             if (!tgUserEntities.isEmpty()) {

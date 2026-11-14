@@ -17,15 +17,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.kryuch.krtg.searcher.entity.setting.SettingGroupEntity;
-import ru.kryuch.krtg.searcher.type.SettingType;
+import ru.kryuch.krtg.searcher.type.setting.SettingType;
 
 
 @Entity
 @Table(
-        name = "krrg_settings",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_setting_code", columnNames = "code")
-        }
+    name = "krrg_settings",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_setting_code", columnNames = "code")
+    }
 )
 @Getter
 @Setter
@@ -56,4 +56,7 @@ public class SettingEntity extends TimestampedEntity {
 
     @Column(name = "is_large")
     private Boolean isLarge;
+
+    @Column(name = "is_admin")
+    private Boolean isAdmin;
 }

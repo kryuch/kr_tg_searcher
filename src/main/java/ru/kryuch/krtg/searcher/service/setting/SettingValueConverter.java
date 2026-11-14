@@ -3,7 +3,7 @@ package ru.kryuch.krtg.searcher.service.setting;
 import org.springframework.stereotype.Component;
 import ru.kryuch.krtg.searcher.entity.setting.SettingValueEntity;
 import ru.kryuch.krtg.searcher.exception.BusinessException;
-import ru.kryuch.krtg.searcher.type.SettingType;
+import ru.kryuch.krtg.searcher.type.setting.SettingType;
 
 @Component
 public class SettingValueConverter {

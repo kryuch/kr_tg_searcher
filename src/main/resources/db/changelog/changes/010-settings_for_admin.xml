@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="010-001-add-is-admin-to-settings" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <not>
+                    <columnExists tableName="krrg_settings" columnName="is_admin"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE krrg_settings ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT FALSE;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_settings DROP COLUMN IF EXISTS is_admin;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 2. Добавление ролей admin и user в krrg_roles -->
+    <changeSet id="010-002-insert-admin-user-roles" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_roles"/>
+        </preConditions>
+        <sql>
+            INSERT INTO krrg_roles (id, title)
+            SELECT 1, 'admin'
+                WHERE NOT EXISTS (SELECT 1 FROM krrg_roles WHERE title = 'admin');
+
+            INSERT INTO krrg_roles (id, title)
+            SELECT 2, 'user'
+                WHERE NOT EXISTS (SELECT 1 FROM krrg_roles WHERE title = 'user');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM krrg_roles WHERE title IN ('admin', 'user');
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="010-003-add-is-admin-to-setting-groups" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_setting_groups"/>
+                <not>
+                    <columnExists tableName="krrg_setting_groups" columnName="is_admin"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE krrg_setting_groups ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT FALSE;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_setting_groups DROP COLUMN IF EXISTS is_admin;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 4. Добавление настроек SkillStaff в krrg_settings -->
+    <changeSet id="010-004-insert-skillstaff-settings" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <tableExists tableName="krrg_setting_groups"/>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM krrg_setting_groups WHERE code = 'admin'
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO krrg_settings (code, title, group_id, setting_type, sort_order, created_at, updated_at)
+            SELECT 'skillstaff_tgaccount',
+                   'SkillStaff. Телеграмм аккаунт Id',
+                   g.id,
+                   'INTEGER',
+                   1,
+                   now(),
+                   now()
+            FROM krrg_setting_groups g
+            WHERE g.code = 'admin'
+              AND NOT EXISTS (SELECT 1 FROM krrg_settings WHERE code = 'skillstaff_tgaccount');
+
+            INSERT INTO krrg_settings (code, title, group_id, setting_type, sort_order, created_at, updated_at)
+            SELECT 'skillstaff_tguser',
+                   'SkillStaff. Идентификатор пользователя',
+                   g.id,
+                   'INTEGER',
+                   2,
+                   now(),
+                   now()
+            FROM krrg_setting_groups g
+            WHERE g.code = 'admin'
+              AND NOT EXISTS (SELECT 1 FROM krrg_settings WHERE code = 'skillstaff_tguser');
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM krrg_settings WHERE code IN ('skillstaff_tgaccount', 'skillstaff_tguser');
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 5. Установка значений is_admin по умолчанию и заполнение существующих записей -->
+    <changeSet id="010-005-set-is-admin-defaults-and-values" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_settings"/>
+                <tableExists tableName="krrg_setting_groups"/>
+                <columnExists tableName="krrg_settings" columnName="is_admin"/>
+                <columnExists tableName="krrg_setting_groups" columnName="is_admin"/>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            ALTER TABLE krrg_settings ALTER COLUMN is_admin SET DEFAULT FALSE;
+            ALTER TABLE krrg_setting_groups ALTER COLUMN is_admin SET DEFAULT FALSE;
+
+            UPDATE krrg_setting_groups
+            SET is_admin = FALSE
+            WHERE is_admin IS NULL OR code <> 'admin';
+
+            UPDATE krrg_setting_groups
+            SET is_admin = TRUE
+            WHERE code = 'admin';
+
+            UPDATE krrg_settings s
+            SET is_admin = FALSE
+                FROM krrg_setting_groups g
+            WHERE s.group_id = g.id
+              AND (s.is_admin IS NULL OR g.code <> 'admin');
+
+            UPDATE krrg_settings s
+            SET is_admin = TRUE
+                FROM krrg_setting_groups g
+            WHERE s.group_id = g.id
+              AND g.code = 'admin';
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                UPDATE krrg_settings SET is_admin = NULL;
+                UPDATE krrg_setting_groups SET is_admin = NULL;
+                ALTER TABLE krrg_settings ALTER COLUMN is_admin DROP DEFAULT;
+                ALTER TABLE krrg_setting_groups ALTER COLUMN is_admin DROP DEFAULT;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+    <changeSet id="010-006-skillstaff-tguser-type-to-string" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_settings"/>
+        </preConditions>
+        <sql><![CDATA[
+            UPDATE krrg_settings
+            SET setting_type = 'STRING',
+                updated_at = now()
+            WHERE code = 'skillstaff_tguser'
+              AND setting_type <> 'STRING';
+            ]]></sql>
+        <rollback>
+            <sql><![CDATA[
+                UPDATE krrg_settings
+                SET setting_type = 'INTEGER',
+                    updated_at = now()
+                WHERE code = 'skillstaff_tguser'
+                  AND setting_type = 'STRING';
+            ]]></sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

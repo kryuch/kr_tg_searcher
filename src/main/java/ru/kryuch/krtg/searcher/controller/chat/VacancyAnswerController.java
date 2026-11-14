@@ -15,7 +15,6 @@ import ru.kryuch.krtg.searcher.service.AiGatewayService;
 import ru.kryuch.krtg.searcher.service.MailGatewayService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
-import ru.kryuch.krtg.searcher.type.VacancyOwnerType;
 
 import java.util.List;
 import java.util.Map;

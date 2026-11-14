@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.kryuch.krtg.searcher.entity.ApiToken;
 import ru.kryuch.krtg.searcher.service.ApiTokenService;
 
 @RestController
@@ -18,7 +19,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final ApiTokenService apiTokenService;
 
-    public record LoginRequest(String username, String password) {}
+    public record LoginRequest(String username, String password, String application) {}
     public record LoginResponse(String token) {}
 
     @PostMapping("/login")
@@ -26,9 +27,9 @@ public class AuthController {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
-        ); // бросит AuthenticationException при неверных данных — обработай через @ExceptionHandler/ControllerAdvice в 401
+        );
 
-        var token = apiTokenService.issueToken(request.username());
+        ApiToken token = apiTokenService.issueToken(request.username(), request.application());
 
         return ResponseEntity.ok(new LoginResponse(token.getToken()));
     }

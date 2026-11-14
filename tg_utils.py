@@ -84,16 +84,13 @@ async def get_client(account_id: str, account_configs: dict):
         await client.connect()
         return client
 
-    # Медленный путь — клиента ещё нет. Раньше здесь не было защиты: два
-    # параллельных первых запроса на один аккаунт могли одновременно
-    # пройти проверку "клиента нет" и создать ДВА TelegramClient на одном
-    # session-файле (await client.connect() ниже — точка, где event loop
-    # может переключиться на другую корутину). Это могло приводить к
-    # конфликтам доступа к session-файлу (SQLite) или рассинхрону состояния.
+    # Медленный путь — клиента ещё нет. Без защиты два параллельных первых
+    # запроса на один аккаунт могли бы одновременно пройти проверку
+    # "клиента нет" и создать ДВА TelegramClient на одном session-файле
+    # (await client.connect() — точка, где event loop может переключиться).
     #
     # dict.setdefault — синхронная операция без await внутри, поэтому она
-    # атомарна в рамках кооперативной модели asyncio (переключение между
-    # корутинами возможно только на await, а не посреди одной строки кода).
+    # атомарна в рамках кооперативной модели asyncio.
     lock = _client_creation_locks.setdefault(account_id, asyncio.Lock())
 
     async with lock:
@@ -123,10 +120,11 @@ async def get_client(account_id: str, account_configs: dict):
         await client.connect()
 
         if not await client.is_user_authorized():
+            await client.disconnect()
             raise RuntimeError(f"Аккаунт {account_id} не авторизован")
 
         telegram_clients[account_id] = client
-        telegram_locks[account_id] = asyncio.Lock()
+        telegram_locks.setdefault(account_id, asyncio.Lock())
 
         logger.info("Telegram client %s created", account_id)
 
@@ -148,7 +146,9 @@ async def execute_telegram_action(
 
     client = await get_client(account_id, account_configs)
 
-    lock = telegram_locks[account_id]
+    # setdefault, а не прямое обращение: verify_code_with_new_client может
+    # удалить лок между get_client и этой строкой (KeyError).
+    lock = telegram_locks.setdefault(account_id, asyncio.Lock())
 
     async with lock:
         if client.is_connected():
@@ -259,8 +259,6 @@ async def verify_code_with_new_client(
     Завершает авторизацию Telegram-аккаунта.
     Добавлены таймауты на подключение и sign_in.
     """
-    import asyncio
-
     print(f"🔵 verify_code_with_new_client: НАЧАЛО для {account_id}")
 
     session_path = build_session_path(session_name)
@@ -286,7 +284,7 @@ async def verify_code_with_new_client(
         if old:
             try:
                 await old.disconnect()
-            except:
+            except Exception:
                 pass
 
         telegram_locks.pop(account_id, None)
@@ -310,7 +308,8 @@ async def verify_code_with_new_client(
 
         return {
             "success": True,
-            "status": "success"
+            "status": "success",
+            "message": "Аккаунт успешно авторизован"
         }
 
     except asyncio.TimeoutError:
@@ -326,7 +325,11 @@ async def verify_code_with_new_client(
                 "status": "password_required"
             }
         await client.sign_in(password=password)
-        return {"status": "success"}
+        return {
+            "success": True,
+            "status": "success",
+            "message": "Аккаунт успешно авторизован"
+        }
 
     except PhoneCodeInvalidError:
         return {

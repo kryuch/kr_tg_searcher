@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="009-001-extend-vacancies-for-skillstaff" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_vacancies"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS citizenship   VARCHAR(255);
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS start_date    DATE;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS end_date      DATE;
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS duration_text VARCHAR(500);
+            ALTER TABLE krrg_vacancies ADD COLUMN IF NOT EXISTS rate_open     BOOLEAN NOT NULL DEFAULT FALSE;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS citizenship;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS start_date;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS end_date;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS duration_text;
+                ALTER TABLE krrg_vacancies DROP COLUMN IF EXISTS rate_open;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="009-002-rename-source-to-skillstaff" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_vacancy_sources"/>
+        </preConditions>
+        <sql>
+            UPDATE krrg_vacancy_sources
+            SET code = 'SKILLSTAFF', name = 'Skillstaff', updated_at = now()
+            WHERE code IN ('SKILLSTAF', 'ORDER');
+
+            INSERT INTO krrg_vacancy_sources (code, name, created_at, updated_at)
+            SELECT 'SKILLSTAFF', 'Skillstaff', now(), now()
+                WHERE NOT EXISTS (SELECT 1 FROM krrg_vacancy_sources WHERE code = 'SKILLSTAFF');
+        </sql>
+        <rollback>
+            <sql>
+                UPDATE krrg_vacancy_sources SET code = 'SKILLSTAF', name = 'Skillstaf'
+                WHERE code = 'SKILLSTAFF';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="009-003-allow-null-owner-organisation" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancies"/>
+                <columnExists tableName="krrg_vacancies" columnName="owner_organisation_id"/>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER TABLE krrg_vacancies ALTER COLUMN owner_organisation_id DROP NOT NULL;
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE krrg_vacancies ALTER COLUMN owner_organisation_id SET NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

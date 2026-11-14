@@ -13,8 +13,8 @@ import ru.kryuch.krtg.searcher.entity.ChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderChatEntity;
 import ru.kryuch.krtg.searcher.entity.FolderEntity;
 import ru.kryuch.krtg.searcher.helper.FolderHelper;
-import ru.kryuch.krtg.searcher.integration.tg.dto.CreateFolderRequest;
 import ru.kryuch.krtg.searcher.integration.tg.TelegramPythonClient;
+import ru.kryuch.krtg.searcher.integration.tg.dto.CreateFolderRequest;
 import ru.kryuch.krtg.searcher.mapper.FolderMapper;
 import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.repository.FolderChatRepository;
@@ -184,7 +184,9 @@ public class FolderService {
 
             foldersToSave.add(folderEntity);
         }
+
         log.info("FolderService::buildFoldersToSave (return = {}", foldersToSave);
+
         return foldersToSave;
     }
 
@@ -199,6 +201,7 @@ public class FolderService {
             log.info("createTargetFolder {} for accountId", targetFolderTitle, tgAccountId);
         }
 
+
         Optional <FolderEntity> folderEntity = folderRepository.findTargetFolder(tgAccountId);
         if (folderEntity.isEmpty()) {
             FolderEntity folder = new FolderEntity();
@@ -209,5 +212,6 @@ public class FolderService {
             FolderEntity saved = folderRepository.save(folder);
             log.info("Saved folder: id={}, target={}, tgId={}", saved.getId(), saved.getTarget(), saved.getTgId());
         }
+
     }
 }
