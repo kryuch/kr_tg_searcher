@@ -56,7 +56,7 @@ spring:
       write-dates-as-timestamps: false
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/krrg_new1
+    url: jdbc:postgresql://localhost:5432/krrg
     driver-class-name: org.postgresql.Driver
     username: krrg
     password: H.hbr2123
