@@ -1,13 +1,12 @@
-package ru.kryuch.krtg.searcher.integration.tg.dto;
+package ru.kryuch.krtg.searcher.integration.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import ru.kryuch.krtg.searcher.dto.ChatKey;
+import ru.kryuch.krtg.searcher.dto.TgAccountInfo;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
-import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 
 import java.util.List;
 
@@ -24,11 +23,7 @@ public class SearchRequest {
     PersonalChatType botType;
     PersonalChatType groupType;
     Boolean excludeStatusFlag;
-    SearchLastMessageType lastMessageType;
-
-    @ToString.Exclude
     List<ChatKey> excludeChats;
-
-   Integer messagesCount;
+    Integer messagesCount;
     List <Integer> tgAccounts;
 }

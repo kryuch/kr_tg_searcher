@@ -15,6 +15,7 @@ public interface BaseAccessRepository <T extends BasedAccessEntity, ID> extends 
 
     List<T> findAllByUserId(Integer userId);
 
+
     @Query("SELECT e FROM #{#entityName} e WHERE e.id = :id AND e.userId = :userId")
     Optional<T> findByIdAndUserId(@Param("id") ID id, @Param("userId") Integer userId);
 

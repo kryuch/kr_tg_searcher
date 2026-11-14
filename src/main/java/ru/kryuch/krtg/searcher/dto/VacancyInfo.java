@@ -2,8 +2,7 @@ package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import ru.kryuch.krtg.searcher.type.vacancy.VacancyOwnerType;
-import ru.kryuch.krtg.searcher.type.vacancy.VacancyTgOwnerStatus;
+import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.Optional;
 @Builder
 public class VacancyInfo {
 
-    @Builder.Default
+    // название вакансии
     String title = "";
 
     // полный текст
@@ -32,7 +31,7 @@ public class VacancyInfo {
 
     public String getTg() {
         Optional <VacancyOwnerInfo> vacancyOwnerInfo =
-                owners.stream().filter(item -> VacancyOwnerType.TG.equals(item.getType())).findFirst();
+                owners.stream().filter(item -> item.getType() == 3).findFirst();
         return (vacancyOwnerInfo.isPresent()) ? vacancyOwnerInfo.get().getValue() : null;
     }
 }

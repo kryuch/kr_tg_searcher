@@ -1,8 +1,7 @@
-package ru.kryuch.krtg.searcher.integration.tg.dto;
+package ru.kryuch.krtg.searcher.integration.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
 
 import java.util.List;
 
@@ -10,6 +9,5 @@ import java.util.List;
 @AllArgsConstructor
 public class ChatIdsRequest {
 
-    @ToString.Exclude
-    private List<ru.kryuch.krtg.searcher.integration.dto.ChatIdsRequestItem> chatIds;
+    private List<ChatIdsRequestItem> chatIds;
 }

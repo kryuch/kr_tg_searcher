@@ -45,11 +45,10 @@ public abstract class AbstractAccessService<
     }
 
     public void add(List<DTO> dto) {
-        Integer userId = getCurrentUserId();
         repository.saveAll(
                 mapper.toEntityList(dto).stream()
                         .map(item -> {
-                            item.setUserId(userId);
+                            item.setUserId(getCurrentUserId());
                             return item;
                         })
                         .toList()

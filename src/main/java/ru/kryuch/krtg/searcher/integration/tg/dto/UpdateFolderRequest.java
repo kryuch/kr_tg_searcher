@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.integration.tg.dto;
+package ru.kryuch.krtg.searcher.integration.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

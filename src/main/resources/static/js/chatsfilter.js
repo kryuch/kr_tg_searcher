@@ -125,9 +125,6 @@ function restoreSearchParamsFromCookies() {
     if (params.minDiffDaysCount) jQuery("#minDiffDaysCount").val(params.minDiffDaysCount);
     if (params.lastMessage) jQuery("#lastMessage").val(params.lastMessage);
     if (params.messagesCount) jQuery("#messagesCount").val(params.messagesCount);
-    if (params.lastMessageType !== undefined && params.lastMessageType !== null) {
-        jQuery("#lastMessageType").val(params.lastMessageType);
-    }
 
     if (params.excludeStatusFlag !== undefined) {
         jQuery("#excludeStatusFlag").prop('checked', params.excludeStatusFlag === true || params.excludeStatusFlag === 'true');
@@ -205,7 +202,7 @@ function formSubmit(url, func, button) {
 
     // Скрываем спиннер через некоторое время (форма отправлена, но ответ ещё не пришёл)
     // Спиннер скроется после загрузки страницы
-    setTimeout(function () {
+    setTimeout(function() {
         if (button) {
             hideLoading(button);
         }
@@ -307,7 +304,6 @@ jQuery(document).ready(function () {
             lastMessage: jQuery("#lastMessage").val(),
             groupType: jQuery("#groupType").val(),
             messagesCount: jQuery("#messagesCount").val(),
-            lastMessageType: jQuery("#lastMessageType").val(),
             tgAccountIds: jQuery("#tgAccounts").val()
         };
 
@@ -327,12 +323,8 @@ jQuery(document).ready(function () {
         // AJAX запрос
         jQuery.ajax({
             url: action,
-            type: "POST",
+            type: "GET",
             data: formData,
-            timeout: 0,
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader(csrfHeader, csrfToken);
-            },
             success: function (response) {
                 console.log("📥 Ответ от сервера:", response);
 
@@ -352,7 +344,6 @@ jQuery(document).ready(function () {
 
                 // Скрываем спиннер после успешного ответа
                 hideLoading($btn);
-                loadMissingAvatars();
             },
             error: function (xhr, status, error) {
                 console.error("❌ Ошибка:", error);
@@ -368,7 +359,7 @@ jQuery(document).ready(function () {
 
     // Если страница перезагрузилась после отправки формы,
     // убираем все спиннеры
-    $('button').each(function () {
+    $('button').each(function() {
         var $btn = $(this);
         if ($btn.data('original-text')) {
             hideLoading($btn);

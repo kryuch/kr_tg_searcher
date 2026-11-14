@@ -1,21 +1,23 @@
 package ru.kryuch.krtg.searcher.mapper;
 
 import org.mapstruct.MappingTarget;
-
+import ru.kryuch.krtg.searcher.dto.IgnoreInfo;
+import ru.kryuch.krtg.searcher.dto.Setting;
+import ru.kryuch.krtg.searcher.entity.IgnoreEntity;
+import ru.kryuch.krtg.searcher.entity.SettingEntity;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface TMapper<TEntity, TDto> {
 
-    List<TDto> fromEntityList(Collection<TEntity> entities);
+    List<TDto> fromEntityList(Collection<TEntity> entity);
 
-    List<TEntity> toEntityList(Collection<TDto> dtos);
+    List<TEntity> toEntityList(Collection<TDto> entity);
 
     TDto fromEntity(TEntity entity);
  
-    TEntity toEntity(TDto dto);
+    TEntity toEntity(TDto info);
 
-    TEntity mergeToEntity(TDto dto, @MappingTarget TEntity entity);
-
+    TEntity mergeToEntity(TDto model, @MappingTarget TEntity entity);
 }

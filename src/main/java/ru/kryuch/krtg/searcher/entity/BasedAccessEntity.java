@@ -4,15 +4,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
+@Data
 @MappedSuperclass
-public class BasedAccessEntity extends TimestampedEntity {
+public class BasedAccessEntity {
 
-    @Column(name = "user_id", nullable = false)
-    private Integer userId;
-
+    @Column(name = "user_id")
+    protected Integer userId;
 }

@@ -1,6 +1,7 @@
 package ru.kryuch.krtg.searcher.repository;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import ru.kryuch.krtg.searcher.entity.IgnoreEntity;
 
