@@ -2,7 +2,6 @@ package ru.kryuch.krtg.searcher.service;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,9 +26,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .username(user.getLogin())
                 .password(user.getPassword())
                 .enabled(user.getActive())
-                .authorities(java.util.Collections.singletonList(
-                            new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")
-                ))
                 .build();
     }
 }
