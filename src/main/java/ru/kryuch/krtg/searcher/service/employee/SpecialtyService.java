@@ -6,7 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.entity.employee.SpecialtyEntity;
+import ru.kryuch.krtg.searcher.dto.employee.SpecialtyDto;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.SpecialtyRepository;
 
 @Service
@@ -16,20 +17,24 @@ public class SpecialtyService {
 
     private final SpecialtyRepository specialtyRepository;
 
-    public List<SpecialtyEntity> findAll() {
-        return specialtyRepository.findAll();
+    private final EmployeeMapper employeeMapper;
+
+    public List<SpecialtyDto> findAll() {
+        return specialtyRepository.findAll()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public SpecialtyEntity findById(Long id) {
-        return specialtyRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Specialty not found: " + id
-            ));
+    public SpecialtyDto findById(Long id) {
+        return employeeMapper.toDto(specialtyRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Specialty not found: " + id))
+        );
     }
 
     @Transactional
-    public SpecialtyEntity save(SpecialtyEntity entity) {
-        return specialtyRepository.save(entity);
+    public SpecialtyDto save(SpecialtyDto dto) {
+        return employeeMapper.toDto(specialtyRepository.save(
+            employeeMapper.toEntity(dto)
+        ));
     }
 
     @Transactional

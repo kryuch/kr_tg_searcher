@@ -6,30 +6,33 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.entity.employee.UniversityEntity;
+import ru.kryuch.krtg.searcher.dto.employee.UniversityDto;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.UniversityRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UniversityService {
-
     private final UniversityRepository universityRepository;
+    private final EmployeeMapper employeeMapper;
 
-    public List<UniversityEntity> findAll() {
-        return universityRepository.findAll();
+    public List<UniversityDto> findAll() {
+        return universityRepository.findAll()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public UniversityEntity findById(Long id) {
-        return universityRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "University not found: " + id
-            ));
+    public UniversityDto findById(Long id) {
+        return employeeMapper.toDto(universityRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("University not found: " + id))
+        );
     }
 
     @Transactional
-    public UniversityEntity save(UniversityEntity entity) {
-        return universityRepository.save(entity);
+    public UniversityDto save(UniversityDto dto) {
+        return employeeMapper.toDto(universityRepository.save(
+            employeeMapper.toEntity(dto)
+        ));
     }
 
     @Transactional

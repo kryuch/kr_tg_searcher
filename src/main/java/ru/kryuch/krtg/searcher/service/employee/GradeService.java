@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import ru.kryuch.krtg.searcher.dto.employee.GradeDto;
 import ru.kryuch.krtg.searcher.entity.employee.GradeEntity;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.GradeRepository;
 
 @Service
@@ -16,20 +18,25 @@ public class GradeService {
 
     private final GradeRepository gradeRepository;
 
-    public List<GradeEntity> findAll() {
-        return gradeRepository.findAll();
+    private final EmployeeMapper employeeMapper;
+
+    public List<GradeDto> findAll() {
+        return gradeRepository.findAll()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public GradeEntity findById(Long id) {
-        return gradeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Grade not found: " + id
-            ));
+    public GradeDto findById(Long id) {
+        return employeeMapper.toDto(
+            gradeRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Grade not found: " + id))
+        );
     }
 
     @Transactional
-    public GradeEntity save(GradeEntity entity) {
-        return gradeRepository.save(entity);
+    public GradeDto save(GradeDto entity) {
+        return employeeMapper.toDto(gradeRepository.save(
+            employeeMapper.toEntity(entity)
+        ));
     }
 
     @Transactional

@@ -1,35 +1,41 @@
 package ru.kryuch.krtg.searcher.service.employee;
 
+import static org.junit.jupiter.api.DynamicTest.stream;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.entity.employee.EducationTypeEntity;
+import ru.kryuch.krtg.searcher.dto.employee.EducationTypeDto;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.EducationTypeRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EducationTypeService {
-
     private final EducationTypeRepository educationTypeRepository;
+    private final EmployeeMapper employeeMapper;
 
-    public List<EducationTypeEntity> findAll() {
-        return educationTypeRepository.findAll();
+    public List<EducationTypeDto> findAll() {
+        return educationTypeRepository.findAll()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public EducationTypeEntity findById(Long id) {
-        return educationTypeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Education type not found: " + id
-            ));
+    public EducationTypeDto findById(Long id) {
+        return employeeMapper.toDto(educationTypeRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Education type not found: " + id))
+        );
     }
 
     @Transactional
-    public EducationTypeEntity save(EducationTypeEntity entity) {
-        return educationTypeRepository.save(entity);
+    public EducationTypeDto save(EducationTypeDto dto) {
+        return employeeMapper.toDto(educationTypeRepository.save(
+            employeeMapper.toEntity(dto)
+        ));
     }
 
     @Transactional

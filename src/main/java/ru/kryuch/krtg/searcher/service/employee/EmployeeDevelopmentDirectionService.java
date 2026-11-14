@@ -6,30 +6,37 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.entity.employee.DevelopmentDirectionEntity;
+import ru.kryuch.krtg.searcher.dto.employee.DevelopmentDirectionDto;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.DevelopmentDirectionRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EmployeeDevelopmentDirectionService {
-
     private final DevelopmentDirectionRepository developmentDirectionRepository;
+    private final EmployeeMapper employeeMapper;
 
-    public List<DevelopmentDirectionEntity> findAll() {
-        return developmentDirectionRepository.findAll();
+    public List<DevelopmentDirectionDto> findAll() {
+        return developmentDirectionRepository.findAll()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public DevelopmentDirectionEntity findById(Long id) {
-        return developmentDirectionRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Development direction not found: " + id
-            ));
+    public DevelopmentDirectionDto findById(Long id) {
+        return employeeMapper.toDto(
+            developmentDirectionRepository
+                .findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Development direction not found: " + id))
+        );
     }
 
     @Transactional
-    public DevelopmentDirectionEntity save(DevelopmentDirectionEntity entity) {
-        return developmentDirectionRepository.save(entity);
+    public DevelopmentDirectionDto save(DevelopmentDirectionDto developmentDirectionDto) {
+        return employeeMapper.toDto(
+            developmentDirectionRepository.save(
+                employeeMapper.toEntity(developmentDirectionDto)
+            )
+        );
     }
 
     @Transactional

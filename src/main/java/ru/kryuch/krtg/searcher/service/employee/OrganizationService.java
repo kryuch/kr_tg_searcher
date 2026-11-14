@@ -6,30 +6,33 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.entity.employee.OrganizationEntity;
+import ru.kryuch.krtg.searcher.dto.employee.OrganizationDto;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.OrganizationRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrganizationService {
-
     private final OrganizationRepository organizationRepository;
+    private final EmployeeMapper employeeMapper;
 
-    public List<OrganizationEntity> findAll() {
-        return organizationRepository.findAll();
+    public List<OrganizationDto> findAll() {
+        return organizationRepository.findAll()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public OrganizationEntity findById(Long id) {
-        return organizationRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Organization not found: " + id
-            ));
+    public OrganizationDto findById(Long id) {
+        return employeeMapper.toDto(organizationRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + id))
+        );
     }
 
     @Transactional
-    public OrganizationEntity save(OrganizationEntity entity) {
-        return organizationRepository.save(entity);
+    public OrganizationDto save(OrganizationDto dto) {
+        return employeeMapper.toDto(organizationRepository.save(
+            employeeMapper.toEntity(dto)
+        ));
     }
 
     @Transactional

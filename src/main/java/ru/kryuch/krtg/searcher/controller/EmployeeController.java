@@ -17,14 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import ru.kryuch.krtg.searcher.dto.BreadCrumb;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeDto;
-import ru.kryuch.krtg.searcher.entity.employee.DevelopmentDirectionEntity;
-import ru.kryuch.krtg.searcher.entity.employee.EducationTypeEntity;
-import ru.kryuch.krtg.searcher.entity.employee.EmployeeEntity;
-import ru.kryuch.krtg.searcher.entity.employee.GradeEntity;
-import ru.kryuch.krtg.searcher.entity.employee.OrganizationEntity;
-import ru.kryuch.krtg.searcher.entity.employee.SkillEntity;
-import ru.kryuch.krtg.searcher.entity.employee.SpecialtyEntity;
-import ru.kryuch.krtg.searcher.entity.employee.UniversityEntity;
+import ru.kryuch.krtg.searcher.dto.employee.GradeDto;
+import ru.kryuch.krtg.searcher.dto.employee.OrganizationDto;
+import ru.kryuch.krtg.searcher.dto.employee.SkillDto;
+import ru.kryuch.krtg.searcher.dto.employee.SpecialtyDto;
+import ru.kryuch.krtg.searcher.dto.employee.UniversityDto;
+import ru.kryuch.krtg.searcher.dto.employee.DevelopmentDirectionDto;
+import ru.kryuch.krtg.searcher.dto.employee.EducationTypeDto;
 import ru.kryuch.krtg.searcher.service.MainMenuService;
 
 import ru.kryuch.krtg.searcher.service.employee.*;
@@ -32,7 +31,7 @@ import ru.kryuch.krtg.searcher.service.employee.*;
 @Controller
 @RequestMapping("/employees")
 @RequiredArgsConstructor
-public class EmployeesController {
+public class EmployeeController {
     private final EmployeeService employeeService;
     private final EmployeeProfileService employeeProfileService;
     private final GradeService gradeService;
@@ -42,7 +41,6 @@ public class EmployeesController {
     private final SpecialtyService specialtyService;
     private final EducationTypeService educationTypeService;
     private final EmployeeDevelopmentDirectionService developmentDirectionService;
-
     private final HttpServletRequest httpServletRequest;
     private final MainMenuService mainMenuService;
 
@@ -78,16 +76,7 @@ public class EmployeesController {
 
     @PostMapping("/add/")
     public String postEmployeeAddPage(@ModelAttribute EmployeeDto employeeDto) {
-        EmployeeEntity employeeEntity = new EmployeeEntity();
-
-        employeeEntity.setLastName(employeeDto.getLastName());
-        employeeEntity.setFirstName(employeeDto.getFirstName());
-        employeeEntity.setMiddleName(employeeDto.getMiddleName());
-        employeeEntity.setGender(employeeDto.getGender());
-        employeeEntity.setBirthDate(employeeDto.getBirthDate());
-        employeeEntity.setCitizenship("");
-
-        employeeService.save(employeeEntity);
+        employeeService.save(employeeDto);
 
         return "redirect:/employees/";
     }
@@ -101,20 +90,10 @@ public class EmployeesController {
 
     @GetMapping("/{id}/")
     public String getEmployeeEditPage(@PathVariable("id") Long id, Model model) {
-        EmployeeEntity entity = employeeService.findById(id);
-
-        EmployeeDto form = new EmployeeDto();
-        form.setLastName(entity.getLastName());
-        form.setFirstName(entity.getFirstName());
-        form.setMiddleName(entity.getMiddleName());
-        form.setBirthDate(entity.getBirthDate());
-        form.setGender(entity.getGender());
-        System.out.println("Gender: " + form.getGender());
-
         model.addAttribute("title", "Редактировать сотрудника");
         model.addAttribute("pageTemplate", "employee-edit");
         model.addAttribute("id", id);
-        model.addAttribute("form", form);
+        model.addAttribute("form", employeeService.findById(id));
         model.addAttribute("breadcrumbs", List.of(
             new BreadCrumb("Сотрудники", "/employees/"),
             new BreadCrumb("Редактировать сотрудника", "#")
@@ -125,15 +104,7 @@ public class EmployeesController {
 
     @PostMapping("/{id}/")
     public String postEmployeeEditPage(@ModelAttribute EmployeeDto form, @PathVariable("id") Long id) {
-        EmployeeEntity entity = employeeService.findById(id);
-
-        entity.setLastName(form.getLastName());
-        entity.setFirstName(form.getFirstName());
-        entity.setMiddleName(form.getMiddleName());
-        entity.setGender(form.getGender());
-        entity.setBirthDate(form.getBirthDate());
-
-        employeeService.save(entity);
+        employeeService.save(form);
         
         return "redirect:/employees/";
     }
@@ -187,7 +158,7 @@ public class EmployeesController {
 
     @PatchMapping("/directions/{id}")
     public String patchDevelopmentDirection(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        DevelopmentDirectionEntity entity = developmentDirectionService.findById(id);
+        DevelopmentDirectionDto entity = developmentDirectionService.findById(id);
         entity.setName(newName);
         developmentDirectionService.save(entity);
 
@@ -209,7 +180,7 @@ public class EmployeesController {
 
     @PostMapping("/directions/add")
     public String postDevelopmentDirectionAddPage(@RequestParam("name") String name, Model model) {
-        DevelopmentDirectionEntity entity = new DevelopmentDirectionEntity(name);
+        DevelopmentDirectionDto entity = new DevelopmentDirectionDto(name);
         developmentDirectionService.save(entity);
 
         return "redirect:/employees/directions/";
@@ -245,8 +216,7 @@ public class EmployeesController {
 
     @PostMapping("/grades/add/")
     public String postGradesAddPage(@RequestParam("name") String name, Model model) {
-        GradeEntity entity = new GradeEntity(name);
-        gradeService.save(entity);
+        gradeService.save(new GradeDto(name));
 
         return "redirect:/employees/grades/";
     }
@@ -267,9 +237,9 @@ public class EmployeesController {
 
     @PatchMapping("/grades/{id}/")
     public String patchGradesEditPage(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        GradeEntity entity = gradeService.findById(id);
-        entity.setName(newName);
-        gradeService.save(entity);
+        GradeDto dto = gradeService.findById(id);
+        dto.setName(newName);
+        gradeService.save(dto);
 
         return "redirect:/employees/grades/";
     }
@@ -311,8 +281,7 @@ public class EmployeesController {
 
     @PostMapping("/skills/add/")
     public String postSkillsAddPage(@RequestParam("name") String name, Model model) {
-        SkillEntity entity = new SkillEntity(name);
-        skillService.save(entity);
+        skillService.save(new SkillDto(name));
 
         return "redirect:/employees/skills/";
     }
@@ -333,9 +302,7 @@ public class EmployeesController {
 
     @PatchMapping("/skills/{id}/")
     public String patchSkillsEditPage(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        SkillEntity entity = skillService.findById(id);
-        entity.setName(newName);
-        skillService.save(entity);
+        skillService.save(new SkillDto(id, newName));
 
         return "redirect:/employees/skills/";
     }
@@ -377,8 +344,7 @@ public class EmployeesController {
 
     @PostMapping("/organizations/add/")
     public String postOrganizationsAddPage(@RequestParam("name") String name, Model model) {
-        OrganizationEntity entity = new OrganizationEntity(name);
-        organizationService.save(entity);
+        organizationService.save(new OrganizationDto(name));
 
         return "redirect:/employees/organizations/";
     }
@@ -399,9 +365,7 @@ public class EmployeesController {
 
     @PatchMapping("/organizations/{id}/")
     public String patchOrganizationsEditPage(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        OrganizationEntity entity = organizationService.findById(id);
-        entity.setName(newName);
-        organizationService.save(entity);
+        organizationService.save(new OrganizationDto(id, newName));
 
         return "redirect:/employees/organizations/";
     }
@@ -443,8 +407,7 @@ public class EmployeesController {
 
     @PostMapping("/universities/add/")
     public String postUniversitiesAddPage(@RequestParam("name") String name, Model model) {
-        UniversityEntity entity = new UniversityEntity(name);
-        universityService.save(entity);
+        universityService.save(new UniversityDto(name));
 
         return "redirect:/employees/universities/";
     }
@@ -465,9 +428,7 @@ public class EmployeesController {
 
     @PatchMapping("/universities/{id}/")
     public String patchUniversitiesEditPage(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        UniversityEntity entity = universityService.findById(id);
-        entity.setName(newName);
-        universityService.save(entity);
+        universityService.save(new UniversityDto(id, newName));
 
         return "redirect:/employees/universities/";
     }
@@ -509,8 +470,7 @@ public class EmployeesController {
 
     @PostMapping("/specialties/add/")
     public String postSpecialtiesAddPage(@RequestParam("name") String name, Model model) {
-        SpecialtyEntity entity = new SpecialtyEntity(name);
-        specialtyService.save(entity);
+        specialtyService.save(new SpecialtyDto(name));
 
         return "redirect:/employees/specialties/";
     }
@@ -531,9 +491,7 @@ public class EmployeesController {
 
     @PatchMapping("/specialties/{id}/")
     public String patchSpecialtiesEditPage(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        SpecialtyEntity entity = specialtyService.findById(id);
-        entity.setName(newName);
-        specialtyService.save(entity);
+        specialtyService.save(new SpecialtyDto(id, newName));
 
         return "redirect:/employees/specialties/";
     }
@@ -575,8 +533,7 @@ public class EmployeesController {
 
     @PostMapping("/educationtypes/add/")
     public String postEducationTypeAddPage(@RequestParam("name") String name, Model model) {
-        EducationTypeEntity entity = new EducationTypeEntity(name);
-        educationTypeService.save(entity);
+        educationTypeService.save(new EducationTypeDto(name));
 
         return "redirect:/employees/educationtypes/";
     }
@@ -597,9 +554,7 @@ public class EmployeesController {
 
     @PatchMapping("/educationtypes/{id}/")
     public String patchEducationTypeEditPage(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        EducationTypeEntity entity = educationTypeService.findById(id);
-        entity.setName(newName);
-        educationTypeService.save(entity);
+        educationTypeService.save(new EducationTypeDto(id, newName));
 
         return "redirect:/employees/educationtypes/";
     }

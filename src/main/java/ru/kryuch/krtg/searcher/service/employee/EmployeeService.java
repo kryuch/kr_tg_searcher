@@ -6,7 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.entity.employee.EmployeeEntity;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeDto;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.EmployeeRepository;
 
 @Service
@@ -15,21 +16,25 @@ import ru.kryuch.krtg.searcher.repository.employee.EmployeeRepository;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final EmployeeMapper employeeMapper;
 
-    public List<EmployeeEntity> findAll() {
-        return employeeRepository.findAllByOrderByIdAsc();
+    public List<EmployeeDto> findAll() {
+        return employeeRepository.findAllByOrderByIdAsc()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public EmployeeEntity findById(Long id) {
-        return employeeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Employee not found: " + id
-            ));
+    public EmployeeDto findById(Long id) {
+        return employeeMapper.toDto(
+            employeeRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Employee not found: " + id))
+        );
     }
 
     @Transactional
-    public EmployeeEntity save(EmployeeEntity entity) {
-        return employeeRepository.save(entity);
+    public EmployeeDto save(EmployeeDto dto) {
+        return employeeMapper.toDto(employeeRepository.save(
+            employeeMapper.toEntity(dto)
+        ));
     }
 
     @Transactional

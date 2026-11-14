@@ -6,30 +6,33 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.entity.employee.SkillEntity;
+import ru.kryuch.krtg.searcher.dto.employee.SkillDto;
+import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.SkillRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class SkillService {
-
     private final SkillRepository skillRepository;
+    private final EmployeeMapper employeeMapper;
 
-    public List<SkillEntity> findAll() {
-        return skillRepository.findAll();
+    public List<SkillDto> findAll() {
+        return skillRepository.findAll()
+            .stream().map(e -> employeeMapper.toDto(e)).toList();
     }
 
-    public SkillEntity findById(Long id) {
-        return skillRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Skill not found: " + id
-            ));
+    public SkillDto findById(Long id) {
+        return employeeMapper.toDto(skillRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Skill not found: " + id))
+        );
     }
 
     @Transactional
-    public SkillEntity save(SkillEntity entity) {
-        return skillRepository.save(entity);
+    public SkillDto save(SkillDto dto) {
+        return employeeMapper.toDto(skillRepository.save(
+            employeeMapper.toEntity(dto))
+        );
     }
 
     @Transactional
