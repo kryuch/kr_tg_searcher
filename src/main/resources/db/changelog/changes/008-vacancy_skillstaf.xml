@@ -296,15 +296,14 @@
     <!-- 11. Разрешение конфликта: если существуют обе таблицы owner_organisation(s) -->
     <!-- 11a. Если в новой таблице пусто, а в старой есть данные — удаляем новую -->
     <changeSet id="008-011a-drop-empty-new-table" author="Oleg V. Kryuchin">
-        <preConditions onFail="MARK_RAN">
-            <and>
-                <tableExists tableName="krrg_vacancy_owner_organisation"/>
-                <tableExists tableName="krrg_vacancy_owner_organisations"/>
-                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM krrg_vacancy_owner_organisations</sqlCheck>
-                <sqlCheck expectedResult="1">SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END FROM krrg_vacancy_owner_organisation</sqlCheck>
-            </and>
-        </preConditions>
-        <sql>DROP TABLE krrg_vacancy_owner_organisations;</sql>
+        <sql>
+            ALTER TABLE krrg_vacancies
+            DROP CONSTRAINT IF EXISTS fkc5x9p7vqn6slff89sh6xfbwun;
+        </sql>
+
+        <dropTable
+            tableName="krrg_vacancy_owner_organisations"
+            cascadeConstraints="true"/>
     </changeSet>
 
     <!-- 11b. Если старая таблица осталась (а новой нет) — переименовываем её -->

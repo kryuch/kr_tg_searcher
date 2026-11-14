@@ -1,0 +1,39 @@
+<main th:fragment="main" class="row">
+    <h1 th:text="${title}"></h1>
+    <div class="col col-4 p-4">
+        <form th:action="@{/employees/{id}/(id=${id})}"
+              th:object="${form}"
+              th:method="POST">
+
+            <div class="mb-3">
+                <label class="form-label" for="lastName">Фамилия:</label>
+                <input th:field="*{lastName}" id="lastName" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="firstName">Имя:</label>
+                <input th:field="*{firstName}" id="firstName" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="middleName">Отчество:</label>
+                <input th:field="*{middleName}" id="middleName" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="gender">Пол:</label>
+                <select th:field="*{gender}" id="gender" class="form-control">
+                    <option value="MALE">Мужской</option>
+                    <option value="FEMALE">Женский</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="birthDate">Дата рождения:</label>
+                <input th:field="*{birthDate}" id="birthDate" type="date" class="form-control">
+            </div>
+
+            <button class="mt-3 btn-solid theme-primary" type="submit">Добавить</button>
+        </form>
+    </div>
+</main>

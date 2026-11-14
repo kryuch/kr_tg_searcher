@@ -51,3 +51,4 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+

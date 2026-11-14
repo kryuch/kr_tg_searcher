@@ -102,13 +102,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- RBAC Contract -->
-        <dependency>
-            <groupId>ru.cosysoft.kiberpride</groupId>
-            <artifactId>rbac-contract</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
         <!-- Spring AI -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
@@ -141,10 +134,14 @@
             <artifactId>google-http-client-jackson2</artifactId>
             <version>1.45.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.0</version>
         </dependency>
 
         <!-- ==================== Тестовые зависимости ==================== -->

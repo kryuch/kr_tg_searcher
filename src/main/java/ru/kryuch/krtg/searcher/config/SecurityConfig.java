@@ -14,8 +14,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -44,7 +42,6 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-
         http
             .securityMatcher("/api/**")
             .authorizeHttpRequests(auth -> auth
@@ -83,8 +80,8 @@ public class SecurityConfig {
                  )
  */
             .formLogin(form -> form
-                .loginPage("/login/")
-                .loginProcessingUrl("/login/")
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
                 .defaultSuccessUrl("/chat/", true)
                 .successHandler(authenticationSuccessHandler)
                 .failureUrl("/login?error")
@@ -114,29 +111,14 @@ public class SecurityConfig {
         return http.build();
     }
 
-  /*  @Bean
-    public OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
-        DefaultOAuth2AuthorizationRequestResolver resolver =
-                new DefaultOAuth2AuthorizationRequestResolver(
-                        clientRegistrationRepository,
-                        "/oauth2/authorization"
-                );
-
-        resolver.setAuthorizationRequestCustomizer(builder ->
-                builder.additionalParameters(params -> {
-                    params.put("access_type", "offline");
-                    params.put("prompt", "consent");
-                })
-        );
-
-        return resolver;
-    }*/
-
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
+        // System.out.println("PASSWORD FOR FIRST USER: " + (new BCryptPasswordEncoder()).encode("password"));
+        return new BCryptPasswordEncoder();
     }
 
+    // Spring Security 6 автоматически заберет этот бин провайдера 
+    // и свяжет его с формой авторизации и AuthenticationManager
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -145,8 +127,9 @@ public class SecurityConfig {
         return provider;
     }
 
+    // Безопасное получение AuthenticationManager без создания циклов зависимостей
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
