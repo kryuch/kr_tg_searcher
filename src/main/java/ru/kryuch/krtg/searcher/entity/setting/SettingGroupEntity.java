@@ -41,4 +41,7 @@ public class SettingGroupEntity extends TimestampedEntity {
 
     @Column(name = "is_active", nullable = false)
     private Boolean active;
+
+    @Column(name = "is_admin")
+    private Boolean isAdmin;
 }

@@ -1,1 +1,56 @@
-package ru.kryuch.krtg.searcher.controller;import lombok.RequiredArgsConstructor;import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;import org.springframework.stereotype.Controller;import org.springframework.ui.Model;import org.springframework.util.CollectionUtils;import org.springframework.web.bind.annotation.GetMapping;import org.springframework.web.bind.annotation.ModelAttribute;import org.springframework.web.bind.annotation.PostMapping;import org.springframework.web.bind.annotation.RequestMapping;import org.springframework.web.servlet.mvc.support.RedirectAttributes;import ru.kryuch.krtg.searcher.dto.SettingDto;import ru.kryuch.krtg.searcher.dto.setting.SettingsCollection;import ru.kryuch.krtg.searcher.service.MailGatewayService;import ru.kryuch.krtg.searcher.service.SettingService;import java.util.List;import java.util.stream.Collectors;@Controller@RequiredArgsConstructor@RequestMapping("/settings")public class SettingsController extends BaseController{    private final SettingService settingService;    private final MailGatewayService mailGatewayService;    @GetMapping("/")    public String index(Model model) {        model.addAttribute("items", settingService.getAll());        model.addAttribute("groups", settingService.getGroups());        return renderer("settings", model);    }    @PostMapping(value = "/save")    public String save(@ModelAttribute SettingsCollection values, RedirectAttributes redirectAttributes) {        List<SettingDto> settings = settingService.save(values);        if (!CollectionUtils.isEmpty(settings)) {            String successMessage =                    settings.stream()                            .map(item -> "[" + item.getGroupTitle() + ":" + item.getTitle() + "]")                            .collect(Collectors.joining(", "));            redirectAttributes.addFlashAttribute("successMessage", "Изменены свойства: " + successMessage);        }        return "redirect:/settings/";    }    @GetMapping("/gmail/connected")    public String connected(OAuth2AuthenticationToken auth) {        boolean b = mailGatewayService.connected(auth);        return "redirect:/settings/";    }}
+package ru.kryuch.krtg.searcher.controller;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ru.kryuch.krtg.searcher.dto.SettingDto;
+import ru.kryuch.krtg.searcher.dto.setting.SettingsCollection;
+import ru.kryuch.krtg.searcher.service.MailGatewayService;
+import ru.kryuch.krtg.searcher.service.SettingService;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.print.attribute.standard.PrinterName;
+
+@Controller
+@RequiredArgsConstructor
+@RequestMapping("/settings")
+public class SettingsController extends BaseController{
+    private final SettingService settingService;
+    private final MailGatewayService mailGatewayService;
+
+    @GetMapping("/")
+    public String index(Model model) {
+        model.addAttribute("items", settingService.getAll());
+        model.addAttribute("groups", settingService.getGroups());
+        return renderer("settings", model);
+    }
+
+    @PostMapping(value = "/save")
+    public String save(@ModelAttribute SettingsCollection values, RedirectAttributes redirectAttributes) {
+        List<SettingDto> settings = settingService.save(values);
+
+        if (!CollectionUtils.isEmpty(settings)) {
+            String successMessage =
+                    settings.stream()
+                            .map(item -> "[" + item.getGroupTitle() + ":" + item.getTitle() + "]")
+                            .collect(Collectors.joining(", "));
+
+            redirectAttributes.addFlashAttribute("successMessage", "Изменены свойства: " + successMessage);
+        }
+        return "redirect:/settings/";
+    }
+
+    @GetMapping("/gmail/connected")
+    public String connected(OAuth2AuthenticationToken auth) {
+        boolean b = mailGatewayService.connected(auth);
+        return "redirect:/settings/";
+    }
+}

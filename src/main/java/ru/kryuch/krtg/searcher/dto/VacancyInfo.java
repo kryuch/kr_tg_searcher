@@ -2,8 +2,8 @@ package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import ru.kryuch.krtg.searcher.type.VacancyOwnerType;
-import ru.kryuch.krtg.searcher.type.VacancyTgOwnerStatus;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancyOwnerType;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancyTgOwnerStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.Optional;
 @Builder
 public class VacancyInfo {
 
-    // название вакансии
+    @Builder.Default
     String title = "";
 
     // полный текст

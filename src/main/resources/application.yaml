@@ -10,8 +10,15 @@ server:
   port: 8080
 
 spring:
+  task:
+    scheduling:
+      pool:
+        size: 4
   application:
     name: krrg
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   servlet:
     multipart:
       max-file-size: 20MB
@@ -52,27 +59,31 @@ spring:
       write-dates-as-timestamps: false
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/krrg
+    url: jdbc:postgresql://localhost:5434/krrg
     driver-class-name: org.postgresql.Driver
     username: krrg
     password: H.hbr2123
 
   jpa:
+    open-in-view: false
     defer-datasource-initialization: false
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
     properties:
       hibernate:
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
         format_sql: true
         jdbc:
           lob:
-            non_contextual_creation: true
+            non_contextual_creation: false
 
   sql:
     init:
       mode: never  # Отключаем, чтобы не мешал Liquibase
-
   ai:
     openai:
       api-key: dummy-key  # Временно, чтобы не падало при старте
@@ -82,3 +93,8 @@ spring:
 app:
   file-storage:
     path: /var/lib/krrg/files
+
+skillstaff:
+  import:
+    enabled: true
+    delay-ms: 60000
