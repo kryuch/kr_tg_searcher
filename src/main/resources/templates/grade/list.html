@@ -1,0 +1,26 @@
+<div class="icontent">
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="id" class="table-id"> Идентификатор</th>
+            <th id="code" class="table-alias"> Код</th>
+            <th id="name" class="table-name"> Название</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${items.empty}">
+            <td colspan="3"> Тут пусто</td>
+        </tr>
+
+        <th:block th:each="gradeItem, iStat : ${items}">
+            <tr>
+                <td><span th:text="${gradeItem.id}"> Id </span></td>
+                <td><span th:text="${gradeItem.code}"> Код </span></td>
+                <td><span th:text="${gradeItem.name}"> Название </span></td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+</div>

@@ -111,7 +111,7 @@ public class VacancyService {
 
     @Transactional
     public Long add(VacancySkillstaffRequestDto dto) {
-        log.info("VacancyService::add (VacancySkillstaffRequestDto = {})", dto);
+        log.info("VacancyService::add (VacancySkillstaffRequestDto = {})", dto.toLogString());
         VacancyEntity vacancy = vacancySkillstafRequestMapper.toEntity(dto);
 
         if (vacancyRepository.existsByExternalIdAndSourceCode(vacancy.getExternalId(), VacancySource.SKILLSTAFF.getCode())) {
@@ -128,7 +128,7 @@ public class VacancyService {
     public boolean enrich(VacancySkillstaffEnrichRequestDto dto, Long id) {
         Optional <VacancyEntity> vacancy = vacancyRepository.findById(id);
         if (vacancy.isEmpty()) {
-            log.error("VacancyService::enrich (skillstaf). No vacancy with id = {} ({})", id, dto);
+            log.error("VacancyService::enrich (skillstaf). No vacancy with id = {} ({})", id, dto.toLogString());
             return false;
         }
 

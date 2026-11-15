@@ -7,8 +7,9 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyDetailsDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyListItemDto;
+import ru.kryuch.krtg.searcher.entity.GradeEntity;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
+import ru.kryuch.krtg.searcher.type.vacancy.VacancyStatus;
 
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +23,7 @@ public interface VacancyViewMapper {
     @Mapping(target = "category", source = "category.name")
     @Mapping(target = "externalId", source = "externalId", qualifiedByName = "buildShortId")
     @Mapping(target = "grades", source = "grades", qualifiedByName = "gradeNames")
+    @Mapping(target = "status", source = "status", qualifiedByName = "statusName")
     VacancyListItemDto toListItem(VacancyEntity entity);
 
     @InheritConfiguration(name = "toListItem")
@@ -32,14 +34,19 @@ public interface VacancyViewMapper {
         return (id.length() < 6) ? id : id.substring(0, 2)+"..."+id.substring(id.length()-2, id.length()-1);
     }
 
+    @Named("statusName")
+    default String statusName(VacancyStatus status) {
+        return status == null ? null : status.name();
+    }
+
     @Named("gradeNames")
-    default List<String> gradeNames(Set<VacancyGradeEntity> grades) {
+    default List<String> gradeNames(Set<GradeEntity> grades) {
         if (grades == null) {
             return List.of();
         }
         return grades.stream()
-            .sorted(Comparator.comparing(VacancyGradeEntity::getSortOrder))
-            .map(VacancyGradeEntity::getName)
+            .sorted(Comparator.comparing(GradeEntity::getSortOrder))
+            .map(GradeEntity::getName)
             .toList();
     }
 }

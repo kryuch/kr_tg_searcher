@@ -20,7 +20,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancyStatus;
@@ -89,7 +88,7 @@ public class VacancyEntity extends TimestampedEntity {
             columnNames = {"vacancy_id", "grade_id"}
         )
     )
-    private Set<VacancyGradeEntity> grades = new HashSet<>();
+    private Set<GradeEntity> grades = new HashSet<>();
 
     @Column(name = "rate_resident", precision = 12, scale = 2)
     private BigDecimal rateResident;
