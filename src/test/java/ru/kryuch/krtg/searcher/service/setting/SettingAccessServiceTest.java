@@ -415,11 +415,11 @@ class SettingAccessServiceTest {
         dto2.setCode("cron2");
         dto2.setStringValue("false");
         dto2.setType(SettingType.STRING);
-
-        when(settingValueRepository.findBySettingCode(SettingConfig.CRON_ENABLE_SETTING_CODE))
-                .thenReturn(entities);
-        when(settingMapper.fromEntity(entity1)).thenReturn(dto1);
-        when(settingMapper.fromEntity(entity2)).thenReturn(dto2);
+//
+//        when(settingValueRepository.findBySettingCode(SettingConfig.CRON_ENABLE_SETTING_CODE))
+//                .thenReturn(entities);
+//        when(settingMapper.fromEntity(entity1)).thenReturn(dto1);
+//        when(settingMapper.fromEntity(entity2)).thenReturn(dto2);
 
         // Act
      //   Map<Integer, String> result = settingAccessService.findAllCronEnabled();

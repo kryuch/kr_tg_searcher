@@ -1,6 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export.view;
-
-import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
+package ru.kryuch.krtg.searcher.dto.resume;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

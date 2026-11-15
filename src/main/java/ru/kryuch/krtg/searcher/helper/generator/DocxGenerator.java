@@ -1,36 +1,29 @@
-package ru.kryuch.krtg.searcher.util.generator;
+package ru.kryuch.krtg.searcher.helper.generator;
 
-import lombok.RequiredArgsConstructor;
 import org.docx4j.convert.in.xhtml.XHTMLImporterImpl;
 import org.docx4j.model.structure.PageSizePaper;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.springframework.stereotype.Component;
-import ru.kryuch.krtg.searcher.exception.ResumeGenerationException;
-import ru.kryuch.krtg.searcher.resume_export.html.ResumeHtmlRenderer;
-import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
+import ru.kryuch.krtg.searcher.exception.DocumentGenerationException;
+import ru.kryuch.krtg.searcher.util.generator.RenderedHtml;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 @Component("docx")
-@RequiredArgsConstructor
 public class DocxGenerator implements DocumentGenerator {
 
-    private final ResumeHtmlRenderer htmlRenderer;
-
     @Override
-    public byte[] generate(ResumeDto resume) {
-        String xhtml = htmlRenderer.render(resume);
-
+    public byte[] generate(RenderedHtml renderedHtml) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             WordprocessingMLPackage document = WordprocessingMLPackage.createPackage(PageSizePaper.A4, false);
             XHTMLImporterImpl importer = new XHTMLImporterImpl(document);
-            List<Object> content = importer.convert(xhtml, null);
+            List<Object> content = importer.convert(renderedHtml.content(), null);
             document.getMainDocumentPart().getContent().addAll(content);
             document.save(outputStream);
             return outputStream.toByteArray();
         } catch (Exception e) {
-            throw new ResumeGenerationException("Не удалось сформировать DOCX резюме", e);
+            throw new DocumentGenerationException("Не удалось сформировать DOCX резюме", e);
         }
     }
 

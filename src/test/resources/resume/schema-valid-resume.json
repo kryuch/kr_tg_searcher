@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "person": {
+    "lastName": "Иванов",
+    "firstName": "Алексей",
+    "middleName": "Сергеевич",
+    "birthDate": "1995-03-18",
+    "gender": "MALE",
+    "citizenship": "Россия"
+  },
+  "education": [
+    {
+      "university": "Московский государственный университет",
+      "specialty": "Прикладная информатика",
+      "educationType": "Бакалавриат",
+      "startYear": 2013,
+      "endYear": 2017
+    },
+    {
+      "university": "Московский физико-технический институт",
+      "specialty": "Программная инженерия",
+      "educationType": "Магистратура",
+      "startYear": 2017,
+      "endYear": 2019
+    }
+  ],
+  "profiles": [
+    {
+      "direction": "Java",
+      "grade": "Senior",
+      "skills": [
+        { "name": "Java", "category": "LANGUAGE", "level": 5 },
+        { "name": "Spring Boot", "category": "FRAMEWORK", "level": 5 },
+        { "name": "PostgreSQL", "category": "DATABASE", "level": 4 },
+        { "name": "Docker", "category": "TOOL", "level": 4 },
+        { "name": "Scrum", "category": "METHODOLOGY", "level": 3 },
+        { "name": "Работа в команде", "category": "SOFT_SKILL", "level": null },
+        { "name": "Kafka", "category": "OTHER", "level": 4 }
+      ],
+      "projects": [
+        {
+          "organization": "Сбертех",
+          "position": "Ведущий разработчик",
+          "startDate": "2022-02-01",
+          "endDate": null,
+          "description": "Разрабатывал сервисы обработки заявок на Java и Spring Boot, внедрял асинхронную обработку через Kafka.",
+          "technologies": ["Java", "Spring Boot", "PostgreSQL", "Kafka"]
+        },
+        {
+          "organization": "Тинькофф",
+          "position": "Java-разработчик",
+          "startDate": "2019-06-01",
+          "endDate": "2022-01-31",
+          "description": "Поддерживал и развивал backend интернет-банка, оптимизировал запросы к PostgreSQL.",
+          "technologies": ["Java", "Spring Boot", "PostgreSQL", "Docker"]
+        }
+      ]
+    }
+  ]
+}

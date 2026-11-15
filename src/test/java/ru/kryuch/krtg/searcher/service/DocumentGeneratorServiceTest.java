@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.resume_export;
+package ru.kryuch.krtg.searcher.service;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -6,29 +6,42 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.kryuch.krtg.searcher.config.DocumentTemplateConfig;
+import ru.kryuch.krtg.searcher.dto.resume.ResumeDocument;
 import ru.kryuch.krtg.searcher.dto.resume.ResumeDto;
-import ru.kryuch.krtg.searcher.resume_export.html.ResumeHtmlRenderer;
-import ru.kryuch.krtg.searcher.util.generator.DocxGenerator;
-import ru.kryuch.krtg.searcher.util.generator.PdfGenerator;
-import ru.kryuch.krtg.searcher.util.generator.ResumeFontProvider;
+import ru.kryuch.krtg.searcher.type.DocumentFormat;
+import ru.kryuch.krtg.searcher.helper.generator.DocumentGenerator;
+import ru.kryuch.krtg.searcher.util.generator.DocumentRenderer;
+import ru.kryuch.krtg.searcher.helper.generator.DocxGenerator;
+import ru.kryuch.krtg.searcher.util.generator.GeneratedDocument;
+import ru.kryuch.krtg.searcher.util.generator.HtmlDocumentRenderer;
+import ru.kryuch.krtg.searcher.helper.generator.PdfGenerator;
+import ru.kryuch.krtg.searcher.helper.generator.ResumeFontProvider;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ResumeGeneratorsTest {
+class DocumentGeneratorServiceTest {
 
-    private ResumeHtmlRenderer htmlRenderer;
+    private DocumentGeneratorService service;
     private ResumeFontProvider fontProvider;
 
     @BeforeEach
     void setUp() throws Exception {
-        htmlRenderer = new ResumeHtmlRenderer();
         fontProvider = new ResumeFontProvider();
         fontProvider.init();
+
+        DocumentRenderer renderer = new HtmlDocumentRenderer(new DocumentTemplateConfig().documentTemplateEngine());
+        Map<String, DocumentGenerator> generators = Map.of(
+                "pdf", new PdfGenerator(fontProvider),
+                "docx", new DocxGenerator()
+        );
+        service = new DocumentGeneratorService(renderer, generators);
     }
 
     @AfterEach
@@ -38,12 +51,13 @@ class ResumeGeneratorsTest {
 
     @Test
     void generatesDocxContainingResumeContent() throws Exception {
-        byte[] generated = new DocxGenerator(htmlRenderer).generate(sampleResume());
+        GeneratedDocument document = service.generateDocument(
+                ResumeDocument.from(sampleResume()), DocumentFormat.DOCX);
 
-        assertFalse(generated.length == 0);
+        assertFalse(document.content().length == 0);
 
-        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(generated))) {
-            String text = document.getParagraphs().stream()
+        try (XWPFDocument docx = new XWPFDocument(new ByteArrayInputStream(document.content()))) {
+            String text = docx.getParagraphs().stream()
                     .map(paragraph -> paragraph.getText())
                     .reduce("", (first, second) -> first + "\n" + second);
 
@@ -54,12 +68,13 @@ class ResumeGeneratorsTest {
 
     @Test
     void generatesPdfContainingResumeContent() throws Exception {
-        byte[] generated = new PdfGenerator(htmlRenderer, fontProvider).generate(sampleResume());
+        GeneratedDocument document = service.generateDocument(
+                ResumeDocument.from(sampleResume()), "pdf");
 
-        assertFalse(generated.length == 0);
+        assertFalse(document.content().length == 0);
 
-        try (PDDocument document = PDDocument.load(generated)) {
-            String text = new PDFTextStripper().getText(document);
+        try (PDDocument pdf = PDDocument.load(document.content())) {
+            String text = new PDFTextStripper().getText(pdf);
 
             assertTrue(text.contains("Иванова Мария"));
             assertTrue(text.contains("Разработка сервиса"));

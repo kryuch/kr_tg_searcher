@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.util.generator;
+package ru.kryuch.krtg.searcher.helper.generator;
 
 import com.lowagie.text.pdf.BaseFont;
 import jakarta.annotation.PostConstruct;
