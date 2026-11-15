@@ -8,4 +8,5 @@ public class GradeDto {
     private final String code;
     private final String name;
     private final Integer level;
+    private final Integer id;
 }

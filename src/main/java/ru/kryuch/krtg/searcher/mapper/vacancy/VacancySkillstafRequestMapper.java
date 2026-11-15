@@ -16,6 +16,7 @@ import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyQuestionEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
+import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.mapper.TMapper;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyCategoryRepository;
 import ru.kryuch.krtg.searcher.repository.GradeRepository;
@@ -26,6 +27,7 @@ import ru.kryuch.krtg.searcher.type.vacancy.VacancySource;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.Locale;
@@ -100,8 +102,16 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
 
     @Named("toGrades")
     protected Set<GradeEntity> toGrades(Set<String> codes) {
+        Map <String, String> codesMap = new HashMap<>();
+        codesMap.put("JUNIOR+", "JUNIOR_PLUS");
+        codesMap.put("MIDDLE+", "MIDDLE_PLUS");
+
         Set<String> normalized = codes.stream()
-            .map(code -> code.trim().toUpperCase(Locale.ROOT))
+            .map(code -> {
+                String upCode = code.trim().toUpperCase(Locale.ROOT);
+                if (codesMap.containsKey(upCode)) upCode = codesMap.get(upCode);
+                return upCode;
+            })
             .collect(Collectors.toSet());
 
         Map<String, GradeEntity> existing = gradeRepository.findByCodeIn(normalized).stream()
@@ -111,10 +121,7 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
         for (String code : normalized) {
             GradeEntity grade = existing.get(code);
             if (grade == null) {
-                grade = new GradeEntity();
-                grade.setCode(code);
-                grade.setName(code);
-                grade = gradeRepository.save(grade);
+                throw new BusinessException(String.format("No grade {}", code));
             }
             result.add(grade);
         }

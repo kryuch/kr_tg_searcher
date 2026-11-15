@@ -15,11 +15,11 @@
                 </not>
             </and>
         </preConditions>
-        <sql><![CDATA[
+        <sql splitStatements="false"><![CDATA[
             ALTER TABLE krrg_vacancy_grades RENAME TO krrg_grades;
             ]]></sql>
         <rollback>
-            <sql><![CDATA[
+            <sql splitStatements="false"><![CDATA[
                 ALTER TABLE krrg_grades RENAME TO krrg_vacancy_grades;
             ]]></sql>
         </rollback>
@@ -35,11 +35,11 @@
                 </not>
             </and>
         </preConditions>
-        <sql><![CDATA[
+        <sql splitStatements="false"><![CDATA[
             ALTER TABLE krrg_grades ADD COLUMN level INTEGER NOT NULL DEFAULT 0;
             ]]></sql>
         <rollback>
-            <sql><![CDATA[
+            <sql splitStatements="false"><![CDATA[
                 ALTER TABLE krrg_grades DROP COLUMN IF EXISTS level;
             ]]></sql>
         </rollback>
@@ -56,7 +56,7 @@
                 <columnExists tableName="krrg_grades" columnName="sort_order"/>
             </and>
         </preConditions>
-        <sql><![CDATA[
+        <sql splitStatements="false"><![CDATA[
             INSERT INTO krrg_grades (code, name, level, sort_order, created_at, updated_at)
             VALUES
                 ('JUNIOR',      'JUNIOR',    1, 1, now(), now()),
@@ -77,7 +77,7 @@
                                           OR krrg_grades.sort_order IS DISTINCT FROM EXCLUDED.sort_order;
             ]]></sql>
         <rollback>
-            <sql><![CDATA[
+            <sql splitStatements="false"><![CDATA[
                 DELETE FROM krrg_grades
                 WHERE code IN ('JUNIOR', 'JUNIOR_PLUS', 'MIDDLE', 'MIDDLE_PLUS',
                                'SENIOR', 'STAFF', 'PRINCIPAL', 'LEAD');
@@ -96,12 +96,22 @@
                 <columnExists tableName="krrg_vacancy_grade_link" columnName="vacancy_id"/>
             </and>
         </preConditions>
-        <sql><![CDATA[
-            -- 1. Перепривязываем ссылки с JUNIOR+ на JUNIOR_PLUS
+        <sql splitStatements="false"><![CDATA[
+            -- 1. Проверяем, что целевые грейды существуют
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM krrg_grades WHERE code = 'JUNIOR_PLUS') THEN
+                    RAISE EXCEPTION 'JUNIOR_PLUS not found, cannot migrate links from JUNIOR+';
+            END IF;
+                IF NOT EXISTS (SELECT 1 FROM krrg_grades WHERE code = 'MIDDLE_PLUS') THEN
+                    RAISE EXCEPTION 'MIDDLE_PLUS not found, cannot migrate links from MIDDLE+';
+            END IF;
+            END $$;
+
+            -- 2. Перепривязываем ссылки с JUNIOR+ на JUNIOR_PLUS
             UPDATE krrg_vacancy_grade_link l
             SET grade_id = new_grade.id
-                FROM krrg_grades old_grade,
-                 krrg_grades new_grade
+                FROM krrg_grades old_grade, krrg_grades new_grade
             WHERE old_grade.code = 'JUNIOR+'
               AND new_grade.code = 'JUNIOR_PLUS'
               AND l.grade_id = old_grade.id
@@ -111,26 +121,31 @@
               AND l2.grade_id = new_grade.id
                 );
 
-            -- 2. Удаляем дубликаты ссылок (если после UPDATE появились конфликты)
+            -- 3. Удаляем оставшиеся ссылки на JUNIOR+
             DELETE FROM krrg_vacancy_grade_link l
-                USING krrg_grades old_grade, krrg_grades new_grade
+                USING krrg_grades old_grade
             WHERE old_grade.code = 'JUNIOR+'
-              AND new_grade.code = 'JUNIOR_PLUS'
-              AND l.grade_id = old_grade.id
-              AND EXISTS (
-                SELECT 1 FROM krrg_vacancy_grade_link l2
-                WHERE l2.vacancy_id = l.vacancy_id
-              AND l2.grade_id = new_grade.id
-                );
+              AND l.grade_id = old_grade.id;
 
-            -- 3. Удаляем запись JUNIOR+ из справочника
+            -- 4. Проверяем, что на JUNIOR+ больше нет ссылок
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM krrg_vacancy_grade_link l
+                    JOIN krrg_grades g ON g.id = l.grade_id
+                    WHERE g.code = 'JUNIOR+'
+                ) THEN
+                    RAISE EXCEPTION 'Cannot delete JUNIOR+: still referenced by vacancy_grade_link';
+            END IF;
+            END $$;
+
+            -- 5. Удаляем JUNIOR+ из справочника
             DELETE FROM krrg_grades WHERE code = 'JUNIOR+';
 
-            -- 4. Перепривязываем ссылки с MIDDLE+ на MIDDLE_PLUS
+            -- 6. Перепривязываем ссылки с MIDDLE+ на MIDDLE_PLUS
             UPDATE krrg_vacancy_grade_link l
             SET grade_id = new_grade.id
-                FROM krrg_grades old_grade,
-                 krrg_grades new_grade
+                FROM krrg_grades old_grade, krrg_grades new_grade
             WHERE old_grade.code = 'MIDDLE+'
               AND new_grade.code = 'MIDDLE_PLUS'
               AND l.grade_id = old_grade.id
@@ -140,25 +155,104 @@
               AND l2.grade_id = new_grade.id
                 );
 
-            -- 5. Удаляем дубликаты ссылок (если после UPDATE появились конфликты)
+            -- 7. Удаляем оставшиеся ссылки на MIDDLE+
             DELETE FROM krrg_vacancy_grade_link l
-                USING krrg_grades old_grade, krrg_grades new_grade
+                USING krrg_grades old_grade
             WHERE old_grade.code = 'MIDDLE+'
-              AND new_grade.code = 'MIDDLE_PLUS'
-              AND l.grade_id = old_grade.id
-              AND EXISTS (
-                SELECT 1 FROM krrg_vacancy_grade_link l2
-                WHERE l2.vacancy_id = l.vacancy_id
-              AND l2.grade_id = new_grade.id
-                );
+              AND l.grade_id = old_grade.id;
 
-            -- 6. Удаляем запись MIDDLE+ из справочника
+            -- 8. Проверяем, что на MIDDLE+ больше нет ссылок
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM krrg_vacancy_grade_link l
+                    JOIN krrg_grades g ON g.id = l.grade_id
+                    WHERE g.code = 'MIDDLE+'
+                ) THEN
+                    RAISE EXCEPTION 'Cannot delete MIDDLE+: still referenced by vacancy_grade_link';
+            END IF;
+            END $$;
+
+            -- 9. Удаляем MIDDLE+ из справочника
             DELETE FROM krrg_grades WHERE code = 'MIDDLE+';
             ]]></sql>
         <rollback>
+            <sql splitStatements="false"><![CDATA[
+                SELECT 1;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 5. Проверка целостности ссылок на грейды -->
+    <changeSet id="013-005-verify-grade-links-integrity" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_grades"/>
+                <tableExists tableName="krrg_vacancy_grade_link"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM krrg_vacancy_grade_link l
+                    LEFT JOIN krrg_grades g ON g.id = l.grade_id
+                    WHERE g.id IS NULL
+                ) THEN
+                    RAISE EXCEPTION 'Broken references found in krrg_vacancy_grade_link';
+            END IF;
+            END $$;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[SELECT 1;]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 6. Удаление устаревшей таблицы krrg_vacancy_grades и перепривязка FK на krrg_grades -->
+    <changeSet id="013-006-drop-legacy-vacancy-grades" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="krrg_vacancy_grades"/>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            -- 1. Удаляем FK, которые ссылаются на старую таблицу
+            DO $$
+            DECLARE
+            r RECORD;
+            BEGIN
+            FOR r IN
+            SELECT conname, conrelid::regclass AS tbl
+            FROM pg_constraint
+            WHERE confrelid = 'krrg_vacancy_grades'::regclass
+                      AND contype = 'f'
+                LOOP
+                    EXECUTE format('ALTER TABLE %s DROP CONSTRAINT IF EXISTS %I', r.tbl, r.conname);
+            END LOOP;
+            END $$;
+
+            -- 2. Удаляем битые ссылки (grade_id, которых нет в krrg_grades)
+            DELETE FROM krrg_vacancy_grade_link
+            WHERE grade_id NOT IN (SELECT id FROM krrg_grades);
+
+            -- 3. Создаём FK на krrg_grades, если его ещё нет
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint
+                    WHERE conname = 'fk_vacancy_grade_link__grade'
+                ) THEN
+            ALTER TABLE krrg_vacancy_grade_link
+                ADD CONSTRAINT fk_vacancy_grade_link__grade
+                    FOREIGN KEY (grade_id) REFERENCES krrg_grades(id);
+            END IF;
+            END $$;
+
+            -- 4. Удаляем старую таблицу
+            DROP TABLE IF EXISTS krrg_vacancy_grades;
+            ]]></sql>
+        <rollback>
             <sql><![CDATA[
-                -- Откат невозможен: старые записи JUNIOR+ и MIDDLE+ удалены,
-                -- а ссылки перепривязаны. Восстановить исходное состояние нельзя.
+                -- Откат невозможен: старая таблица удалена.
+                -- Если нужно восстановить, используйте бэкап.
                 SELECT 1;
             ]]></sql>
         </rollback>

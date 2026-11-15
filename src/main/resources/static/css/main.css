@@ -203,6 +203,15 @@ color: transparent;}
 .vacancy3 {
     background-color: #afd9ee;
 }
+.vacancy_READY {
+    background-color: #4AB6EC;
+}
+.vacancy_IN_ENRICHMENT {
+    background-color: #afd9ee;
+}
+.vacancy_NEW {
+    background-color: lightgray;
+}
 button.add, .buttonstyle {color:#fff;
 font-size: 11pt;
 display:block;
