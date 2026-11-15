@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head th:replace="~{employee/fragments :: employees-head}"></head>
+    <body class="container">
+        <header th:replace="~{employee/fragments :: employees-header}"></header>
+        <nav    th:replace="~{employee/fragments :: employees-menu}"></nav>
+        <nav    th:replace="~{employee/fragments :: breadcrumb}"></nav>
+        <main   th:replace="~{employee/fragments/__${pageTemplate}__ :: main}" class="row"></main>
+    </body>
+</html>
