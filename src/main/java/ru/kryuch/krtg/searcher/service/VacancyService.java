@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffEnrichRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestForEnrichmentResponse;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
+import ru.kryuch.krtg.searcher.event.ReadyVacancyEvent;
 import ru.kryuch.krtg.searcher.helper.ChatAccessHelper;
 import ru.kryuch.krtg.searcher.helper.MessagesHelper;
 import ru.kryuch.krtg.searcher.mapper.vacancy.VacancySkillstafRequestMapper;
@@ -61,17 +63,17 @@ public class VacancyService {
     private final VacancySkillstafRequestMapper vacancySkillstafRequestMapper;
     private final VacancyViewMapper vacancyViewMapper;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     private static final int PAGE_SIZE = 25;
 
     @Transactional
     public Page<VacancyListItemDto> findPage(VacancyFilter filter, int page) {
-        Pageable pageable = PageRequest.of(
-            Math.max(page, 1) - 1,
-            PAGE_SIZE,
-            Sort.by(Sort.Direction.DESC, "id"));
-        return vacancyRepository
-            .findAll(VacancySpecifications.byFilter(filter), pageable)
-            .map(vacancyViewMapper::toListItem);
+        Pageable pageable = PageRequest.of(Math.max(page, 1) - 1, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "id"));
+        Page<VacancyEntity> result = vacancyRepository.findAll(VacancySpecifications.byFilter(filter), pageable);
+        log.info("VacancyService::findPage (page = {}, pageSize = {}, totalElements = {}, totalPages = {}, contentSize = {})",
+            page, PAGE_SIZE, result.getTotalElements(), result.getTotalPages(), result.getContent().size());
+        return result.map(vacancyViewMapper::toListItem);
     }
 
 
@@ -111,7 +113,7 @@ public class VacancyService {
 
     @Transactional
     public Long add(VacancySkillstaffRequestDto dto) {
-        log.info("VacancyService::add (VacancySkillstaffRequestDto = {})", dto);
+        log.info("VacancyService::add (VacancySkillstaffRequestDto = {})", dto.toLogString());
         VacancyEntity vacancy = vacancySkillstafRequestMapper.toEntity(dto);
 
         if (vacancyRepository.existsByExternalIdAndSourceCode(vacancy.getExternalId(), VacancySource.SKILLSTAFF.getCode())) {
@@ -128,7 +130,7 @@ public class VacancyService {
     public boolean enrich(VacancySkillstaffEnrichRequestDto dto, Long id) {
         Optional <VacancyEntity> vacancy = vacancyRepository.findById(id);
         if (vacancy.isEmpty()) {
-            log.error("VacancyService::enrich (skillstaf). No vacancy with id = {} ({})", id, dto);
+            log.error("VacancyService::enrich (skillstaf). No vacancy with id = {} ({})", id, dto.toLogString());
             return false;
         }
 
@@ -140,6 +142,9 @@ public class VacancyService {
         catch (Exception ex) {
             log.error("VacancyService::enrich (skillstaf). Saving error with id = {} ({}) {}", id, dto, ex);
         }
+
+        ReadyVacancyEvent event = new ReadyVacancyEvent(id, VacancySource.SKILLSTAFF.getCode());
+        eventPublisher.publishEvent(event);
         return true;
     }
 

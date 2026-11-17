@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.text.StringEscapeUtils;
 import ru.kryuch.krtg.searcher.type.vacancy.WorkFormat;
 
 import java.math.BigDecimal;
@@ -85,4 +86,8 @@ public class VacancySkillstaffRequestDto {
     private Boolean rateOpen;
 
     private String rawText;
+
+    public String toLogString() {
+        return StringEscapeUtils.escapeJava(this.toString());
+    }
 }

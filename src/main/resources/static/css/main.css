@@ -200,8 +200,20 @@ color: transparent;}
 .chatstatus3 {
     background-color: #afd9ee;
 }
+.chatstatus5 {
+    background-color: rosybrown;
+}
 .vacancy3 {
     background-color: #afd9ee;
+}
+.vacancy_READY {
+    background-color: #afd9ee;
+}
+.vacancy_IN_ENRICHMENT {
+    background-color: #4AB6EC;
+}
+.vacancy_NEW {
+    background-color: lightgray;
 }
 button.add, .buttonstyle {color:#fff;
 font-size: 11pt;

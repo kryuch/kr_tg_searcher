@@ -17,8 +17,12 @@ public interface ChatRepository extends CrudRepository<ChatEntity, Long>, JpaSpe
     @Query("SELECT c.user.id as userId, c.tgId as tgAccountId FROM ChatEntity c WHERE c.status = :status")
     List<ChatKeyProjection> findKeysByStatusEqual(@Param("status") Integer status);
 
-    @Query("SELECT c.user.id as userId, c.tgId as tgAccountId FROM ChatEntity c WHERE c.status > :status")
-    List<ChatKeyProjection> findKeysByStatusGreaterThan(@Param("status") Integer status);
+    @Query("""
+        SELECT c.user.id as userId, c.tgId as tgAccountId
+        FROM ChatEntity c
+        WHERE COALESCE(c.status, 0) IN (:statuses)
+        """)
+    List<ChatKeyProjection> findKeysByStatuses(@Param("statuses") List<Integer> statuses);
 
     @Query("SELECT c FROM ChatEntity c WHERE c.tgId = :tgId AND c.user.id IN :userIds")
     List<ChatEntity> findAllByTgIdAndUserIds(@Param("tgId") Integer tgId, @Param("userIds") List<Long> userIds);
@@ -41,8 +45,8 @@ public interface ChatRepository extends CrudRepository<ChatEntity, Long>, JpaSpe
      * @return список чатов
      */
     default List<ChatEntity> findEnrichedByStatusesAndTgIdsDynamic(
-            List<Integer> statuses,
-            List<Integer> tgIds
+        List<Integer> statuses,
+        List<Integer> tgIds
     ) {
         // Проверяем, что хотя бы один фильтр задан
         boolean hasStatuses = statuses != null && !statuses.isEmpty();
@@ -78,13 +82,13 @@ public interface ChatRepository extends CrudRepository<ChatEntity, Long>, JpaSpe
     @EntityGraph(attributePaths = {"user"})
     @Query("SELECT c FROM ChatEntity c WHERE c.status IN :statuses AND c.tgId IN :tgIds")
     List<ChatEntity> findEnrichedByStatusesAndTgIds(
-            @Param("statuses") List<Integer> statuses,
-            @Param("tgIds") List<Integer> tgIds
+        @Param("statuses") List<Integer> statuses,
+        @Param("tgIds") List<Integer> tgIds
     );
 
     @Query("SELECT c FROM ChatEntity c WHERE c.user.id IN :users AND c.tgId IN :tgIds")
     List<ChatEntity> findByUserIdsAndTgIds(
-            @Param("users") List<Long> users,
-            @Param("tgIds") List<Integer> tgIds
+        @Param("users") List<Long> users,
+        @Param("tgIds") List<Integer> tgIds
     );
 }

@@ -23,7 +23,7 @@ public class SearchParams {
     String lastMessage = "";
     PersonalChatType botType = PersonalChatType.PERSONAL;
     PersonalChatType groupType = PersonalChatType.PERSONAL;
-    Boolean excludeStatusFlag = true;
+    List <Integer> statuses = new ArrayList<>();
 
     SearchLastMessageType lastMessageType;
 

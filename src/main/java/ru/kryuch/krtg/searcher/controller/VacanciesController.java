@@ -40,7 +40,7 @@ public class VacanciesController extends BaseController {
         model.addAttribute("pageTo", Math.min(total, current + 3));
         model.addAttribute("statuses", vacancyService.findStatuses());
         model.addAttribute("workFormats", WorkFormat.values());
-        model.addAttribute("filterQuery", filterQuery(vfilter));
+        model.addAttribute("vfilterQuery", filterQuery(vfilter));
         return renderer("vacancy/list", model);
     }
 

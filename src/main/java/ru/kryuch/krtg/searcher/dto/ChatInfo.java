@@ -15,7 +15,7 @@ public class ChatInfo {
     String avatar;
     Long id;
     Boolean actual = true;
-    ChatStatus status = ChatStatus.SIMPLE;
+    ChatStatus status;
     List<FolderInfo> folders;
     Boolean hasTargetFolder;
 

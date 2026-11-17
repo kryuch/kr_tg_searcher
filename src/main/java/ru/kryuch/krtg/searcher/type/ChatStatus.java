@@ -1,26 +1,26 @@
 package ru.kryuch.krtg.searcher.type;
 
 import java.util.Arrays;
+import java.util.List;
 
 public enum ChatStatus {
 
-    SIMPLE(0, "отказ"),
-    REFUSE(1, "-"),
-    EMPTY(2, "нет вакансий"),
-    FAIL(3, "не HR"),
-    SEND_ERROR(4, "ощибка в отправке"),
+    REFUSE(1, "отказ"),
+    NO_VACANCY(2, "нет вакансий"),
+    NOT_HR(3, "не HR"),
+    OTHER(4, "прочее"),
     PAUSE(5, "пока отложим");
 
     final Integer type;
-    final String value;
+    final String title;
 
     ChatStatus(Integer type, String value) {
         this.type = type;
-        this.value = value;
+        this.title = value;
     }
 
-    public String getValue() {
-        return value;
+    public String getTitle() {
+        return title;
     }
 
     public Integer getType() {
@@ -29,5 +29,12 @@ public enum ChatStatus {
 
     public static ChatStatus getChatStatus(Integer type) {
         return Arrays.stream(ChatStatus.values()).filter(item -> item.getType().equals(type)).findFirst().orElse(null);
+    }
+
+    public static List <Integer> getExcludeList(List<Integer> types) {
+        return Arrays.stream(ChatStatus.values())
+            .filter(item -> !types.contains(item.getType()))
+            .map(item -> item.getType())
+            .toList();
     }
 }

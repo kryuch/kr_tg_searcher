@@ -20,7 +20,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyGradeEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancyStatus;
@@ -39,6 +38,7 @@ import java.util.Set;
         columnNames = {"external_id", "source_id"}
     )
 )
+@BatchSize(size = 25)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -57,12 +57,12 @@ public class VacancyEntity extends TimestampedEntity {
     @Column(length = 1000, nullable = false)
     private String title;
 
+    @Column(columnDefinition = "text")
+    private String description;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "source_id", nullable = false)
     private VacancySourceEntity source;
-
-    @Column(columnDefinition = "text")
-    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_organisation_id", nullable = false)
@@ -72,7 +72,6 @@ public class VacancyEntity extends TimestampedEntity {
     @JoinColumn(name = "category_id")
     private VacancyCategoryEntity category;
 
-    @BatchSize(size = 25)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "krrg_vacancy_grade_link",
@@ -89,7 +88,7 @@ public class VacancyEntity extends TimestampedEntity {
             columnNames = {"vacancy_id", "grade_id"}
         )
     )
-    private Set<VacancyGradeEntity> grades = new HashSet<>();
+    private Set<GradeEntity> grades = new HashSet<>();
 
     @Column(name = "rate_resident", precision = 12, scale = 2)
     private BigDecimal rateResident;

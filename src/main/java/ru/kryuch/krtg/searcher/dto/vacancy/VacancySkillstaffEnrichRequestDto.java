@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.text.StringEscapeUtils;
 import ru.kryuch.krtg.searcher.type.vacancy.WorkFormat;
 
 import java.math.BigDecimal;
@@ -122,4 +123,8 @@ public class VacancySkillstaffEnrichRequestDto {
 
     @ToString.Exclude
     private String rawText;
+
+    public String toLogString() {
+        return StringEscapeUtils.escapeJava(this.toString());
+    }
 }

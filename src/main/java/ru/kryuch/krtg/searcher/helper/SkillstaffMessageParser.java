@@ -43,7 +43,7 @@ public class SkillstaffMessageParser {
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     public List<VacancySkillstaffRequestDto> parse(Message message) {
-        log.info("SkillstaffMessageParser::parse (message = {})", message);
+        log.info("SkillstaffMessageParser::parse (message = {})", message.toLogString());
         if (message == null || message.getValue() == null) {
             return List.of();
         }
