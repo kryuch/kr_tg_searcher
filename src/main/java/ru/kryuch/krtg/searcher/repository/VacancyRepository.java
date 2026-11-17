@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public interface VacancyRepository extends JpaRepository<VacancyEntity, Long> {
 
-    @EntityGraph(attributePaths = {"source", "ownerOrganisation", "category"})
+  //  @EntityGraph(attributePaths = {"source", "ownerOrganisation", "category"}, type = EntityGraph.EntityGraphType.LOAD)
     Page<VacancyEntity> findAll(Specification<VacancyEntity> spec, Pageable pageable);
 
     @Query("select distinct v.status from VacancyEntity v where v.status is not null order by v.status")

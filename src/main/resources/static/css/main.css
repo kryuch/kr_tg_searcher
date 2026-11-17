@@ -204,10 +204,10 @@ color: transparent;}
     background-color: #afd9ee;
 }
 .vacancy_READY {
-    background-color: #4AB6EC;
+    background-color: #afd9ee;
 }
 .vacancy_IN_ENRICHMENT {
-    background-color: #afd9ee;
+    background-color: #4AB6EC;
 }
 .vacancy_NEW {
     background-color: lightgray;
