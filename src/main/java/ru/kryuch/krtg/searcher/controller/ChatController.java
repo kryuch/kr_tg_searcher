@@ -22,6 +22,7 @@ import ru.kryuch.krtg.searcher.service.FolderChatService;
 import ru.kryuch.krtg.searcher.service.SettingService;
 import ru.kryuch.krtg.searcher.service.TelegramMessagingService;
 import ru.kryuch.krtg.searcher.service.TgAccountService;
+import ru.kryuch.krtg.searcher.type.ChatStatus;
 import ru.kryuch.krtg.searcher.type.SearchLastMessageType;
 import ru.kryuch.krtg.searcher.type.SendMessageStatus;
 
@@ -55,6 +56,7 @@ public class ChatController {
         model.addAttribute("filter", new SearchParams());
         model.addAttribute("lastMessageTypes", SearchLastMessageType.values());
         model.addAttribute("tgAccounts", tgAccountService.getAll());
+        model.addAttribute("statuses", ChatStatus.values());
         model.addAttribute("page", "chat/list");
         return "index";
     }

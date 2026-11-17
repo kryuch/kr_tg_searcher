@@ -18,5 +18,5 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
     <include file="changes/011-vacancy_encrichment.xml" relativeToChangelogFile="true"/>
     <include file="changes/012-vacancy_bugfix.xml" relativeToChangelogFile="true"/>
     <include file="changes/013_vacancy_resume_filter.xml" relativeToChangelogFile="true"/>
-
+    <include file="changes/014_chatstatus_update.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

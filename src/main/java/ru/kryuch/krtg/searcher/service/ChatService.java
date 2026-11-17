@@ -21,6 +21,8 @@ import ru.kryuch.krtg.searcher.repository.ChatRepository;
 import ru.kryuch.krtg.searcher.type.ChatStatus;
 import ru.kryuch.krtg.searcher.type.PersonalChatType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +57,9 @@ public class ChatService {
         }
     }*/
 
-    public List <TgUserAvatar> getAvatars(List <ChatKey> keys) {
+    public List<TgUserAvatar> getAvatars(List<ChatKey> keys) {
         log.info("ChatService :: getAvatars (keys-size = {}", keys.size());
-        List <TgUserAvatar> avatars = telegramMessagingGateway.getAvatars(keys);
+        List<TgUserAvatar> avatars = telegramMessagingGateway.getAvatars(keys);
         for (TgUserAvatar avatar : avatars) {
             tgUserHelper.updateAvatar(avatar);
         }
@@ -69,8 +71,14 @@ public class ChatService {
         try {
             log.info("Поиск чатов");
 
-            if (searchParams.getExcludeStatusFlag()) {
-                searchParams.setExcludeChats(chatKeyMapper.fromEntityList(chatRepository.findKeysByStatusGreaterThan(0)));
+            if (!CollectionUtils.isEmpty(searchParams.getStatuses())) {
+
+                List<Integer> excludeStatuses = new ArrayList<>(ChatStatus.getExcludeList(searchParams.getStatuses()));
+                excludeStatuses.add(0);
+
+                searchParams.setExcludeChats(
+                    chatKeyMapper.fromEntityList(chatRepository.findKeysByStatuses(excludeStatuses))
+                );
             }
 
             String targetFolderTitle = settingService.getValueByCode(SettingConfig.TARGET_FOLDER_SETTING_CODE);
@@ -83,34 +91,33 @@ public class ChatService {
             Map<Long, List<FolderInfo>> foldersMap = (withFolderFlag) ? folderChatService.getFoldersByChatIds(chatIds) : null;
 
             List<ChatInfo> result = chatInfos.stream()
-                    .map(item -> {
+                .map(item -> {
 
-                        ChatKey chatKey = new ChatKey(item.getId(), item.getTgAccountId());
+                    ChatKey chatKey = new ChatKey(item.getId(), item.getTgAccountId());
 
-                        Optional <String> avatar = tgUserHelper.getAvatar(item.getId());
-                        if (avatar.isPresent()) {
-                            item.setAvatar(avatar.get());
-                        }
+                    Optional<String> avatar = tgUserHelper.getAvatar(item.getId());
+                    if (avatar.isPresent()) {
+                        item.setAvatar(avatar.get());
+                    }
 
-                        if (chatsMap.containsKey(chatKey)) {
-                            item.setStatus(ChatStatus.getChatStatus(chatsMap.get(chatKey).getStatus()));
-                            item.setChatId(chatsMap.get(chatKey).getId());
-                        }
-                        else {
-                            item.setStatus(ChatStatus.SIMPLE);
-                            item.setChatId(chatHelper.createNewChatAndReturnId(item));
-                        }
-                        if (withFolderFlag) {
-                            item.setFolders(foldersMap.get(item.getId()));
-                            item.setHasTargetFolder(
-                                    (CollectionUtils.isEmpty(item.getFolders())) ? false :
-                                            (item.getFolders().stream()
-                                                    .filter(folder -> targetFolderTitle.equals(folder.getTitle()))
-                                                    .findFirst().isPresent())
-                            );
-                        }
-                        return item;
-                    }).toList();
+                    if (chatsMap.containsKey(chatKey)) {
+                        item.setStatus(ChatStatus.getChatStatus(chatsMap.get(chatKey).getStatus()));
+                        item.setChatId(chatsMap.get(chatKey).getId());
+                    } else {
+                        //       item.setStatus(ChatStatus.SIMPLE);
+                        item.setChatId(chatHelper.createNewChatAndReturnId(item));
+                    }
+                    if (withFolderFlag) {
+                        item.setFolders(foldersMap.get(item.getId()));
+                        item.setHasTargetFolder(
+                            (CollectionUtils.isEmpty(item.getFolders())) ? false :
+                                (item.getFolders().stream()
+                                    .filter(folder -> targetFolderTitle.equals(folder.getTitle()))
+                                    .findFirst().isPresent())
+                        );
+                    }
+                    return item;
+                }).toList();
             log.info("Найдено чатов: {}", result != null ? result.size() : 0);
 
             return result;
@@ -150,17 +157,17 @@ public class ChatService {
         return true;
     }
 
-    public Set<String> getUsernamesByTg(List <Integer> tgIds) {
+    public Set<String> getUsernamesByTg(List<Integer> tgIds) {
         SearchParams searchParams =
-                SearchParams.builder()
-                        .botType(PersonalChatType.PERSONAL)
-                        .term(settingService.getValueByCode(SettingConfig.TERM_SETTING_CODE))
-                        .groupType(PersonalChatType.PERSONAL)
-                        .tgAccountIds(tgIds)
-                        .messagesCount(0)
-                        .maxFoundCount(1024)
-                        .excludeChats(chatKeyMapper.fromEntityList(chatRepository.findKeysByStatusEqual(3)))
-                        .build();
+            SearchParams.builder()
+                .botType(PersonalChatType.PERSONAL)
+                .term(settingService.getValueByCode(SettingConfig.TERM_SETTING_CODE))
+                .groupType(PersonalChatType.PERSONAL)
+                .tgAccountIds(tgIds)
+                .messagesCount(0)
+                .maxFoundCount(1024)
+                .excludeChats(chatKeyMapper.fromEntityList(chatRepository.findKeysByStatusEqual(3)))
+                .build();
 
         List<ChatInfo> chats = telegramMessagingGateway.searchChats(searchParams);
         return chats.stream().map(item -> item.getUsername()).collect(Collectors.toSet());

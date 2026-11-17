@@ -38,17 +38,14 @@ function deleteCookie(name) {
 // ============================================================
 
 function showLoading(button) {
-    // Сохраняем оригинальный текст
     var $btn = $(button);
     if (!$btn.data('original-text')) {
         $btn.data('original-text', $btn.text());
     }
 
-    // Отключаем кнопку и показываем спиннер
     $btn.prop('disabled', true);
     $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Загрузка...');
 
-    // Добавляем overlay на всю страницу (опционально)
     if (!$('#loading-overlay').length) {
         $('body').append('<div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:9999;display:none;"></div>');
     }
@@ -66,7 +63,7 @@ function hideLoading(button) {
 }
 
 // ============================================================
-// Функции для работы с фильтрами (без изменений)
+// Функции для работы с фильтрами
 // ============================================================
 
 function applyFilter() {
@@ -74,15 +71,23 @@ function applyFilter() {
         term: document.getElementById('term')?.value || '',
         maxFoundCount: document.getElementById('maxFoundCount')?.value || '',
         minDiffDaysCount: document.getElementById('minDiffDaysCount')?.value || '',
-        excludeStatusFlag: document.getElementById('excludeStatusFlag')?.checked || false,
+        statuses: jQuery('#statuses').val() || [],       // ← было excludeStatusFlag
         excludeBotFlag: document.getElementById('excludeBotFlag')?.checked || false,
         excludeGroupFlag: document.getElementById('excludeGroupFlag')?.checked || false
     };
 
     var params = new URLSearchParams();
     for (var key in formData) {
-        if (formData[key] !== '' && formData[key] !== false) {
-            params.append(key, formData[key]);
+        var value = formData[key];
+        if (Array.isArray(value)) {
+            // для массивов добавляем каждый элемент отдельно
+            value.forEach(function (v) {
+                if (v !== '' && v !== null && v !== undefined) {
+                    params.append(key, v);
+                }
+            });
+        } else if (value !== '' && value !== false && value !== null && value !== undefined) {
+            params.append(key, value);
         }
     }
 
@@ -129,8 +134,13 @@ function restoreSearchParamsFromCookies() {
         jQuery("#lastMessageType").val(params.lastMessageType);
     }
 
-    if (params.excludeStatusFlag !== undefined) {
-        jQuery("#excludeStatusFlag").prop('checked', params.excludeStatusFlag === true || params.excludeStatusFlag === 'true');
+    // === statuses: массив integer ===
+    if (params.statuses && params.statuses.length > 0) {
+        // Приводим к строкам, потому что .val() у multiselect работает со строками
+        var statusValues = params.statuses.map(String);
+        jQuery("#statuses").val(statusValues);
+        // Обновляем UI multiselect
+        jQuery("#statuses").multiselect('refresh');
     }
 
     if (params.botType) jQuery("#botType").val(params.botType);
@@ -143,7 +153,7 @@ function restoreSearchParamsFromCookies() {
 }
 
 // ============================================================
-// Функция getSelectedItems (без изменений)
+// Функция getSelectedItems
 // ============================================================
 
 function getSelectedItems() {
@@ -172,7 +182,6 @@ function formSubmit(url, func, button) {
     var selectedChats = getSelectedItems();
     if (selectedChats == null) return;
 
-    // Показываем спиннер на кнопке
     if (button) {
         showLoading(button);
     }
@@ -203,8 +212,6 @@ function formSubmit(url, func, button) {
     $('body').append(form);
     form.submit();
 
-    // Скрываем спиннер через некоторое время (форма отправлена, но ответ ещё не пришёл)
-    // Спиннер скроется после загрузки страницы
     setTimeout(function () {
         if (button) {
             hideLoading(button);
@@ -293,7 +300,6 @@ jQuery(document).ready(function () {
     jQuery("#filter").click(function (e) {
         e.preventDefault();
 
-        // Показываем спиннер на кнопке
         var $btn = $(this);
         showLoading($btn);
 
@@ -302,7 +308,7 @@ jQuery(document).ready(function () {
             term: jQuery("#term").val(),
             maxFoundCount: jQuery("#maxFoundCount").val(),
             minDiffDaysCount: jQuery("#minDiffDaysCount").val(),
-            excludeStatusFlag: jQuery("#excludeStatusFlag").is(":checked"),
+            statuses: jQuery("#statuses").val(),          // ← массив integer (или null)
             botType: jQuery("#botType").val(),
             lastMessage: jQuery("#lastMessage").val(),
             groupType: jQuery("#groupType").val(),
@@ -336,7 +342,6 @@ jQuery(document).ready(function () {
             success: function (response) {
                 console.log("📥 Ответ от сервера:", response);
 
-                // Обновляем содержимое
                 jQuery(".icontent").remove();
                 jQuery(".econtent").html(response);
 
@@ -350,7 +355,6 @@ jQuery(document).ready(function () {
                     jQuery("table.list").addClass("onlychatheaders");
                 }
 
-                // Скрываем спиннер после успешного ответа
                 hideLoading($btn);
                 loadMissingAvatars();
             },
@@ -363,11 +367,9 @@ jQuery(document).ready(function () {
     });
 
     // ============================================================
-    // 4. ВОССТАНОВЛЕНИЕ СОСТОЯНИЯ ПОСЛЕ SUBMIT (для formSubmit)
+    // 4. ВОССТАНОВЛЕНИЕ СОСТОЯНИЯ ПОСЛЕ SUBMIT
     // ============================================================
 
-    // Если страница перезагрузилась после отправки формы,
-    // убираем все спиннеры
     $('button').each(function () {
         var $btn = $(this);
         if ($btn.data('original-text')) {
