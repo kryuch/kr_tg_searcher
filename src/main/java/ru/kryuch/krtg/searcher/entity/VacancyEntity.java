@@ -38,6 +38,7 @@ import java.util.Set;
         columnNames = {"external_id", "source_id"}
     )
 )
+@BatchSize(size = 25)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -56,12 +57,12 @@ public class VacancyEntity extends TimestampedEntity {
     @Column(length = 1000, nullable = false)
     private String title;
 
+    @Column(columnDefinition = "text")
+    private String description;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "source_id", nullable = false)
     private VacancySourceEntity source;
-
-    @Column(columnDefinition = "text")
-    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_organisation_id", nullable = false)
@@ -71,7 +72,6 @@ public class VacancyEntity extends TimestampedEntity {
     @JoinColumn(name = "category_id")
     private VacancyCategoryEntity category;
 
-    @BatchSize(size = 25)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "krrg_vacancy_grade_link",

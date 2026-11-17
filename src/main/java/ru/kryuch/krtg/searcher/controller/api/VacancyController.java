@@ -35,7 +35,7 @@ public class VacancyController {
 
     @PostMapping("/skillstaff/{id}/enrich")
     public Boolean enrich(@PathVariable("id") Long id, @RequestBody VacancySkillstaffEnrichRequestDto dto) {
-        log.info("VacancyController::enrich (id={}, dtp={})", id, dto);
+        log.info("VacancyController::enrich (id={}, dtp={})", id, dto.toLogString());
         return vacancyService.enrich(dto, id);
     }
 }
