@@ -20,7 +20,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancyStatus;
 import ru.kryuch.krtg.searcher.type.vacancy.WorkFormat;
@@ -66,7 +65,7 @@ public class VacancyEntity extends TimestampedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_organisation_id", nullable = false)
-    private VacancyOwnerOrganisationEntity ownerOrganisation;
+    private OrganisationEntity ownerOrganisation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

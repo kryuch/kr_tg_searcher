@@ -13,14 +13,14 @@ import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
 import ru.kryuch.krtg.searcher.entity.GradeEntity;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
+import ru.kryuch.krtg.searcher.entity.OrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyQuestionEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
 import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.mapper.TMapper;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyCategoryRepository;
 import ru.kryuch.krtg.searcher.repository.GradeRepository;
-import ru.kryuch.krtg.searcher.repository.vacancy.VacancyOwnerOrganisationRepository;
+import ru.kryuch.krtg.searcher.repository.OrganisationRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancySourceRepository;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancySource;
 
@@ -45,7 +45,7 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
     @Autowired
     protected GradeRepository gradeRepository;
     @Autowired
-    protected VacancyOwnerOrganisationRepository ownerOrganisationRepository;
+    protected OrganisationRepository ownerOrganisationRepository;
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "externalId", expression = "java(resolveExternalId(dto))")
@@ -77,12 +77,12 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
     }
 
     @Named("toOrganisation")
-    protected VacancyOwnerOrganisationEntity toOrganisation(String name) {
+    protected OrganisationEntity toOrganisation(String name) {
         if (name == null) return null;
         String normalized = name.trim();
         return ownerOrganisationRepository.findByName(normalized)
             .orElseGet(() -> {
-                VacancyOwnerOrganisationEntity organisation = new VacancyOwnerOrganisationEntity();
+                OrganisationEntity organisation = new OrganisationEntity();
                 organisation.setName(normalized);
                 return ownerOrganisationRepository.save(organisation);
             });

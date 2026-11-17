@@ -4,13 +4,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyResponseDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyResponseRequestDto;
+import ru.kryuch.krtg.searcher.entity.OrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
-import ru.kryuch.krtg.searcher.entity.vacancy.VacancyOwnerOrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyResponseEntity;
 import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.mapper.vacancy.VacancyResponseMapper;
 import ru.kryuch.krtg.searcher.repository.VacancyRepository;
-import ru.kryuch.krtg.searcher.repository.vacancy.VacancyOwnerOrganisationRepository;
+import ru.kryuch.krtg.searcher.repository.OrganisationRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyResponseRepository;
 import ru.kryuch.krtg.searcher.service.AbstractAccessService;
 
@@ -24,12 +24,12 @@ public class VacancyResponseAccessService extends AbstractAccessService<Long, Va
    // private static final WorkFormat SOURCE = WorkFormat.HH;
 
     private final VacancyRepository vacancyRepository;
-    private final VacancyOwnerOrganisationRepository ownerOrganisationRepository;
+    private final OrganisationRepository ownerOrganisationRepository;
 
     public VacancyResponseAccessService(VacancyResponseRepository vacancyResponseRepository,
                                         VacancyResponseMapper vacancyResponseMapper,
                                         VacancyRepository vacancyRepository,
-                                        VacancyOwnerOrganisationRepository ownerOrganisationRepository) {
+                                        OrganisationRepository ownerOrganisationRepository) {
         super(vacancyResponseRepository, vacancyResponseMapper, "отклики на вакансии");
         this.vacancyRepository = vacancyRepository;
         this.ownerOrganisationRepository = ownerOrganisationRepository;
@@ -67,7 +67,7 @@ public class VacancyResponseAccessService extends AbstractAccessService<Long, Va
     }
 
     private VacancyEntity createVacancy(VacancyResponseRequestDto dto) {
-        VacancyOwnerOrganisationEntity owner = resolveOwnerOrganisation(dto.getOwner());
+        OrganisationEntity owner = resolveOwnerOrganisation(dto.getOwner());
 
         VacancyEntity vacancy = new VacancyEntity();
         vacancy.setExternalId(dto.getExternalId());
@@ -80,10 +80,10 @@ public class VacancyResponseAccessService extends AbstractAccessService<Long, Va
         return vacancyRepository.save(vacancy);
     }
 
-    private VacancyOwnerOrganisationEntity resolveOwnerOrganisation(String name) {
+    private OrganisationEntity resolveOwnerOrganisation(String name) {
         return ownerOrganisationRepository.findByName(name)
                 .orElseGet(() -> {
-                    VacancyOwnerOrganisationEntity organisation = new VacancyOwnerOrganisationEntity();
+                    OrganisationEntity organisation = new OrganisationEntity();
                     organisation.setName(name);
                     return ownerOrganisationRepository.save(organisation);
                 });
