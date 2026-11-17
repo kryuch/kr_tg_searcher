@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.entity.vacancy;
+package ru.kryuch.krtg.searcher.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,14 +9,13 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 
 @Entity
-@Table(name = "krrg_vacancy_owner_organisations")
+@Table(name = "krrg_organisations")
 @Getter
 @Setter
 @NoArgsConstructor
-public class VacancyOwnerOrganisationEntity extends TimestampedEntity {
+public class OrganisationEntity extends TimestampedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

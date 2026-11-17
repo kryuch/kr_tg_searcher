@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- 1. Если krrg_organisations нет — просто переименовываем -->
+    <changeSet id="015-001-rename-owner-organisations-to-organisations" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancy_owner_organisations"/>
+                <not>
+                    <tableExists tableName="krrg_organisations"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_vacancy_owner_organisations RENAME TO krrg_organisations;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_organisations RENAME TO krrg_vacancy_owner_organisations;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 2. Если обе таблицы есть — переносим данные, перепривязываем FK, удаляем старую -->
+    <changeSet id="015-002-merge-owner-organisations-into-organisations" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_vacancy_owner_organisations"/>
+                <tableExists tableName="krrg_organisations"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            -- 1. Переносим данные из старой таблицы в новую (сохраняя id)
+            INSERT INTO krrg_organisations (id, name, description, created_at, updated_at)
+            SELECT id, name, description, created_at, updated_at
+            FROM krrg_vacancy_owner_organisations
+                ON CONFLICT (id) DO NOTHING;
+
+            -- 2. Удаляем FK, которые ссылаются на старую таблицу
+            DO $$
+            DECLARE
+            r RECORD;
+            BEGIN
+            FOR r IN
+            SELECT conname, conrelid::regclass AS tbl
+            FROM pg_constraint
+            WHERE confrelid = 'krrg_vacancy_owner_organisations'::regclass
+                      AND contype = 'f'
+                LOOP
+                    EXECUTE format('ALTER TABLE %s DROP CONSTRAINT IF EXISTS %I', r.tbl, r.conname);
+            END LOOP;
+            END $$;
+
+            -- 3. Удаляем битые ссылки (если owner_organisation_id нет в krrg_organisations)
+            DELETE FROM krrg_vacancies
+            WHERE owner_organisation_id IS NOT NULL
+              AND owner_organisation_id NOT IN (SELECT id FROM krrg_organisations);
+
+            -- 4. Создаём FK на krrg_organisations, если его ещё нет
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint
+                    WHERE conname = 'fk_vacancies__owner_organisation'
+                ) THEN
+            ALTER TABLE krrg_vacancies
+                ADD CONSTRAINT fk_vacancies__owner_organisation
+                    FOREIGN KEY (owner_organisation_id)
+                        REFERENCES krrg_organisations(id);
+            END IF;
+            END $$;
+
+            -- 5. Удаляем старую таблицу
+            DROP TABLE IF EXISTS krrg_vacancy_owner_organisations;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[SELECT 1;]]></sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
