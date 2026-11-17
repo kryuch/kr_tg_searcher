@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import ru.kryuch.krtg.searcher.dto.BreadCrumb;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeDto;
-import ru.kryuch.krtg.searcher.dto.employee.GradeDto;
 import ru.kryuch.krtg.searcher.dto.employee.OrganizationDto;
 import ru.kryuch.krtg.searcher.dto.employee.SkillDto;
 import ru.kryuch.krtg.searcher.dto.employee.SpecialtyDto;
@@ -34,7 +33,6 @@ import ru.kryuch.krtg.searcher.service.employee.*;
 public class EmployeeController extends BaseController {
     private final EmployeeService employeeService;
     private final EmployeeProfileService employeeProfileService;
-    private final GradeService gradeService;
     private final SkillService skillService;
     private final OrganizationService organizationService;
     private final UniversityService universityService;
@@ -184,71 +182,6 @@ public class EmployeeController extends BaseController {
         developmentDirectionService.save(entity);
 
         return "redirect:/employee/directions/";
-    }
-
-    /************** Grades ************************/
-
-    @GetMapping("/grades/")
-    public String getGradesPage(Model model) {
-        model.addAttribute("title", "Уровни разработчика");
-        model.addAttribute("pageTemplate", "grade");
-        model.addAttribute("items", gradeService.findAll());
-        model.addAttribute("breadcrumbs", List.of(
-            new BreadCrumb("Сотрудники", "/employee/"),
-            new BreadCrumb("Уровни разработчика", "#")
-        ));
-
-        return render("employee/employee", model);
-    }
-
-    @GetMapping("/grades/add/")
-    public String getGradesAddPage(Model model) {
-        model.addAttribute("title", "Добавить уровень разработчика");
-        model.addAttribute("pageTemplate", "grade-add");
-        model.addAttribute("breadcrumbs", List.of(
-            new BreadCrumb("Сотрудники", "/employee/"),
-            new BreadCrumb("Уровни разработчика", "/employee/directions/"),
-            new BreadCrumb("Добавить уровень разработчика", "#")
-        ));
-
-        return render("employee/employee", model);
-    }
-
-    @PostMapping("/grades/add/")
-    public String postGradesAddPage(@RequestParam("name") String name, Model model) {
-        gradeService.save(new GradeDto(name));
-
-        return "redirect:/employee/grades/";
-    }
-
-    @GetMapping("/grades/{id}/")
-    public String getGradesEditPage(@PathVariable Long id, Model model) {
-        model.addAttribute("title", "Редактировать уровень разработчика");
-        model.addAttribute("pageTemplate", "grade-edit");
-        model.addAttribute("item", gradeService.findById(id));
-        model.addAttribute("breadcrumbs", List.of(
-            new BreadCrumb("Сотрудники", "/employee/"),
-            new BreadCrumb("Уровни разработчика", "/employee/grades/"),
-            new BreadCrumb("Редактировать уровни разработчика", "#")
-        ));
-
-        return render("employee/employee", model);
-    }
-
-    @PatchMapping("/grades/{id}/")
-    public String patchGradesEditPage(@PathVariable Long id, @RequestParam("name") String newName, Model model) {
-        GradeDto dto = gradeService.findById(id);
-        dto.setName(newName);
-        gradeService.save(dto);
-
-        return "redirect:/employee/grades/";
-    }
-
-    @DeleteMapping("/grades/{id}/")
-    public String deleteGradesEditPage(@PathVariable Long id) {
-        gradeService.deleteById(id);
-
-        return "redirect:/employee/grades/";
     }
 
     /************** Skills ************************/
