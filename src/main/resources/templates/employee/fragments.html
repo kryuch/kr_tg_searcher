@@ -1,0 +1,66 @@
+<head th:fragment="employees-head">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/employee/employee.css}">
+    <link rel="stylesheet" th:href="@{/employee/bootstrap.css}">
+    <script type="module" th:src="@{/employee/bootstrap.bundle.js}"></script>
+    <title th:text="${title}">Default Title</title>
+</head>
+
+<header th:fragment="employees-header" class="row align-items-center p-3 employees-header">
+    <div class="col">
+        <img th:src="@{/css/images/logo.jpg}" class="logo">
+    </div>
+    <div class="col d-flex justify-content-end">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-solid theme-secondary">Выход</button>
+        </form>
+    </div>
+</header>
+
+<nav th:fragment="employees-menu" class="employees-menu row">
+    <div class="col pt-3 pb-3">
+        <div th:each="menuItem : ${menuItems}" class="d-inline-flex">
+            <a th:if="${! currentUri.startsWith(menuItem.path())}"
+               th:href="${menuItem.path()}"
+               th:text="${menuItem.name()}"
+               class="btn-solid btn-styled ms-3 theme-primary"></a>
+            <a th:if="${currentUri.startsWith(menuItem.path())}"
+               th:href="${menuItem.path()}"
+               th:text="${menuItem.name()}"
+               data-bs-toggle="menu"
+               data-bs-placement="bottom-start"
+               aria-expanded="false"
+               class="btn-solid btn-styled ms-3 theme-secondary"></a>
+            <div th:if="${currentUri.startsWith(menuItem.path())}" class="menu">
+                <a th:each="subMenuItem : ${menuItem.subMenuItems()}"
+                   th:if="${subMenuItem.path() == '/employee/'}"
+                   class="menu-item"
+                   th:href="${subMenuItem.path()}"
+                   th:classappend="${currentUri.equals('/employee/')} ? ' active theme-secondary' : ''"
+                   th:inline="text">[[${subMenuItem.name()}]]
+                </a>
+                <a th:each="subMenuItem : ${menuItem.subMenuItems()}"
+                   th:if="${subMenuItem.path() != '/employee/'}"
+                   class="menu-item"
+                   th:href="${subMenuItem.path()}"
+                   th:classappend="${currentUri.startsWith(subMenuItem.path())} ? 'active theme-secondary' : ''"
+                   th:inline="text">[[${subMenuItem.name()}]]
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<nav th:fragment="breadcrumb" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <th:block th:each="breadcrumb : ${breadcrumbs}">
+            <li class="breadcrumb-item">
+                <a class="breadcrumb-link"
+                   th:classappend="${breadcrumb.path() == '#'} ? 'active' : ''"
+                   th:href="${breadcrumb.path()}"
+                   th:text="${breadcrumb.name()}"></a>
+            </li>
+            <li th:if="${breadcrumb.path() != '#'}" class="breadcrumb-divider"></li>
+        </th:block>
+    </ol>
+</nav>
