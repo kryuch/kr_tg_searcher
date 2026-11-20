@@ -23,6 +23,7 @@ import ru.kryuch.krtg.searcher.dto.employee.SpecialtyDto;
 import ru.kryuch.krtg.searcher.dto.employee.UniversityDto;
 import ru.kryuch.krtg.searcher.dto.employee.DevelopmentDirectionDto;
 import ru.kryuch.krtg.searcher.dto.employee.EducationTypeDto;
+import ru.kryuch.krtg.searcher.service.EmployeeService;
 import ru.kryuch.krtg.searcher.service.MainMenuService;
 
 import ru.kryuch.krtg.searcher.service.employee.*;
@@ -53,7 +54,7 @@ public class EmployeeController extends BaseController {
     public String getIndexPage(Model model) {
         model.addAttribute("title", "Сотрудники");
         model.addAttribute("pageTemplate", "employee");
-        model.addAttribute("items", employeeService.findAll());
+        model.addAttribute("items", employeeService.getAll());
         model.addAttribute("breadcrumbs", List.of(new BreadCrumb("Сотрудники", "#")));
 
         return render("employee/employee", model);
@@ -81,7 +82,7 @@ public class EmployeeController extends BaseController {
 
     @DeleteMapping("/{id}/")
     public String deleteEmployee(@PathVariable Long id) {
-        employeeService.deleteById(id);
+        employeeService.delete(id);
 
         return "redirect:/employee/";
     }
@@ -91,7 +92,7 @@ public class EmployeeController extends BaseController {
         model.addAttribute("title", "Редактировать сотрудника");
         model.addAttribute("pageTemplate", "employee-edit");
         model.addAttribute("id", id);
-        model.addAttribute("form", employeeService.findById(id));
+        model.addAttribute("form", employeeService.get(id));
         model.addAttribute("breadcrumbs", List.of(
             new BreadCrumb("Сотрудники", "/employee/"),
             new BreadCrumb("Редактировать сотрудника", "#")

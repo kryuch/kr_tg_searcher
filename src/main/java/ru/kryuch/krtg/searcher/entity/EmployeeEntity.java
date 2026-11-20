@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.entity.employee;
+package ru.kryuch.krtg.searcher.entity;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -14,12 +14,13 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.employee.ProfileEntity;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "krrg_employee_employee")
-public class EmployeeEntity {
+public class EmployeeEntity extends TimestampedEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

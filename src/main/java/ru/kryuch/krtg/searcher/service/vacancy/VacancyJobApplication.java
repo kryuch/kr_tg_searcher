@@ -9,7 +9,7 @@ import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.event.ReadyVacancyEvent;
 import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.repository.VacancyRepository;
-import ru.kryuch.krtg.searcher.service.employee.EmployeeService;
+import ru.kryuch.krtg.searcher.service.EmployeeService;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
