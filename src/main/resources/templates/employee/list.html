@@ -1,0 +1,33 @@
+<div class="icontent">
+
+    <a class="save itemsbutton" type="submit">Добавить</a>
+
+    <table class="list">
+        <thead>
+        <tr id="header">
+            <th id="id" class="table-id"> Идентификатор</th>
+            <th id="code" class="table-alias">Гражданство</th>
+            <th id="name" class="table-name"> Имя</th>
+            <th id="bdate" class="table-bdate"> Дата рождения</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${items.empty}">
+            <td colspan="4"> Тут пусто</td>
+        </tr>
+
+        <th:block th:each="employeeItem, iStat : ${items}">
+            <tr>
+                <td><span th:text="${employeeItem.id}"> Id </span></td>
+                <td><span th:text="${employeeItem.code}"> Гражданство </span></td>
+                <td><span th:text="${employeeItem.name}"> Имя </span></td>
+                <td><span th:text="${employeeItem.bdate}"> Дата рождения </span></td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+    <a class="save itemsbutton" type="submit">Добавить</a>
+
+</div>

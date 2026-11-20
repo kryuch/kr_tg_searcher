@@ -1,38 +1,18 @@
 package ru.kryuch.krtg.searcher.controller;
 
-import java.util.List;
-
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.dto.BreadCrumb;
-import ru.kryuch.krtg.searcher.dto.employee.EmployeeDto;
-import ru.kryuch.krtg.searcher.dto.employee.OrganizationDto;
-import ru.kryuch.krtg.searcher.dto.employee.SkillDto;
-import ru.kryuch.krtg.searcher.dto.employee.SpecialtyDto;
-import ru.kryuch.krtg.searcher.dto.employee.UniversityDto;
-import ru.kryuch.krtg.searcher.dto.employee.DevelopmentDirectionDto;
-import ru.kryuch.krtg.searcher.dto.employee.EducationTypeDto;
+import ru.kryuch.krtg.searcher.controller.base.BaseController;
+import ru.kryuch.krtg.searcher.controller.base.TBaseController;
 import ru.kryuch.krtg.searcher.service.EmployeeService;
-import ru.kryuch.krtg.searcher.service.MainMenuService;
-
-import ru.kryuch.krtg.searcher.service.employee.*;
 
 @Controller
-@RequestMapping("/employee")
-@RequiredArgsConstructor
-public class EmployeeController extends BaseController {
-    private final EmployeeService employeeService;
+@RequestMapping("/employees")
+public class EmployeeController extends TBaseController<EmployeeService> {
+    public EmployeeController(final EmployeeService service) {
+        super(service, "employee");
+    } /*
     private final EmployeeProfileService employeeProfileService;
     private final SkillService skillService;
     private final OrganizationService organizationService;
@@ -41,9 +21,9 @@ public class EmployeeController extends BaseController {
     private final EducationTypeService educationTypeService;
     private final EmployeeDevelopmentDirectionService developmentDirectionService;
     private final HttpServletRequest httpServletRequest;
-    private final MainMenuService mainMenuService;
+    private final MainMenuService mainMenuService;*/
 
-    public String render(String template, Model model) {
+  /*  public String render(String template, Model model) {
         model.addAttribute("menuItems", mainMenuService.getMenuItems());
         model.addAttribute("currentUri", httpServletRequest.getRequestURI());
 
@@ -184,9 +164,9 @@ public class EmployeeController extends BaseController {
 
         return "redirect:/employee/directions/";
     }
-
+*/
     /************** Skills ************************/
-
+/*
     @GetMapping("/skills/")
     public String getSkillsPage(Model model) {
         model.addAttribute("title", "Навыки и технологии");
@@ -247,9 +227,9 @@ public class EmployeeController extends BaseController {
 
         return "redirect:/employee/skills/";
     }
-
+*/
     /************** Organizations ************************/
-
+/*
     @GetMapping("/organizations/")
     public String getOrganizationsPage(Model model) {
         model.addAttribute("title", "Компании, в которых работал");
@@ -312,7 +292,7 @@ public class EmployeeController extends BaseController {
     }
 
     /************** Universities ************************/
-
+/*
     @GetMapping("/universities/")
     public String getUniversitiesPage(Model model) {
         model.addAttribute("title", "Университеты");
@@ -375,7 +355,7 @@ public class EmployeeController extends BaseController {
     }
 
     /************** Specialties ************************/
-
+/*
     @GetMapping("/specialties/")
     public String getSpecialtiesPage(Model model) {
         model.addAttribute("title", "Специальности");
@@ -438,7 +418,7 @@ public class EmployeeController extends BaseController {
     }
 
     /************** EducationType ************************/
-
+/*
     @GetMapping("/educationtypes/")
     public String getEducationTypePage(Model model) {
         model.addAttribute("title", "Типы образования");
@@ -498,5 +478,5 @@ public class EmployeeController extends BaseController {
         educationTypeService.deleteById(id);
 
         return "redirect:/employee/educationtypes/";
-    }
+    }*/
 }

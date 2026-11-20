@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.kryuch.krtg.searcher.dto.employee.EmployeeDto;
+import ru.kryuch.krtg.searcher.dto.EmployeeDto;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
 import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.employee.EmployeeRepository;

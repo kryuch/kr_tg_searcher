@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
+import ru.kryuch.krtg.searcher.controller.base.BaseController;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyFilter;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyListItemDto;
 import ru.kryuch.krtg.searcher.service.VacancyService;

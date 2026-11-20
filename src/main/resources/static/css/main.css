@@ -1184,3 +1184,8 @@ form.synchr button.save {
     margin-top: 16px;
     margin-left: 16px;
 }
+
+a.itemsbutton {
+    margin-bottom: 25px;
+    margin-left: 25px;
+}

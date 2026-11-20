@@ -1,6 +1,7 @@
-package ru.kryuch.krtg.searcher.dto.employee;
+package ru.kryuch.krtg.searcher.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -15,4 +16,8 @@ public class EmployeeDto {
     private String gender;
     private LocalDate birthDate;
     private String citizenship;
+
+    public String getName() {
+        return lastName + " " + firstName + " " + middleName;
+    }
 }
