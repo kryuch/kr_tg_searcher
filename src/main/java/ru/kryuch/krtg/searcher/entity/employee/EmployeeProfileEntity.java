@@ -54,6 +54,9 @@ public class EmployeeProfileEntity extends TimestampedEntity {
     @Column(name = "rate_per_hour", precision = 12, scale = 2)
     private BigDecimal ratePerHour;
 
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EmployeeProfileProjectEntity> projects;
+
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
@@ -91,13 +94,6 @@ public class EmployeeProfileEntity extends TimestampedEntity {
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
-    private Set<ProfileSpecialtyEntity> profileSpecialties;
-
-    @OneToMany(
-        mappedBy = "profile",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
     private Set<ProfileEducationTypeEntity> profileEducationTypes;
 
     public String getEmployeeFio() {
@@ -111,12 +107,6 @@ public class EmployeeProfileEntity extends TimestampedEntity {
     public String getEducationTypeNames() {
         return profileEducationTypes.stream()
             .map(pet -> pet.getEducationType().getName())
-            .collect(Collectors.joining(", "));
-    }
-
-    public String getSpecialtyNames() {
-        return profileSpecialties.stream()
-            .map(ps -> ps.getSpecialty().getName())
             .collect(Collectors.joining(", "));
     }
 

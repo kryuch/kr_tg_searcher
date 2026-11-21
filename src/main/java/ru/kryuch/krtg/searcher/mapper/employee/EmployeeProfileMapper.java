@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 
 @Mapper(
     componentModel = "spring",
-    unmappedTargetPolicy = ReportingPolicy.IGNORE
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    uses = {EmployeeProfileProjectMapper.class}
 )
 public abstract class EmployeeProfileMapper implements TMapper<EmployeeProfileEntity, EmployeeProfileDto> {
 
@@ -34,7 +35,6 @@ public abstract class EmployeeProfileMapper implements TMapper<EmployeeProfileEn
     @Mapping(target = "profileDirections", ignore = true)
     @Mapping(target = "profileOrganizations", ignore = true)
     @Mapping(target = "profileUniversities", ignore = true)
-    @Mapping(target = "profileSpecialties", ignore = true)
     @Mapping(target = "profileEducationTypes", ignore = true)
     @Mapping(target = "grades", ignore = true)
     public abstract EmployeeProfileEntity toEntity(EmployeeProfileDto dto);
@@ -47,7 +47,6 @@ public abstract class EmployeeProfileMapper implements TMapper<EmployeeProfileEn
     @Mapping(target = "profileDirections", ignore = true)
     @Mapping(target = "profileOrganizations", ignore = true)
     @Mapping(target = "profileUniversities", ignore = true)
-    @Mapping(target = "profileSpecialties", ignore = true)
     @Mapping(target = "profileEducationTypes", ignore = true)
     @Mapping(target = "grades", ignore = true)
     public abstract EmployeeProfileEntity mergeToEntity(EmployeeProfileDto dto, @MappingTarget EmployeeProfileEntity entity);
