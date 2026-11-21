@@ -9,5 +9,6 @@ public interface LocationLanguageRepository extends JpaRepository<LocationLangua
 
     Optional<LocationLanguageEntity> findByCode(String code);
 
+    Optional<LocationLanguageEntity> findByName(String name);
     boolean existsByCode(String code);
 }

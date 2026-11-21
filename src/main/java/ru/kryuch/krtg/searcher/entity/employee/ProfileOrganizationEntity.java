@@ -31,5 +31,5 @@ public class ProfileOrganizationEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
-    private OrganizationEntity organization;
+    private EmployeeContactEntity organization;
 }

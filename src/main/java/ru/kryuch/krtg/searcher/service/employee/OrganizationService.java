@@ -6,30 +6,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.dto.employee.OrganizationDto;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
 import ru.kryuch.krtg.searcher.mapper.employee.OrganizationMapper;
 import ru.kryuch.krtg.searcher.repository.employee.OrganizationRepository;
 
-@Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
+//@Service
+//@RequiredArgsConstructor
+//@Transactional(readOnly = true)
 public class OrganizationService {
-    private final OrganizationRepository organizationRepository;
-    private final OrganizationMapper organizationMapper;
-
-    public List<OrganizationDto> findAll() {
+  //  private final OrganizationRepository organizationRepository;
+    //private final OrganizationMapper organizationMapper;
+/*
+    public List<EmployeeLanguage> findAll() {
         return organizationRepository.findAll()
             .stream().map(e -> organizationMapper.toDto(e)).toList();
     }
 
-    public OrganizationDto findById(Long id) {
+    public EmployeeLanguage findById(Long id) {
         return organizationMapper.toDto(organizationRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + id))
         );
     }
 
     @Transactional
-    public OrganizationDto save(OrganizationDto dto) {
+    public EmployeeLanguage save(EmployeeLanguage dto) {
         return organizationMapper.toDto(organizationRepository.save(
             organizationMapper.toEntity(dto)
         ));
@@ -38,5 +38,5 @@ public class OrganizationService {
     @Transactional
     public void deleteById(Long id) {
         organizationRepository.deleteById(id);
-    }
+    }*/
 }

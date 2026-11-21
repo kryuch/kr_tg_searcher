@@ -4,18 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.type.ContactType;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrganizationDto {
+public class EmployeeContactDto {
 
-    private Long id;
+    private String value;
 
-    private String name;
+    private ContactType type;
 
-    public OrganizationDto(String name) {
-        this.name = name;
-    }
 }
