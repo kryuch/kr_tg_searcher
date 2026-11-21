@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- 1. Переименование krrg_employee_employee -> krrg_employees -->
+    <changeSet id="018-001-rename-employee-table" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_employee"/>
+                <not>
+                    <tableExists tableName="krrg_employees"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employee_employee RENAME TO krrg_employees;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employees RENAME TO krrg_employee_employee;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 2. Добавление citizenship_id (FK на krrg_location_states) -->
+    <changeSet id="018-002-add-citizenship-id" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employees"/>
+                <tableExists tableName="krrg_location_states"/>
+                <not>
+                    <columnExists tableName="krrg_employees" columnName="citizenship_id"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employees ADD COLUMN citizenship_id BIGINT;
+            ALTER TABLE krrg_employees
+                ADD CONSTRAINT fk_employees__citizenship
+                    FOREIGN KEY (citizenship_id) REFERENCES krrg_location_states(id) ON DELETE RESTRICT;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employees DROP CONSTRAINT IF EXISTS fk_employees__citizenship;
+                ALTER TABLE krrg_employees DROP COLUMN IF EXISTS citizenship_id;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 3. Удаление текстового citizenship (только если citizenship_id уже есть) -->
+    <changeSet id="018-003-drop-text-citizenship" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employees"/>
+                <columnExists tableName="krrg_employees" columnName="citizenship"/>
+                <columnExists tableName="krrg_employees" columnName="citizenship_id"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employees DROP COLUMN IF EXISTS citizenship;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employees ADD COLUMN citizenship VARCHAR(100);
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 4. Добавление city_id (FK на krrg_location_cities) -->
+    <changeSet id="018-004-add-city-id" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employees"/>
+                <tableExists tableName="krrg_location_cities"/>
+                <not>
+                    <columnExists tableName="krrg_employees" columnName="city_id"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employees ADD COLUMN city_id BIGINT;
+            ALTER TABLE krrg_employees
+                ADD CONSTRAINT fk_employees__city
+                    FOREIGN KEY (city_id) REFERENCES krrg_location_cities(id) ON DELETE RESTRICT;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employees DROP CONSTRAINT IF EXISTS fk_employees__city;
+                ALTER TABLE krrg_employees DROP COLUMN IF EXISTS city_id;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 5. Добавление is_male (boolean) -->
+    <changeSet id="018-005-add-is-male" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employees"/>
+                <not>
+                    <columnExists tableName="krrg_employees" columnName="is_male"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employees ADD COLUMN is_male BOOLEAN;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employees DROP COLUMN IF EXISTS is_male;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 6. Удаление текстового gender (только если is_male уже есть) -->
+    <changeSet id="018-006-drop-text-gender" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employees"/>
+                <columnExists tableName="krrg_employees" columnName="gender"/>
+                <columnExists tableName="krrg_employees" columnName="is_male"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employees DROP COLUMN IF EXISTS gender;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employees ADD COLUMN gender VARCHAR(10);
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 1. Таблица языков сотрудника -->
+    <changeSet id="018-007-create-employee-languages" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employees"/>
+                <tableExists tableName="krrg_location_languages"/>
+                <not>
+                    <tableExists tableName="krrg_employee_languages"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            CREATE TABLE krrg_employee_languages (
+                                                     id          BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                                                     employee_id BIGINT NOT NULL,
+                                                     language_id BIGINT NOT NULL,
+                                                     level       VARCHAR(50),
+                                                     created_at  TIMESTAMP(6) DEFAULT now(),
+                                                     updated_at  TIMESTAMP(6) DEFAULT now(),
+                                                     CONSTRAINT uk_employee_languages__employee_language UNIQUE (employee_id, language_id),
+                                                     CONSTRAINT fk_employee_languages__employee
+                                                         FOREIGN KEY (employee_id) REFERENCES krrg_employees(id) ON DELETE CASCADE,
+                                                     CONSTRAINT fk_employee_languages__language
+                                                         FOREIGN KEY (language_id) REFERENCES krrg_location_languages(id) ON DELETE RESTRICT
+            );
+            CREATE INDEX IF NOT EXISTS idx_employee_languages__employee_id
+                ON krrg_employee_languages (employee_id);
+            CREATE INDEX IF NOT EXISTS idx_employee_languages__language_id
+                ON krrg_employee_languages (language_id);
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                DROP TABLE IF EXISTS krrg_employee_languages;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="018-008-create-employee-contacts" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employees"/>
+                <not>
+                    <tableExists tableName="krrg_employee_contacts"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            CREATE TABLE krrg_employee_contacts (
+                                                    id          BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                                                    employee_id BIGINT NOT NULL,
+                                                    type        VARCHAR(50) NOT NULL,
+                                                    value       VARCHAR(500) NOT NULL,
+                                                    created_at  TIMESTAMP(6) DEFAULT now(),
+                                                    updated_at  TIMESTAMP(6) DEFAULT now(),
+                                                    CONSTRAINT fk_employee_contacts__employee
+                                                        FOREIGN KEY (employee_id) REFERENCES krrg_employees(id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_employee_contacts__employee_id
+                ON krrg_employee_contacts (employee_id);
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                DROP TABLE IF EXISTS krrg_employee_contacts;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

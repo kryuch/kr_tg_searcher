@@ -13,11 +13,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.kryuch.krtg.searcher.config.DocumentTemplateConfig;
+import ru.kryuch.krtg.searcher.controller.api.ResumeController;
 import ru.kryuch.krtg.searcher.helper.generator.DocumentGenerator;
 import ru.kryuch.krtg.searcher.helper.generator.DocxGenerator;
 import ru.kryuch.krtg.searcher.helper.generator.PdfGenerator;
 import ru.kryuch.krtg.searcher.helper.generator.ResumeFontProvider;
 import ru.kryuch.krtg.searcher.service.DocumentGeneratorService;
+import ru.kryuch.krtg.searcher.service.EmployeeService;
 import ru.kryuch.krtg.searcher.util.generator.DocumentRenderer;
 import ru.kryuch.krtg.searcher.util.generator.HtmlDocumentRenderer;
 
@@ -32,6 +34,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -56,12 +59,16 @@ class ResumeControllerTest {
 
         DocumentRenderer renderer = new HtmlDocumentRenderer(new DocumentTemplateConfig().documentTemplateEngine());
         Map<String, DocumentGenerator> generators = Map.of(
-                "pdf", new PdfGenerator(fontProvider),
-                "docx", new DocxGenerator()
+            "pdf", new PdfGenerator(fontProvider),
+            "docx", new DocxGenerator()
         );
-        DocumentGeneratorService service = new DocumentGeneratorService(renderer, generators);
+        DocumentGeneratorService documentGeneratorService = new DocumentGeneratorService(renderer, generators);
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new ResumeController(service)).build();
+        EmployeeService employeeService = mock(EmployeeService.class);
+
+        mockMvc = MockMvcBuilders.standaloneSetup(
+            new ResumeController(employeeService, documentGeneratorService)
+        ).build();
     }
 
     @AfterEach

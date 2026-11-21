@@ -117,9 +117,9 @@ public class ProfileEntity {
     }
 
     public String getOrganizationNames() {
-        return profileOrganizations.stream()
+        return null;/*profileOrganizations.stream()
             .map(po -> po.getOrganization().getName())
-            .collect(Collectors.joining(", "));
+            .collect(Collectors.joining(", "));*/
     }
 
     public String getSkillNames() {

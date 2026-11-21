@@ -15,5 +15,5 @@ public interface LocationCityRepository extends JpaRepository<LocationCityEntity
     @EntityGraph(attributePaths = "state")
     List<LocationCityEntity> findByState_IdOrderByNameAsc(Long stateId);
 
-    Optional<LocationCityEntity> findByNameAndState_Id(String name, Long stateId);
+    Optional<LocationCityEntity> findByNameAndStateId(String name, Long stateId);
 }
