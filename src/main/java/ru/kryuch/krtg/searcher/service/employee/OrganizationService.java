@@ -1,15 +1,5 @@
 package ru.kryuch.krtg.searcher.service.employee;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
-import ru.kryuch.krtg.searcher.mapper.employee.OrganizationMapper;
-import ru.kryuch.krtg.searcher.repository.employee.OrganizationRepository;
-
 //@Service
 //@RequiredArgsConstructor
 //@Transactional(readOnly = true)
