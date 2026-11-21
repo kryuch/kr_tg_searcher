@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeContactDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeProfileDto;
 
 @Getter
 @Setter
@@ -25,6 +26,7 @@ public class EmployeeDto {
     private String state;
     private List <EmployeeContactDto> contacts;
     private List <EmployeeLanguage> languages;
+    private List <EmployeeProfileDto> profiles;
 
     public String getName() {
         return lastName + " " + firstName + " " + middleName;

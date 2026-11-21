@@ -27,7 +27,7 @@ public class ProfileEducationTypeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "profile_id", nullable = false)
-    private ProfileEntity profile;
+    private EmployeeProfileEntity profile;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "educationtype_id", nullable = false)

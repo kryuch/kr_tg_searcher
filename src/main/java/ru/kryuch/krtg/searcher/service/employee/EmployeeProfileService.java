@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import ru.kryuch.krtg.searcher.dto.employee.ProfileDto;
-import ru.kryuch.krtg.searcher.mapper.employee.ProfileMapper;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeProfileDto;
+import ru.kryuch.krtg.searcher.mapper.employee.EmployeeProfileMapper;
 import ru.kryuch.krtg.searcher.repository.employee.EmployeeProfileRepository;
 
 @Service
@@ -16,14 +16,14 @@ import ru.kryuch.krtg.searcher.repository.employee.EmployeeProfileRepository;
 public class EmployeeProfileService {
 
     private final EmployeeProfileRepository employeeProfileRepository;
-    private final ProfileMapper profileMapper;
-
-    public List<ProfileDto> findAll() {
+    private final EmployeeProfileMapper profileMapper;
+/*
+    public List<EmployeeProfileDto> findAll() {
         return employeeProfileRepository.findAllByOrderByIdAscWithDetails()
             .stream().map(e -> profileMapper.toDto(e)).toList();
     }
 
-    public ProfileDto findById(Long id) {
+    public EmployeeProfileDto findById(Long id) {
         return profileMapper.toDto(employeeProfileRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Profile not found: " + id
@@ -31,12 +31,12 @@ public class EmployeeProfileService {
     }
 
     @Transactional
-    public ProfileDto save(ProfileDto dto) {
+    public EmployeeProfileDto save(EmployeeProfileDto dto) {
         return profileMapper.toDto(employeeProfileRepository.save(
             profileMapper.toEntity(dto)    
         ));
     }
-
+*/
     @Transactional
     public void deleteById(Long id) {
         employeeProfileRepository.deleteById(id);

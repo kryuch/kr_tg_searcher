@@ -1,5 +1,6 @@
 package ru.kryuch.krtg.searcher.entity.employee;
 
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,24 +12,26 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
 import ru.kryuch.krtg.searcher.entity.GradeEntity;
+import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "krrg_employee_profile")
+@Table(name = "krrg_employee_profiles")
 @NoArgsConstructor
-@AllArgsConstructor
-public class ProfileEntity {
+public class EmployeeProfileEntity extends TimestampedEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,9 +43,16 @@ public class ProfileEntity {
     @JoinColumn(name = "employee_id", nullable = false)
     private EmployeeEntity employee;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "grade_id", nullable = false)
-    private GradeEntity grade;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "krrg_employee_profile_grades",
+        joinColumns = @JoinColumn(name = "profile_id", nullable = false),
+        inverseJoinColumns = @JoinColumn(name = "grade_id", nullable = false)
+    )
+    private Set<GradeEntity> grades;
+
+    @Column(name = "rate_per_hour", precision = 12, scale = 2)
+    private BigDecimal ratePerHour;
 
     @Version
     @Column(name = "version", nullable = false)
@@ -60,7 +70,7 @@ public class ProfileEntity {
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
-    private Set<ProfileSkillEntity> profileSkills;
+    private Set<EmployeeProfileSkillEntity> profileSkills;
 
     @OneToMany(
         mappedBy = "profile",
@@ -117,9 +127,7 @@ public class ProfileEntity {
     }
 
     public String getOrganizationNames() {
-        return null;/*profileOrganizations.stream()
-            .map(po -> po.getOrganization().getName())
-            .collect(Collectors.joining(", "));*/
+        return null; // TODO: реализовать, когда будет связь
     }
 
     public String getSkillNames() {
@@ -130,7 +138,16 @@ public class ProfileEntity {
 
     public String getDirectionNames() {
         return profileDirections.stream()
-            .map((pd) -> pd.getDirection().getName())
+            .map(pd -> pd.getDirection().getName())
+            .collect(Collectors.joining(", "));
+    }
+
+    public String getGradeNames() {
+        if (grades == null || grades.isEmpty()) {
+            return "";
+        }
+        return grades.stream()
+            .map(GradeEntity::getName)
             .collect(Collectors.joining(", "));
     }
 }

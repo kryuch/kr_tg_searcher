@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeContactEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeLanguageEntity;
-import ru.kryuch.krtg.searcher.entity.employee.ProfileEntity;
+import ru.kryuch.krtg.searcher.entity.employee.EmployeeProfileEntity;
 import ru.kryuch.krtg.searcher.entity.location.LocationCityEntity;
 import ru.kryuch.krtg.searcher.entity.location.LocationStateEntity;
 
@@ -62,7 +62,7 @@ public class EmployeeEntity extends TimestampedEntity {
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
-    private Set<ProfileEntity> employeeProfiles;
+    private Set<EmployeeProfileEntity> profiles;
 
     @OneToMany(
         mappedBy = "employee",
