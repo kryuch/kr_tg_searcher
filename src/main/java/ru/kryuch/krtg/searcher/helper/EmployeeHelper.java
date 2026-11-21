@@ -6,6 +6,7 @@ import ru.kryuch.krtg.searcher.dto.EmployeeDto;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeContactEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeLanguageEntity;
+import ru.kryuch.krtg.searcher.entity.employee.EmployeeProfileEntity;
 import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
 import ru.kryuch.krtg.searcher.repository.location.LocationCityRepository;
 import ru.kryuch.krtg.searcher.repository.location.LocationLanguageRepository;
@@ -41,6 +42,13 @@ public class EmployeeHelper {
             lang.setLevel(l.getLevel());
             return lang;
         }).collect(Collectors.toSet()));
+
+        if (entity.getProfiles() != null) {
+            for (EmployeeProfileEntity profile : entity.getProfiles()) {
+                profile.setEmployee(entity);
+            }
+        }
+
         return entity;
     }
 

@@ -9,13 +9,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SkillDto {
+public class EmployeeSkillDto {
 
     private Long id;
 
     private String name;
 
-    public SkillDto(String name) {
+    public EmployeeSkillDto(String name) {
         this.name = name;
     }
 }

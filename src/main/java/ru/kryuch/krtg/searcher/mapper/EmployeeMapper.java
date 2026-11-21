@@ -12,6 +12,7 @@ import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeContactEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeLanguageEntity;
+import ru.kryuch.krtg.searcher.mapper.employee.EmployeeProfileMapper;
 import ru.kryuch.krtg.searcher.type.ContactType;
 
 import java.util.Collection;
@@ -19,7 +20,8 @@ import java.util.List;
 
 @Mapper(
     componentModel = "spring",
-    unmappedTargetPolicy = ReportingPolicy.IGNORE
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    uses = {EmployeeProfileMapper.class}
 )
 public abstract class EmployeeMapper implements TMapper<EmployeeEntity, EmployeeDto> {
 
@@ -43,7 +45,6 @@ public abstract class EmployeeMapper implements TMapper<EmployeeEntity, Employee
     @Mapping(target = "city", ignore = true)
     @Mapping(target = "contacts", ignore = true)
     @Mapping(target = "languages", ignore = true)
-    @Mapping(target = "employeeProfiles", ignore = true)
     public abstract EmployeeEntity toEntity(EmployeeDto dto);
 
     @Override
@@ -56,7 +57,6 @@ public abstract class EmployeeMapper implements TMapper<EmployeeEntity, Employee
     @Mapping(target = "city", ignore = true)
     @Mapping(target = "contacts", ignore = true)
     @Mapping(target = "languages", ignore = true)
-    @Mapping(target = "employeeProfiles", ignore = true)
     public abstract EmployeeEntity mergeToEntity(EmployeeDto dto, @MappingTarget EmployeeEntity entity);
 
     // ==================== Вспомогательные методы ====================
