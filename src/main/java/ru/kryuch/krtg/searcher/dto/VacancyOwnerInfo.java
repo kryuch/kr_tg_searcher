@@ -1,11 +1,11 @@
 package ru.kryuch.krtg.searcher.dto;
 
 import lombok.Data;
-import ru.kryuch.krtg.searcher.type.vacancy.VacancyOwnerType;
+import ru.kryuch.krtg.searcher.type.ContactType;
 
 @Data
 public class VacancyOwnerInfo {
 
-    private VacancyOwnerType type;
+    private ContactType type;
     private String value;
 }

@@ -21,4 +21,6 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
     <include file="changes/013_vacancy_resume_filter.xml" relativeToChangelogFile="true"/>
     <include file="changes/014_chatstatus_update.xml" relativeToChangelogFile="true"/>
     <include file="changes/015_organisation_refactor.xml" relativeToChangelogFile="true"/>
+    <include file="changes/017_locations.xml" relativeToChangelogFile="true"/>
+    <include file="changes/018_employee_rebuild.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

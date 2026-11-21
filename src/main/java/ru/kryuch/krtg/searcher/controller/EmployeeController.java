@@ -1,10 +1,16 @@
 package ru.kryuch.krtg.searcher.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import ru.kryuch.krtg.searcher.controller.base.BaseController;
 import ru.kryuch.krtg.searcher.controller.base.TBaseController;
+import ru.kryuch.krtg.searcher.dto.EmployeeDto;
+import ru.kryuch.krtg.searcher.dto.IgnoreInfo;
 import ru.kryuch.krtg.searcher.service.EmployeeService;
 
 @Controller
@@ -12,7 +18,15 @@ import ru.kryuch.krtg.searcher.service.EmployeeService;
 public class EmployeeController extends TBaseController<EmployeeService> {
     public EmployeeController(final EmployeeService service) {
         super(service, "employee");
-    } /*
+    }
+
+    @RequestMapping(value = "/add")
+    public String add(@Valid @ModelAttribute("ignore") EmployeeDto employeeDto, Model model) {
+        service.save(employeeDto);
+        return "success";
+    }
+
+    /*
     private final EmployeeProfileService employeeProfileService;
     private final SkillService skillService;
     private final OrganizationService organizationService;

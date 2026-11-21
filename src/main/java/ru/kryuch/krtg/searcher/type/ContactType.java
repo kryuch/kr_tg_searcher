@@ -1,6 +1,6 @@
-package ru.kryuch.krtg.searcher.type.vacancy;
+package ru.kryuch.krtg.searcher.type;
 
-public enum VacancyOwnerType {
+public enum ContactType {
 
     PHONE(1, "телефон"),
     EMAIL(2, "email"),
@@ -11,7 +11,7 @@ public enum VacancyOwnerType {
     final Integer type;
     final String value;
 
-    VacancyOwnerType(Integer type, String value) {
+    ContactType(Integer type, String value) {
         this.type = type;
         this.value = value;
     }

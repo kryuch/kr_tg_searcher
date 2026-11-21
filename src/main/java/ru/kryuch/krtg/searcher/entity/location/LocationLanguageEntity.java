@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.entity.employee;
+package ru.kryuch.krtg.searcher.entity.location;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -6,26 +6,25 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 
 @Entity
-@Table(name="krrg_employee_organization")
+@Table(name = "krrg_location_languages")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class OrganizationEntity {
+public class LocationLanguageEntity extends TimestampedEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true, length = 100)
-    private String name;
+    @Column(nullable = false, length = 10, unique = true)
+    private String code;
 
-    public OrganizationEntity(String name) {
-        this.name = name;
-    }
+    @Column(nullable = false)
+    private String name;
 }

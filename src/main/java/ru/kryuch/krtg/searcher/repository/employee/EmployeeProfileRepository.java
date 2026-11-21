@@ -6,14 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import ru.kryuch.krtg.searcher.entity.employee.ProfileEntity;
+import ru.kryuch.krtg.searcher.entity.employee.EmployeeProfileEntity;
 
 @Repository
-public interface EmployeeProfileRepository extends JpaRepository<ProfileEntity, Long> {
-
+public interface EmployeeProfileRepository extends JpaRepository<EmployeeProfileEntity, Long> {
+/*
     @Query("""
         SELECT          DISTINCT p
-        FROM            ProfileEntity p
+        FROM            EmployeeProfileEntity p
         JOIN FETCH      p.employee
         JOIN FETCH      p.grade
         LEFT JOIN FETCH p.profileDirections pd
@@ -30,5 +30,5 @@ public interface EmployeeProfileRepository extends JpaRepository<ProfileEntity, 
         LEFT JOIN FETCH pet.educationType
         ORDER BY        p.id ASC
     """)
-    List<ProfileEntity> findAllByOrderByIdAscWithDetails();
+    List<EmployeeProfileEntity> findAllByOrderByIdAscWithDetails();*/
 }
