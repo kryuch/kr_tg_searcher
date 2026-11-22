@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,10 +16,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "krrg_employee_profile_specialty")
+@Table(
+    name = "krrg_employee_profile_skills",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_profile_skill",
+            columnNames = {"profile_id", "skill_id"}
+        )
+    }
+)
 @NoArgsConstructor
-@AllArgsConstructor
-public class ProfileSpecialtyEntity {
+public class EmployeeProfileSkillEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +34,9 @@ public class ProfileSpecialtyEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "profile_id", nullable = false)
-    private ProfileEntity profile;
+    private EmployeeProfileEntity profile;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "specialty_id", nullable = false)
-    private SpecialtyEntity specialty;
+    @JoinColumn(name = "skill_id", nullable = false)
+    private SkillEntity skill;
 }

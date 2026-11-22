@@ -2,9 +2,12 @@ package ru.kryuch.krtg.searcher.entity.employee;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,14 +22,17 @@ public class EmployeeEducationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "university", nullable = false, unique = true, length = 100)
-    private String university;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "university_id", nullable = false)
+    private UniversityEntity university;
 
-    @Column(name = "education_type", nullable = false, unique = true, length = 100)
-    private String educationType;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "education_type_id", nullable = false)
+    private EducationTypeEntity educationType;
 
-    @Column(name = "specialty", nullable = false, unique = true, length = 100)
-    private String specialty;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "specialty_id", nullable = false)
+    private SpecialtyEntity specialty;
 
     @Column(name = "start_year")
     private Integer startYear;

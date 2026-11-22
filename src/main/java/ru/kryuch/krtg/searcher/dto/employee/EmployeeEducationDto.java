@@ -11,11 +11,11 @@ public class EmployeeEducationDto {
 
     private String university;
 
-    private Long educationTypeId;
+    private String educationType;
+
+    private String specialty;
 
     private Integer startYear;
 
     private Integer endYear;
-
-    private Long specialtyId;
 }

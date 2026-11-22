@@ -133,7 +133,7 @@
         </rollback>
     </changeSet>
 
-    <!-- 1. Таблица языков сотрудника -->
+    <!-- 7. Таблица языков сотрудника -->
     <changeSet id="018-007-create-employee-languages" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <and>
@@ -170,6 +170,7 @@
         </rollback>
     </changeSet>
 
+    <!-- 8. Таблица контактов сотрудника -->
     <changeSet id="018-008-create-employee-contacts" author="Oleg V. Kryuchin">
         <preConditions onFail="MARK_RAN">
             <and>
@@ -199,4 +200,307 @@
             ]]></sql>
         </rollback>
     </changeSet>
+
+    <!-- 9. Удаление устаревшей таблицы krrg_employee_employee (если обе существуют) -->
+    <changeSet id="018-009-drop-legacy-employee-table" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_employee"/>
+                <tableExists tableName="krrg_employees"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            DO $$
+            DECLARE
+            r RECORD;
+            BEGIN
+            FOR r IN
+            SELECT conname, conrelid::regclass AS tbl
+            FROM pg_constraint
+            WHERE confrelid = 'krrg_employee_employee'::regclass
+                      AND contype = 'f'
+                LOOP
+                    EXECUTE format('ALTER TABLE %s DROP CONSTRAINT IF EXISTS %I', r.tbl, r.conname);
+            END LOOP;
+            END $$;
+
+            DO $$
+            BEGIN
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_profile' AND column_name = 'employee_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_profile__employee') THEN
+            ALTER TABLE krrg_employee_profile
+                ADD CONSTRAINT fk_employee_profile__employee
+                    FOREIGN KEY (employee_id) REFERENCES krrg_employees(id);
+            END IF;
+            END IF;
+
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_languages' AND column_name = 'employee_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_languages__employee') THEN
+            ALTER TABLE krrg_employee_languages
+                ADD CONSTRAINT fk_employee_languages__employee
+                    FOREIGN KEY (employee_id) REFERENCES krrg_employees(id) ON DELETE CASCADE;
+            END IF;
+            END IF;
+
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_contacts' AND column_name = 'employee_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_contacts__employee') THEN
+            ALTER TABLE krrg_employee_contacts
+                ADD CONSTRAINT fk_employee_contacts__employee
+                    FOREIGN KEY (employee_id) REFERENCES krrg_employees(id) ON DELETE CASCADE;
+            END IF;
+            END IF;
+            END $$;
+
+            DROP TABLE IF EXISTS krrg_employee_employee;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                SELECT 1;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 10. Переименование krrg_employee_profile -> krrg_employee_profiles + добавление created_at/updated_at -->
+    <changeSet id="018-010-rename-profile-table-and-add-timestamps" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <or>
+                <tableExists tableName="krrg_employee_profile"/>
+                <tableExists tableName="krrg_employee_profiles"/>
+            </or>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            -- 1. Переименовываем, если нужно
+            DO $$
+            BEGIN
+                IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'krrg_employee_profile')
+                   AND NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'krrg_employee_profiles') THEN
+            ALTER TABLE krrg_employee_profile RENAME TO krrg_employee_profiles;
+            END IF;
+            END $$;
+
+            -- 2. Добавляем created_at/updated_at, если их нет
+            ALTER TABLE krrg_employee_profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMP(6);
+            ALTER TABLE krrg_employee_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP(6);
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employee_profiles DROP COLUMN IF EXISTS created_at;
+                ALTER TABLE krrg_employee_profiles DROP COLUMN IF EXISTS updated_at;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 11. Разрешение конфликта: если обе таблицы профилей существуют -->
+    <changeSet id="018-011-merge-employee-profile-tables" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_profile"/>
+                <tableExists tableName="krrg_employee_profiles"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            -- 1. Переносим данные из старой в новую (без created_at/updated_at, чтобы не зависеть от их наличия)
+            INSERT INTO krrg_employee_profiles (id, version, employee_id, name)
+            SELECT id, version, employee_id, name
+            FROM krrg_employee_profile
+                ON CONFLICT (id) DO NOTHING;
+
+            -- 2. Удаляем FK, ссылающиеся на старую таблицу
+            DO $$
+            DECLARE
+            r RECORD;
+            BEGIN
+            FOR r IN
+            SELECT conname, conrelid::regclass AS tbl
+            FROM pg_constraint
+            WHERE confrelid = 'krrg_employee_profile'::regclass
+                      AND contype = 'f'
+                LOOP
+                    EXECUTE format('ALTER TABLE %s DROP CONSTRAINT IF EXISTS %I', r.tbl, r.conname);
+            END LOOP;
+            END $$;
+
+            -- 3. Создаём FK на krrg_employee_profiles для таблиц, которые ссылались на старую
+            DO $$
+            BEGIN
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_profile_direction' AND column_name = 'profile_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_profile_direction__profile') THEN
+            ALTER TABLE krrg_employee_profile_direction
+                ADD CONSTRAINT fk_employee_profile_direction__profile
+                    FOREIGN KEY (profile_id) REFERENCES krrg_employee_profiles(id);
+            END IF;
+            END IF;
+
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_profile_educationtype' AND column_name = 'profile_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_profile_educationtype__profile') THEN
+            ALTER TABLE krrg_employee_profile_educationtype
+                ADD CONSTRAINT fk_employee_profile_educationtype__profile
+                    FOREIGN KEY (profile_id) REFERENCES krrg_employee_profiles(id);
+            END IF;
+            END IF;
+
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_profile_organization' AND column_name = 'profile_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_profile_organization__profile') THEN
+            ALTER TABLE krrg_employee_profile_organization
+                ADD CONSTRAINT fk_employee_profile_organization__profile
+                    FOREIGN KEY (profile_id) REFERENCES krrg_employee_profiles(id);
+            END IF;
+            END IF;
+
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_profile_skill' AND column_name = 'profile_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_profile_skill__profile') THEN
+            ALTER TABLE krrg_employee_profile_skill
+                ADD CONSTRAINT fk_employee_profile_skill__profile
+                    FOREIGN KEY (profile_id) REFERENCES krrg_employee_profiles(id);
+            END IF;
+            END IF;
+
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_profile_specialty' AND column_name = 'profile_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_profile_specialty__profile') THEN
+            ALTER TABLE krrg_employee_profile_specialty
+                ADD CONSTRAINT fk_employee_profile_specialty__profile
+                    FOREIGN KEY (profile_id) REFERENCES krrg_employee_profiles(id);
+            END IF;
+            END IF;
+
+                IF EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name = 'krrg_employee_profile_university' AND column_name = 'profile_id') THEN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_employee_profile_university__profile') THEN
+            ALTER TABLE krrg_employee_profile_university
+                ADD CONSTRAINT fk_employee_profile_university__profile
+                    FOREIGN KEY (profile_id) REFERENCES krrg_employee_profiles(id);
+            END IF;
+            END IF;
+            END $$;
+
+            -- 4. Удаляем старую таблицу
+            DROP TABLE IF EXISTS krrg_employee_profile;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[SELECT 1;]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 12. Удаление grade_id из krrg_employee_profiles -->
+    <changeSet id="018-012-drop-grade-id-from-profiles" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_profiles"/>
+                <columnExists tableName="krrg_employee_profiles" columnName="grade_id"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employee_profiles DROP CONSTRAINT IF EXISTS fk_krrg_employee_profile_grade;
+            ALTER TABLE krrg_employee_profiles DROP COLUMN IF EXISTS grade_id;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employee_profiles ADD COLUMN grade_id BIGINT;
+                ALTER TABLE krrg_employee_profiles
+                    ADD CONSTRAINT fk_krrg_employee_profile_grade
+                        FOREIGN KEY (grade_id) REFERENCES krrg_employee_grade(id);
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 13. Таблица связи профилей и грейдов -->
+    <changeSet id="018-013-create-employee-profile-grades" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_profiles"/>
+                <tableExists tableName="krrg_employee_grade"/>
+                <not>
+                    <tableExists tableName="krrg_employee_profile_grades"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            CREATE TABLE krrg_employee_profile_grades (
+                                                          profile_id BIGINT NOT NULL,
+                                                          grade_id   BIGINT NOT NULL,
+                                                          CONSTRAINT pk_employee_profile_grades PRIMARY KEY (profile_id, grade_id),
+                                                          CONSTRAINT fk_employee_profile_grades__profile
+                                                              FOREIGN KEY (profile_id) REFERENCES krrg_employee_profiles(id) ON DELETE CASCADE,
+                                                          CONSTRAINT fk_employee_profile_grades__grade
+                                                              FOREIGN KEY (grade_id) REFERENCES krrg_employee_grade(id) ON DELETE RESTRICT
+            );
+            CREATE INDEX IF NOT EXISTS idx_employee_profile_grades__grade_id
+                ON krrg_employee_profile_grades (grade_id);
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                DROP TABLE IF EXISTS krrg_employee_profile_grades;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 14. Переименование krrg_employee_profile_skill -> krrg_employee_profile_skills -->
+    <changeSet id="018-014-rename-profile-skill-table" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_profile_skill"/>
+                <not>
+                    <tableExists tableName="krrg_employee_profile_skills"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employee_profile_skill RENAME TO krrg_employee_profile_skills;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employee_profile_skills RENAME TO krrg_employee_profile_skill;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 15. Разрешение конфликта: если обе таблицы skill существуют -->
+    <changeSet id="018-015-merge-profile-skill-tables" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_profile_skill"/>
+                <tableExists tableName="krrg_employee_profile_skills"/>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            INSERT INTO krrg_employee_profile_skills (id, profile_id, skill_id)
+            SELECT id, profile_id, skill_id
+            FROM krrg_employee_profile_skill
+                ON CONFLICT (id) DO NOTHING;
+
+            DROP TABLE IF EXISTS krrg_employee_profile_skill;
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[SELECT 1;]]></sql>
+        </rollback>
+    </changeSet>
+
+    <!-- 16. Добавление rate_per_hour в krrg_employee_profiles -->
+    <changeSet id="018-016-add-rate-per-hour-to-profiles" author="Oleg V. Kryuchin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="krrg_employee_profiles"/>
+                <not>
+                    <columnExists tableName="krrg_employee_profiles" columnName="rate_per_hour"/>
+                </not>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE krrg_employee_profiles ADD COLUMN rate_per_hour NUMERIC(12, 2);
+            ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE krrg_employee_profiles DROP COLUMN IF EXISTS rate_per_hour;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
