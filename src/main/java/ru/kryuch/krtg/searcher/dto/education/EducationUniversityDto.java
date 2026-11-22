@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.dto.employee;
+package ru.kryuch.krtg.searcher.dto.education;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,13 +9,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EducationTypeDto {
+public class EducationUniversityDto {
 
     private Long id;
 
     private String name;
-
-    public EducationTypeDto(String name) {
-        this.name = name;
-    }
 }

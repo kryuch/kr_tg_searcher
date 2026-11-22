@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.education.EducationUniversityEntity;
 
 @Getter
 @Setter
@@ -31,5 +32,5 @@ public class ProfileUniversityEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "university_id", nullable = false)
-    private UniversityEntity university;
+    private EducationUniversityEntity university;
 }
