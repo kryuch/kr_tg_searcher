@@ -8,9 +8,9 @@ import org.mapstruct.factory.Mappers;
 
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeEducationDto;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeEducationEntity;
-import ru.kryuch.krtg.searcher.entity.employee.UniversityEntity;
-import ru.kryuch.krtg.searcher.entity.employee.EducationTypeEntity;
-import ru.kryuch.krtg.searcher.entity.employee.SpecialtyEntity;
+import ru.kryuch.krtg.searcher.entity.education.EducationUniversityEntity;
+import ru.kryuch.krtg.searcher.entity.education.EducationTypeEntity;
+import ru.kryuch.krtg.searcher.entity.education.EducationSpecialtyEntity;
 
 class EmployeeEducationMapperTest {
 
@@ -21,7 +21,7 @@ class EmployeeEducationMapperTest {
 
     @BeforeEach
     void setUp() {
-        UniversityEntity university = new UniversityEntity();
+        EducationUniversityEntity university = new EducationUniversityEntity();
         university.setId(1L);
         university.setName("Harvard University");
 
@@ -29,7 +29,7 @@ class EmployeeEducationMapperTest {
         educationType.setId(2L);
         educationType.setName("Bachelor");
 
-        SpecialtyEntity specialty = new SpecialtyEntity();
+        EducationSpecialtyEntity specialty = new EducationSpecialtyEntity();
         specialty.setId(3L);
         specialty.setName("Computer Science");
 

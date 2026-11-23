@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.entity.employee;
+package ru.kryuch.krtg.searcher.entity.education;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,22 +10,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 
 @Entity
-@Table(name="krrg_employee_specialty")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SpecialtyEntity {
+@Table(name = "krrg_education_universities")
+public class EducationUniversityEntity extends TimestampedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
-
-    public SpecialtyEntity(String name) {
-        this.name = name;
-    }
 }

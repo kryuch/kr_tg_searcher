@@ -1203,3 +1203,14 @@ a.itemsbutton {
     margin-bottom: 25px;
     margin-left: 25px;
 }
+
+.employee-layout { display: flex; gap: 24px; align-items: flex-start; }
+.employee-general { flex: 0 0 340px; }
+.employee-profiles { flex: 1 1 auto; min-width: 0; }
+.employee-general label { display: block; margin-top: 8px; font-weight: bold; }
+.employee-general input[type=text],
+.employee-general select { width: 100%; box-sizing: border-box; }
+.profile-head { margin-bottom: 10px; }
+.profile-head label { margin-right: 6px; }
+.profile-head input { margin-right: 16px; }
+.projects-table input, .projects-table textarea { width: 100%; box-sizing: border-box; }
