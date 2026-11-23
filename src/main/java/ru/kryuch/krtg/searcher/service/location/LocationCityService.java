@@ -9,6 +9,9 @@ import ru.kryuch.krtg.searcher.mapper.location.LocationCityMapper;
 import ru.kryuch.krtg.searcher.repository.location.LocationCityRepository;
 import ru.kryuch.krtg.searcher.service.AbstractService;
 
+import java.util.Collection;
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 @Slf4j
@@ -16,5 +19,12 @@ public class LocationCityService extends AbstractService <Long, LocationCityEnti
 
     public LocationCityService(final LocationCityRepository repository, final LocationCityMapper mapper) {
         super(repository, mapper, "City");
+    }
+
+    public List<LocationCityDto> getByStateId(Long stateId) {
+        Collection<LocationCityEntity> cities =
+            ((LocationCityRepository)repository).findByStateIdOrderByNameAsc(stateId);
+
+        return mapper.fromEntityList(cities);
     }
 }

@@ -35,5 +35,4 @@ public class EmployeeService extends AbstractService <Long, EmployeeEntity, Empl
         return mapper.fromEntity(repository.save(employeeHelper.dtoToEntity(dto)));
     }
 
-
 }
