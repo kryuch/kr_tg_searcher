@@ -11,7 +11,6 @@ import ru.kryuch.krtg.searcher.repository.deepseek.DeepseekTasksGroupRepository;
 import ru.kryuch.krtg.searcher.type.DeepseekTaskStatus;
 import ru.kryuch.krtg.searcher.util.UserUtil;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -28,31 +27,33 @@ public class DeepseekClient {
     private final Integer retryCount = 60;
 
     public String execute(String task) throws InterruptedException {
+        return execute(getGroup(), task);
+    }
 
+    public String execute(Integer groupId, String task) throws InterruptedException {
+        Integer userId = UserUtil.getCurrentUser().getId();
+        DeepseekTasksGroupEntity group = deepseekTasksGroupRepository.findByIdAndUserId(groupId, userId)
+                .orElseThrow(() -> new BusinessException("Сессия DeepSeek не найдена: " + groupId));
+        return execute(group, task);
+    }
+
+    private String execute(DeepseekTasksGroupEntity group, String task) throws InterruptedException {
         DeepseekTaskEntity deepseekTaskEntity = new DeepseekTaskEntity();
         deepseekTaskEntity.setDescription(task);
-        deepseekTaskEntity.setGroup(getGroup());
+        deepseekTaskEntity.setGroup(group);
         deepseekTaskEntity.setStatus(DeepseekTaskStatus.NEW);
 
         DeepseekTaskEntity entity = deepseekTaskRepository.save(deepseekTaskEntity);
         try {
             TimeUnit.SECONDS.sleep(startPause);
-            boolean isDone = false;
-            int iteration = 0;
-            String result = null;
-
-            do {
-                Optional<DeepseekTaskEntity> actualEntity = deepseekTaskRepository.findById(entity.getId());
-                if (actualEntity.isPresent() && Objects.equals(DeepseekTaskStatus.DONE, actualEntity.get().getStatus())) {
-                    isDone = true;
-                    result = actualEntity.get().getResult();
+            for (int attempt = 0; attempt < retryCount; attempt++) {
+                var state = deepseekTaskRepository.findStateById(entity.getId());
+                if (state.isPresent() && state.get().getStatus() == DeepseekTaskStatus.DONE) {
+                    return state.get().getResult();
                 }
                 TimeUnit.SECONDS.sleep(interval);
-                iteration++;
             }
-            while (!isDone && iteration < retryCount);
-
-            return result;
+            return null;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw e;
@@ -69,5 +70,9 @@ public class DeepseekClient {
         }
 
         return group.get();
+    }
+
+    public Integer getCurrentGroupId() {
+        return getGroup().getId();
     }
 }
