@@ -1,6 +1,6 @@
 <div class="icontent">
 
-    <a class="save itemsbutton" type="submit">Добавить</a>
+    <a class="save itemsbutton" type="submit" th:href="@{/employees/add}">Добавить</a>
 
     <table class="list">
         <thead>
@@ -20,14 +20,14 @@
         <th:block th:each="employeeItem, iStat : ${items}">
             <tr>
                 <td><span th:text="${employeeItem.id}"> Id </span></td>
-                <td><span th:text="${employeeItem.code}"> Гражданство </span></td>
+                <td><span th:text="${employeeItem.citizenship}"> Гражданство </span></td>
                 <td><span th:text="${employeeItem.name}"> Имя </span></td>
-                <td><span th:text="${employeeItem.bdate}"> Дата рождения </span></td>
+                <td><span th:text="${employeeItem.birthDate}"> Дата рождения </span></td>
             </tr>
         </th:block>
         </tbody>
     </table>
 
-    <a class="save itemsbutton" type="submit">Добавить</a>
+    <a class="save itemsbutton" type="submit" th:href="@{/employees/add}">Добавить</a>
 
 </div>

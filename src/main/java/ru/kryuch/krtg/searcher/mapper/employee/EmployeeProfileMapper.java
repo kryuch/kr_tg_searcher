@@ -5,13 +5,17 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.kryuch.krtg.searcher.dto.GradeDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeProfileDto;
 import ru.kryuch.krtg.searcher.entity.GradeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeProfileEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeProfileSkillEntity;
 import ru.kryuch.krtg.searcher.mapper.TMapper;
+import ru.kryuch.krtg.searcher.repository.GradeRepository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,6 +25,9 @@ import java.util.stream.Collectors;
     uses = {EmployeeProfileProjectMapper.class}
 )
 public abstract class EmployeeProfileMapper implements TMapper<EmployeeProfileEntity, EmployeeProfileDto> {
+
+    @Autowired
+    protected GradeRepository gradeRepository;
 
     @Override
     @Mapping(target = "skills", source = "profileSkills", qualifiedByName = "skillNames")
@@ -36,7 +43,7 @@ public abstract class EmployeeProfileMapper implements TMapper<EmployeeProfileEn
     @Mapping(target = "profileOrganizations", ignore = true)
     @Mapping(target = "profileUniversities", ignore = true)
     @Mapping(target = "profileEducationTypes", ignore = true)
-    @Mapping(target = "grades", ignore = true)
+    @Mapping(target = "grades", expression = "java(getGrades(dto))")
     public abstract EmployeeProfileEntity toEntity(EmployeeProfileDto dto);
 
     @Override
@@ -50,8 +57,6 @@ public abstract class EmployeeProfileMapper implements TMapper<EmployeeProfileEn
     @Mapping(target = "profileEducationTypes", ignore = true)
     @Mapping(target = "grades", ignore = true)
     public abstract EmployeeProfileEntity mergeToEntity(EmployeeProfileDto dto, @MappingTarget EmployeeProfileEntity entity);
-
-    // ==================== Вспомогательные методы ====================
 
     @Named("skillNames")
     protected Set<String> skillNames(Collection<EmployeeProfileSkillEntity> profileSkills) {
@@ -71,5 +76,9 @@ public abstract class EmployeeProfileMapper implements TMapper<EmployeeProfileEn
         return grades.stream()
             .map(GradeEntity::getName)
             .collect(Collectors.toSet());
+    }
+
+    protected Set <GradeEntity> getGrades(EmployeeProfileDto dto) {
+        return gradeRepository.findByCodeIn(dto.getGrades()).stream().collect(Collectors.toSet());
     }
 }
