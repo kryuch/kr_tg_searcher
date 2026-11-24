@@ -31,6 +31,7 @@ public class VacancyJobApplication {
                 EmployeeFilterForVacancyDto.builder()
                     .workFormat(vacancy.get().getWorkFormat())
                     .title(vacancy.get().getTitle())
+                    .isFulltime(true)
                     .gradeCodes(vacancy.get().getGrades().stream().map(item -> item.getCode()).collect(Collectors.toSet()))
                     .build()
             );

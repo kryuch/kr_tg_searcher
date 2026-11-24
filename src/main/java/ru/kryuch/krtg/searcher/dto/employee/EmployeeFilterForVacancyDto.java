@@ -15,4 +15,6 @@ public class EmployeeFilterForVacancyDto {
     private Set<String> gradeCodes;
     private WorkFormat workFormat;
     private String title;
+    private boolean isFulltime;
+    private int maxCount = 3;
 }
