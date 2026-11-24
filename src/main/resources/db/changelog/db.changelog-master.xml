@@ -25,4 +25,5 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
     <include file="changes/018_employee_rebuild.xml" relativeToChangelogFile="true"/>
     <include file="changes/019-employee_projects.xml" relativeToChangelogFile="true"/>
     <include file="changes/020_employee.xml" relativeToChangelogFile="true"/>
+    <include file="changes/021_employee_education.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

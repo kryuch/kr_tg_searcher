@@ -8,14 +8,10 @@ import lombok.Setter;
 public class EmployeeEducationDto {
 
     private Long id;
-
     private String university;
-
     private String educationType;
-
+    private String degree;
     private String specialty;
-
     private Integer startYear;
-
     private Integer endYear;
 }

@@ -12,6 +12,6 @@ import lombok.Setter;
 public class EducationUniversityDto {
 
     private Long id;
-
+    private String code;
     private String name;
 }

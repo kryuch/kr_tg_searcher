@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.education.EducationDegreeEntity;
 import ru.kryuch.krtg.searcher.entity.education.EducationSpecialtyEntity;
 import ru.kryuch.krtg.searcher.entity.education.EducationTypeEntity;
 import ru.kryuch.krtg.searcher.entity.education.EducationUniversityEntity;
@@ -36,6 +37,10 @@ public class EmployeeEducationEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialty_id", nullable = false)
     private EducationSpecialtyEntity specialty;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "degree_id", nullable = false)
+    private EducationDegreeEntity degree;
 
     @Column(name = "start_year")
     private Integer startYear;

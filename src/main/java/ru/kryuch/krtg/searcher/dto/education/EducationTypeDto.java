@@ -12,7 +12,7 @@ import lombok.Setter;
 public class EducationTypeDto {
 
     private Long id;
-
+    private String code;
     private String name;
 
 }

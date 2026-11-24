@@ -24,6 +24,13 @@
         .project-panel input[type=date],
         .project-panel textarea { width: 100%; box-sizing: border-box; }
         .grades-box { display: inline-block; vertical-align: top; min-width: 220px; }
+        .education-table { width: 100%; }
+        .education-table td { padding: 4px 6px; vertical-align: middle; }
+        .education-table select,
+        .education-table input[type=number] { width: 100%; box-sizing: border-box; }
+        .education-table .edu-label { font-weight: bold; white-space: nowrap; width: 1%; }
+        .education-table .edu-remove { width: 1%; text-align: center; }
+        .education-table .education-item { border-bottom: 2px solid #ccc; }
     </style>
 
     <form action="#" th:action="@{/employees/save}" th:object="${employee}" method="post"
@@ -89,6 +96,7 @@
                     <ul>
                         <li><a href="#tab-profiles">Профили</a></li>
                         <li><a href="#tab-languages">Языки</a></li>
+                        <li><a href="#tab-education">Образование</a></li>
                     </ul>
 
                     <div id="tab-profiles">
@@ -115,12 +123,74 @@
                             <tbody id="languages-body"></tbody>
                         </table>
                     </div>
+
+                    <div id="tab-education">
+                        <div class="profile-toolbar">
+                            <button type="button" id="add-education" class="save">Добавить образование</button>
+                        </div>
+                        <table class="list education-table" id="education-table"></table>
+                    </div>
+
                 </div>
             </div>
         </div>
 
         <br/>
         <button class="save" type="submit">Сохранить</button>
+
+        <template id="education-template">
+            <tbody class="education-item">
+            <tr>
+                <td class="edu-label">Университет</td>
+                <td>
+                    <select name="educations[__E__].university">
+                        <option value="">-- не выбрано --</option>
+                        <option th:each="u : ${universities}"
+                                th:value="${u.code}"
+                                th:text="${u.name}">Университет</option>
+                    </select>
+                </td>
+                <td class="edu-label">Специальность</td>
+                <td>
+                    <select name="educations[__E__].specialty">
+                        <option value="">-- не выбрано --</option>
+                        <option th:each="s : ${specialities}"
+                                th:value="${s.code}"
+                                th:text="${s.name}">Специальность</option>
+                    </select>
+                </td>
+                <td rowspan="3" class="edu-remove">
+                    <button type="button" class="remove-education">Удалить</button>
+                </td>
+            </tr>
+            <tr>
+                <td class="edu-label">Тип обучения</td>
+                <td>
+                    <select name="educations[__E__].educationType">
+                        <option value="">-- не выбрано --</option>
+                        <option th:each="t : ${educationTypes}"
+                                th:value="${t.code}"
+                                th:text="${t.name}">Тип</option>
+                    </select>
+                </td>
+                <td class="edu-label">Степень</td>
+                <td>
+                    <select name="educations[__E__].degree">
+                        <option value="">-- не выбрано --</option>
+                        <option th:each="d : ${educationDegree}"
+                                th:value="${d.code}"
+                                th:text="${d.name}">Степень</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="edu-label">Год начала</td>
+                <td><input type="number" min="1950" max="2100" step="1" name="educations[__E__].startYear"/></td>
+                <td class="edu-label">Год окончания</td>
+                <td><input type="number" min="1950" max="2100" step="1" name="educations[__E__].endYear"/></td>
+            </tr>
+            </tbody>
+        </template>
 
         <template id="language-template">
             <tr>
