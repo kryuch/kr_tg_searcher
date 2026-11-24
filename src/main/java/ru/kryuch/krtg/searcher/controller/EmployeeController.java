@@ -60,6 +60,10 @@ public class EmployeeController extends TBaseController<EmployeeService> {
         model.addAttribute("states", locationStateService.getAll());
         model.addAttribute("languages", locationLanguageService.getAll());
         model.addAttribute("grades", gradeService.getAll());
+        model.addAttribute("universities", ((EmployeeService)(service)).getUniversities());
+        model.addAttribute("specialities", ((EmployeeService)(service)).getSpecialities());
+        model.addAttribute("educationTypes", ((EmployeeService)(service)).getEducationTypes());
+        model.addAttribute("educationDegree", ((EmployeeService)(service)).getEducationDegree());
         return renderer(templateName + "/edit", model);
     }
 

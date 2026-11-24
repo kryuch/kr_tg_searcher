@@ -142,4 +142,26 @@ jQuery(function ($) {
     });
 
     addLanguage("RU", "NATIVE"); // по умолчанию: русский, родной
+
+    var educationTpl = $("#education-template").html();
+
+    function addEducation() {
+        var next = $("#education-table .education-item").length;
+        $("#education-table").append(educationTpl.replace(/__E__/g, next));
+    }
+
+    function reindexEducations() {
+        $("#education-table .education-item").each(function (i) {
+            $(this).find("[name]").each(function () {
+                this.name = this.name.replace(/educations\[\d+\]/, "educations[" + i + "]");
+            });
+        });
+    }
+
+    $("#add-education").on("click", addEducation);
+
+    $(document).on("click", ".remove-education", function () {
+        $(this).closest(".education-item").remove();
+        reindexEducations();
+    });
 });

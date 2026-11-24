@@ -23,6 +23,9 @@ public class EducationUniversityEntity extends TimestampedEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 16, unique = true)
+    private String code;
+
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
 }
