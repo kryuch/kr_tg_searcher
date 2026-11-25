@@ -34,6 +34,7 @@ public class AbstractService <
         );
     }
 
+
     @Transactional
     public void delete(NUMBER id) {
         repository.deleteById(id);

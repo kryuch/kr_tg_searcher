@@ -14,14 +14,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.kryuch.krtg.searcher.controller.base.TBaseController;
 import ru.kryuch.krtg.searcher.dto.EmployeeDto;
+import ru.kryuch.krtg.searcher.dto.OptionDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeProfileDto;
 import ru.kryuch.krtg.searcher.dto.location.LocationCityDto;
+import ru.kryuch.krtg.searcher.dto.location.LocationStateDto;
 import ru.kryuch.krtg.searcher.service.EmployeeService;
 import ru.kryuch.krtg.searcher.service.GradeService;
 import ru.kryuch.krtg.searcher.service.location.LocationCityService;
 import ru.kryuch.krtg.searcher.service.location.LocationLanguageService;
 import ru.kryuch.krtg.searcher.service.location.LocationStateService;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -42,29 +45,33 @@ public class EmployeeController extends TBaseController<EmployeeService> {
         this.gradeService = gradeService;
     }
 
-    @GetMapping("/cities")
-    @ResponseBody
-    public List<String> cities(@RequestParam Long stateId) {
-        return locationCityService.getByStateId(stateId).stream()
-            .map(LocationCityDto::getName)
-            .toList();
-    }
+    private static final String DEFAULT_COUNTRY_CODE = "RU";
 
     @GetMapping("/add")
     public String showAddForm(Model model) {
+        List<LocationStateDto> states = locationStateService.getAll();
+        Long defaultStateId = states.stream()
+            .filter(s -> DEFAULT_COUNTRY_CODE.equals(s.getCode()))
+            .map(LocationStateDto::getId)
+            .findFirst()
+            .orElse(null);
+
         model.addAttribute("employee", EmployeeDto.builder()
-            .citizenship("RU")
-            .state("RU")
+            .citizenshipId(defaultStateId)
+            .stateId(defaultStateId)
             .build());
-        model.addAttribute("citizenships", locationStateService.getAll());
-        model.addAttribute("states", locationStateService.getAll());
-        model.addAttribute("languages", locationLanguageService.getAll());
-        model.addAttribute("grades", gradeService.getAll());
-        model.addAttribute("universities", ((EmployeeService)(service)).getUniversities());
-        model.addAttribute("specialities", ((EmployeeService)(service)).getSpecialities());
-        model.addAttribute("educationTypes", ((EmployeeService)(service)).getEducationTypes());
-        model.addAttribute("educationDegree", ((EmployeeService)(service)).getEducationDegree());
+        model.addAttribute("citizenships", states);
+        model.addAttribute("states", states);
         return renderer(templateName + "/edit", model);
+    }
+
+    @GetMapping("/cities")
+    @ResponseBody
+    public List<OptionDto> cities(@RequestParam Long stateId) {
+        return locationCityService.getByStateId(stateId).stream()
+            .sorted(Comparator.comparing(LocationCityDto::getName, String.CASE_INSENSITIVE_ORDER))
+            .map(c -> new OptionDto(c.getId(), c.getName()))
+            .toList();
     }
 
     @PostMapping("/save")

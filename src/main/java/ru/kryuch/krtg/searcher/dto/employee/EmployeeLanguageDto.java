@@ -7,9 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class EmployeeLanguage {
+public class EmployeeLanguageDto {
 
-    private String language;
+    private Long languageId;
 
     private String level;
 }

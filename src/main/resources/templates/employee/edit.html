@@ -1,36 +1,169 @@
 <div class="icontent">
     <script th:src="@{/js/employee.js}"></script>
     <style>
-        .employee-layout { display: flex; gap: 24px; align-items: flex-start; }
-        .employee-general { flex: 0 0 340px; }
-        .employee-profiles { flex: 1 1 auto; min-width: 0; }
-        .employee-general label { display: block; margin-top: 8px; font-weight: bold; }
+        .employee-layout {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .employee-general {
+            flex: 0 0 340px;
+        }
+
+        .employee-profiles {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .employee-general label {
+            display: block;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
         .employee-general input[type=text],
-        .employee-general select { width: 100%; box-sizing: border-box; }
-        .profile-head { margin-bottom: 10px; }
-        .profile-head label { margin-right: 6px; }
-        .profile-head input { margin-right: 16px; }
-        .profile-toolbar, .project-toolbar { margin-bottom: 8px; }
+        .employee-general select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .profile-head {
+            margin-bottom: 10px;
+        }
+
+        .profile-head label {
+            margin-right: 6px;
+        }
+
+        .profile-head input {
+            margin-right: 16px;
+        }
+
+        .profile-toolbar, .project-toolbar {
+            margin-bottom: 8px;
+        }
 
         /* вертикальные вкладки проектов (jQuery UI) */
-        .ui-tabs-vertical { width: 100%; }
-        .ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
-        .ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
-        .ui-tabs-vertical .ui-tabs-nav li a { display: block; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px !important; }
-        .ui-tabs-vertical .ui-tabs-panel { float: left; width: calc(100% - 14em); box-sizing: border-box; padding: 1em; }
-        .project-panel label { display: block; margin-top: 8px; font-weight: bold; }
+        .ui-tabs-vertical {
+            width: 100%;
+        }
+
+        .ui-tabs-vertical .ui-tabs-nav {
+            padding: .2em .1em .2em .2em;
+            float: left;
+            width: 12em;
+        }
+
+        .ui-tabs-vertical .ui-tabs-nav li {
+            clear: left;
+            width: 100%;
+            border-bottom-width: 1px !important;
+            border-right-width: 0 !important;
+            margin: 0 -1px .2em 0;
+        }
+
+        .ui-tabs-vertical .ui-tabs-nav li a {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active {
+            padding-bottom: 0;
+            padding-right: .1em;
+            border-right-width: 1px !important;
+        }
+
+        .ui-tabs-vertical .ui-tabs-panel {
+            float: left;
+            width: calc(100% - 14em);
+            box-sizing: border-box;
+            padding: 1em;
+        }
+
+        .project-panel label {
+            display: block;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
         .project-panel input[type=text],
         .project-panel input[type=date],
-        .project-panel textarea { width: 100%; box-sizing: border-box; }
-        .grades-box { display: inline-block; vertical-align: top; min-width: 220px; }
-        .education-table { width: 100%; }
-        .education-table td { padding: 4px 6px; vertical-align: middle; }
+        .project-panel textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .grades-box {
+            display: inline-block;
+            vertical-align: top;
+            min-width: 220px;
+        }
+
+        .education-table {
+            width: 100%;
+        }
+
+        .education-table td {
+            padding: 4px 6px;
+            vertical-align: middle;
+        }
+
         .education-table select,
-        .education-table input[type=number] { width: 100%; box-sizing: border-box; }
-        .education-table .edu-label { font-weight: bold; white-space: nowrap; width: 1%; }
-        .education-table .edu-remove { width: 1%; text-align: center; }
-        .education-table .education-item { border-bottom: 2px solid #ccc; }
+        .education-table input[type=number] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .education-table .edu-label {
+            font-weight: bold;
+            white-space: nowrap;
+            width: 1%;
+        }
+
+        .education-table .edu-remove {
+            width: 1%;
+            text-align: center;
+        }
+
+        .education-table .education-item {
+            border-bottom: 2px solid #ccc;
+        }
+
+        .with-button {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .with-button select {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .university-dialog {
+            min-width: 360px;
+        }
+
+        .university-dialog label {
+            display: block;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        .university-dialog input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .university-dialog .dialog-buttons {
+            margin-top: 14px;
+            text-align: right;
+        }
     </style>
 
     <form action="#" th:action="@{/employees/save}" th:object="${employee}" method="post"
@@ -61,24 +194,23 @@
                 <input type="date" th:field="*{birthDate}"/>
 
                 <label>Гражданство</label>
-                <select th:field="*{citizenship}">
+                <select th:field="*{citizenshipId}">
                     <option value="">-- не выбрано --</option>
                     <option th:each="c : ${citizenships}"
-                            th:value="${c.code}"
+                            th:value="${c.id}"
                             th:text="${c.name}">Гражданство</option>
                 </select>
 
                 <label>Государство</label>
-                <select th:field="*{state}">
+                <select th:field="*{stateId}">
                     <option value="">-- не выбрано --</option>
-                    <option th:each="c : ${states}"
-                            th:value="${c.code}"
-                            th:data-id="${c.id}"
-                            th:text="${c.name}">Государство</option>
+                    <option th:each="s : ${states}"
+                            th:value="${s.id}"
+                            th:text="${s.name}">Государство</option>
                 </select>
 
                 <label>Город</label>
-                <select th:field="*{city}" th:data-url="@{/employees/cities}" disabled>
+                <select th:field="*{cityId}" th:data-url="@{/employees/cities}" disabled>
                     <option value="">-- не выбрано --</option>
                 </select>
 
@@ -143,21 +275,27 @@
             <tr>
                 <td class="edu-label">Университет</td>
                 <td>
-                    <select name="educations[__E__].university">
-                        <option value="">-- не выбрано --</option>
-                        <option th:each="u : ${universities}"
-                                th:value="${u.code}"
-                                th:text="${u.name}">Университет</option>
-                    </select>
+                    <div class="with-button">
+                        <select class="university-select" name="educations[__E__].universityId">
+                            <option value="">-- не выбрано --</option>
+                            <option th:each="u : ${universities}"
+                                    th:value="${u.id}"
+                                    th:text="${u.name}">Университет</option>
+                        </select>
+                        <button type="button" class="add-dictionary" data-dict="university">Добавить</button>
+                    </div>
                 </td>
                 <td class="edu-label">Специальность</td>
                 <td>
-                    <select name="educations[__E__].specialty">
-                        <option value="">-- не выбрано --</option>
-                        <option th:each="s : ${specialities}"
-                                th:value="${s.code}"
-                                th:text="${s.name}">Специальность</option>
-                    </select>
+                    <div class="with-button">
+                        <select class="speciality-select" name="educations[__E__].specialityId">
+                            <option value="">-- не выбрано --</option>
+                            <option th:each="s : ${specialities}"
+                                    th:value="${s.id}"
+                                    th:text="${s.name}">Специальность</option>
+                        </select>
+                        <button type="button" class="add-dictionary" data-dict="speciality">Добавить</button>
+                    </div>
                 </td>
                 <td rowspan="3" class="edu-remove">
                     <button type="button" class="remove-education">Удалить</button>
@@ -166,19 +304,19 @@
             <tr>
                 <td class="edu-label">Тип обучения</td>
                 <td>
-                    <select name="educations[__E__].educationType">
+                    <select name="educations[__E__].educationTypeId">
                         <option value="">-- не выбрано --</option>
                         <option th:each="t : ${educationTypes}"
-                                th:value="${t.code}"
+                                th:value="${t.id}"
                                 th:text="${t.name}">Тип</option>
                     </select>
                 </td>
                 <td class="edu-label">Степень</td>
                 <td>
-                    <select name="educations[__E__].degree">
+                    <select name="educations[__E__].degreeId">
                         <option value="">-- не выбрано --</option>
                         <option th:each="d : ${educationDegree}"
-                                th:value="${d.code}"
+                                th:value="${d.id}"
                                 th:text="${d.name}">Степень</option>
                     </select>
                 </td>
@@ -195,10 +333,10 @@
         <template id="language-template">
             <tr>
                 <td>
-                    <select name="languages[__L__].language">
+                    <select name="languages[__L__].languageId">
                         <option value="">-- не выбрано --</option>
                         <option th:each="l : ${languages}"
-                                th:value="${l.code}"
+                                th:value="${l.id}"
                                 th:text="${l.name}">Язык</option>
                     </select>
                 </td>
@@ -214,7 +352,9 @@
                         <option value="NATIVE">Родной</option>
                     </select>
                 </td>
-                <td><button type="button" class="remove-language">Удалить</button></td>
+                <td>
+                    <button type="button" class="remove-language">Удалить</button>
+                </td>
             </tr>
         </template>
 
@@ -232,7 +372,8 @@
 
                 <label>Грейды</label>
                 <div class="grades-box">
-                    <select class="grades-select" id="grades-__P__" name="profiles[__P__].grades" multiple="multiple"></select>
+                    <select class="grades-select" id="grades-__P__" name="profiles[__P__].grades"
+                            multiple="multiple"></select>
                 </div>
             </div>
 
@@ -278,8 +419,17 @@
             <input type="text" name="profiles[__P__].projects[__R__].progress"/>
         </script>
 
-        <script>
-
-        </script>
     </form>
+
+    <div id="dictionary-dialog" class="dictionary-dialog" style="display:none">
+        <h3 class="dict-title"></h3>
+        <label>Код</label>
+        <input type="text" class="dict-code" maxlength="10"/>
+        <label>Название</label>
+        <input type="text" class="dict-name" maxlength="255"/>
+        <div class="dialog-buttons">
+            <button type="button" class="dict-create save">Создать</button>
+            <button type="button" class="dict-cancel">Отмена</button>
+        </div>
+    </div>
 </div>

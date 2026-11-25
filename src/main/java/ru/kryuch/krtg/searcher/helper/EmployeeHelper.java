@@ -28,8 +28,8 @@ public class EmployeeHelper {
 
     public EmployeeEntity dtoToEntity(EmployeeDto dto) {
         EmployeeEntity entity = employeeMapper.toEntity(dto);
-        entity.setCitizenship(locationStateRepository.findByCode(dto.getCitizenship()).orElse(null));
-        entity.setCity(locationCityRepository.findByNameAndStateId(dto.getCity(), entity.getCitizenship().getId()).orElse(null));
+        entity.setCitizenship(locationStateRepository.findById(dto.getCitizenshipId()).orElseThrow());
+        entity.setCity(locationCityRepository.findById(dto.getCityId()).orElseThrow());
         entity.setContacts(dto.getContacts().stream().map(c -> {
             EmployeeContactEntity contact = new EmployeeContactEntity();
             contact.setEmployee(entity);
@@ -40,7 +40,7 @@ public class EmployeeHelper {
         entity.setLanguages(dto.getLanguages().stream().map(l -> {
             EmployeeLanguageEntity lang = new EmployeeLanguageEntity();
             lang.setEmployee(entity);
-            lang.setLanguage(locationLanguageRepository.findByCode(l.getLanguage()).orElseThrow());
+            lang.setLanguage(locationLanguageRepository.findById(l.getLanguageId()).orElseThrow());
             lang.setLevel(l.getLevel());
             return lang;
         }).collect(Collectors.toSet()));

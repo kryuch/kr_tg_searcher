@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeContactDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeEducationDto;
-import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguageDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeProfileDto;
 
 @Getter
@@ -26,11 +26,11 @@ public class EmployeeDto {
     private String gender;
     private boolean isMale;
     private LocalDate birthDate;
-    private String citizenship;
-    private String city;
-    private String state;
+    private Long citizenshipId;
+    private Long cityId;
+    private Long stateId;
     private List <EmployeeContactDto> contacts;
-    private List <EmployeeLanguage> languages;
+    private List <EmployeeLanguageDto> languages;
     private List <EmployeeProfileDto> profiles;
     private List <EmployeeEducationDto> educations;
     public String getName() {

@@ -1,3 +1,4 @@
+// ===== Профили и проекты =====
 jQuery(function ($) {
     var $profileTabs = $("#profile-tabs").tabs();
     var profileTpl = $("#profile-template").html();
@@ -25,7 +26,6 @@ jQuery(function ($) {
             $tabs.tabs("refresh");
         } else {
             $tabs.tabs().addClass("ui-tabs-vertical ui-helper-clearfix");
-            $tabs.find("li").removeClass("ui-corner-top").addClass("ui-corner-left");
         }
         $tabs.find("li").removeClass("ui-corner-top").addClass("ui-corner-left");
         $tabs.tabs("option", "active", $tabs.children("ul").children().length - 1);
@@ -60,7 +60,7 @@ jQuery(function ($) {
         addProject($panel); // по умолчанию один проект
     }
 
-// подпись вкладки = введённое название (или "Профиль N"/"Проект N" по умолчанию)
+    // подпись вкладки = введённое название (или "Профиль N"/"Проект N" по умолчанию)
     $(document).on("input", "[data-tab-title]", function () {
         var panelId = $(this).closest(".ui-tabs-panel").attr("id");
         var $a = $('a[href="#' + panelId + '"]');
@@ -76,12 +76,13 @@ jQuery(function ($) {
     addProfile(); // по умолчанию один профиль
 });
 
+// ===== Государство -> города =====
 jQuery(function ($) {
-    var $state = $("#state");
-    var $city = $("#city");
+    var $state = $("#stateId");
+    var $city = $("#cityId");
 
-    function loadCities(selected) {
-        var stateId = $state.find("option:selected").data("id");
+    function loadCities(selectedId) {
+        var stateId = $state.val();
         $city.empty().append('<option value="">-- не выбрано --</option>');
 
         if (!stateId) {
@@ -89,12 +90,12 @@ jQuery(function ($) {
             return;
         }
         $.getJSON($city.data("url"), {stateId: stateId})
-            .done(function (names) {
-                $.each(names, function (_, name) {
-                    $city.append($("<option>").val(name).text(name));
+            .done(function (items) {
+                $.each(items, function (_, it) {
+                    $city.append($("<option>").val(it.id).text(it.name));
                 });
-                if (selected) {
-                    $city.val(selected);
+                if (selectedId) {
+                    $city.val(selectedId);
                 }
             })
             .always(function () {
@@ -106,8 +107,11 @@ jQuery(function ($) {
         loadCities();
     });
 
-    loadCities($city.data("selected")); // понадобится для формы редактирования
+    loadCities($city.data("selected")); // для формы редактирования
+});
 
+// ===== Правые вкладки и языки =====
+jQuery(function ($) {
     $("#right-tabs").tabs();
 
     var languageTpl = $("#language-template").html();
@@ -120,16 +124,11 @@ jQuery(function ($) {
         });
     }
 
-    $(document).on("click", ".remove-language", function () {
-        $(this).closest("tr").remove();
-        reindexLanguages(); // чтобы в списке не было дыр (null-элементов)
-    });
-
-    function addLanguage(code, level) {
+    function addLanguage(languageId, level) {
         var next = $("#languages-body tr").length;
         var $row = $(languageTpl.replace(/__L__/g, next));
-        if (code) {
-            $row.find("select[name$='.language']").val(code);
+        if (languageId) {
+            $row.find("select[name$='.languageId']").val(languageId);
         }
         if (level) {
             $row.find("select[name$='.level']").val(level);
@@ -141,13 +140,45 @@ jQuery(function ($) {
         addLanguage(); // новые строки по кнопке остаются пустыми
     });
 
-    addLanguage("RU", "NATIVE"); // по умолчанию: русский, родной
+    $(document).on("click", ".remove-language", function () {
+        $(this).closest("tr").remove();
+        reindexLanguages(); // чтобы в списке не было дыр (null-элементов)
+    });
 
+    addLanguage("RU", "NATIVE"); // по умолчанию: русский, родной
+});
+
+// ===== Образование =====
+jQuery(function ($) {
     var educationTpl = $("#education-template").html();
+
+    var dictionaries = {
+        university: {url: "/education/universities", select: ".university-select", title: "Новый университет"},
+        speciality: {url: "/education/speciality", select: ".speciality-select", title: "Новая специальность"}
+    };
+    var optionsCache = {};   // key -> актуальный список после первого обновления
+    var currentDict = null;  // справочник, для которого открыт диалог
+    var $dictTarget = null;  // селект строки, из которой открыли диалог
+
+    function fillOptions($selects, items) {
+        $selects.each(function () {
+            var $s = $(this);
+            var current = $s.val();
+            $s.empty().append($("<option>").val("").text("-- не выбрано --"));
+            $.each(items, function (_, it) {
+                $s.append($("<option>").val(it.id).text(it.name));
+            });
+            $s.val(current);
+        });
+    }
 
     function addEducation() {
         var next = $("#education-table .education-item").length;
-        $("#education-table").append(educationTpl.replace(/__E__/g, next));
+        var $item = $(educationTpl.replace(/__E__/g, next).trim());
+        $("#education-table").append($item);
+        $.each(optionsCache, function (key, items) { // новая строка получает свежие списки
+            fillOptions($item.find(dictionaries[key].select), items);
+        });
     }
 
     function reindexEducations() {
@@ -158,10 +189,67 @@ jQuery(function ($) {
         });
     }
 
+    function reloadDictionary(key, newId, newName) {
+        var cfg = dictionaries[key];
+        return $.ajax({url: cfg.url + "/values", dataType: "json", cache: false})
+            .done(function (items) {
+                optionsCache[key] = items;
+                fillOptions($(cfg.select), items);
+                if ($dictTarget) {
+                    var id = newId;
+                    if (!id) {
+                        var found = items.filter(function (i) { return i.name === newName; })[0];
+                        id = found && found.id;
+                    }
+                    if (id) {
+                        $dictTarget.val(id);
+                    }
+                }
+            });
+    }
+
     $("#add-education").on("click", addEducation);
 
     $(document).on("click", ".remove-education", function () {
         $(this).closest(".education-item").remove();
         reindexEducations();
+    });
+
+    $(document).on("click", ".add-dictionary", function () {
+        currentDict = $(this).data("dict");
+        $dictTarget = $(this).closest("td").find("select");
+        var $dlg = $("#dictionary-dialog");
+        $dlg.find(".dict-title").text(dictionaries[currentDict].title);
+        $dlg.find("input").val("");
+        Fancybox.show([{src: "#dictionary-dialog", type: "inline"}]);
+    });
+
+    $(document).on("click", ".dict-cancel", function () {
+        Fancybox.close();
+    });
+
+    $(document).on("click", ".dict-create", function () {
+        var $dlg = $(this).closest(".dictionary-dialog");
+        var code = $.trim($dlg.find(".dict-code").val());
+        var name = $.trim($dlg.find(".dict-name").val());
+        if (!code || !name) {
+            alert("Заполните код и название");
+            return;
+        }
+        var key = currentDict;
+        Fancybox.close();
+
+        $.ajax({
+            url: dictionaries[key].url + "/add",
+            method: "POST",
+            data: {code: code, name: name},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken); // объявлены в общем шаблоне
+            }
+        })
+            .done(function (newId) {
+                reloadDictionary(key, $.isNumeric(newId) ? newId : null, name);
+            })
+            .fail(function () { alert("Не удалось создать запись"); });
     });
 });

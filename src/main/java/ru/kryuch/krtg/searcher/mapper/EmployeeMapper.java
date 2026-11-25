@@ -8,7 +8,7 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import ru.kryuch.krtg.searcher.dto.EmployeeDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeContactDto;
-import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguageDto;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeContactEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeLanguageEntity;
@@ -28,9 +28,9 @@ public abstract class EmployeeMapper implements TMapper<EmployeeEntity, Employee
     @Override
     @Mapping(target = "gender", ignore = true)          // вычисляется в @AfterMapping
     @Mapping(target = "isMale", source = "isMale")      // Boolean -> boolean
-    @Mapping(target = "citizenship", source = "citizenship.name")
-    @Mapping(target = "city", source = "city.name")
-    @Mapping(target = "state", source = "city.state.name")
+    @Mapping(target = "citizenshipId", source = "citizenship.id")
+    @Mapping(target = "cityId", source = "city.id")
+    @Mapping(target = "stateId", source = "city.state.id")
     @Mapping(target = "contacts", source = "contacts", qualifiedByName = "contactsToDto")
     @Mapping(target = "languages", source = "languages", qualifiedByName = "languagesToDto")
     public abstract EmployeeDto fromEntity(EmployeeEntity entity);
@@ -72,14 +72,14 @@ public abstract class EmployeeMapper implements TMapper<EmployeeEntity, Employee
     }
 
     @Named("languagesToDto")
-    protected List<EmployeeLanguage> languagesToDto(Collection<EmployeeLanguageEntity> languages) {
+    protected List<EmployeeLanguageDto> languagesToDto(Collection<EmployeeLanguageEntity> languages) {
         if (languages == null) {
             return List.of();
         }
         return languages.stream()
             .map(l -> {
-                EmployeeLanguage dto = new EmployeeLanguage();
-                dto.setLanguage(l.getLanguage() != null ? l.getLanguage().getName() : null);
+                EmployeeLanguageDto dto = new EmployeeLanguageDto();
+                dto.setLanguageId(l.getLanguage().getId());
                 dto.setLevel(l.getLevel());
                 return dto;
             })

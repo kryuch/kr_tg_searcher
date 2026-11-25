@@ -1,19 +1,19 @@
 package ru.kryuch.krtg.searcher.mapper;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 import ru.kryuch.krtg.searcher.dto.EmployeeDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeContactDto;
-import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguageDto;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeContactEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeLanguageEntity;
 import ru.kryuch.krtg.searcher.entity.location.LocationCityEntity;
 import ru.kryuch.krtg.searcher.entity.location.LocationLanguageEntity;
 import ru.kryuch.krtg.searcher.entity.location.LocationStateEntity;
+import ru.kryuch.krtg.searcher.mapper.employee.EmployeeProfileMapper;
 import ru.kryuch.krtg.searcher.type.ContactType;
 
 import java.time.LocalDate;
@@ -22,24 +22,36 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {EmployeeMapperImpl.class})
 class EmployeeMapperTest {
 
-    @Autowired
     private EmployeeMapper mapper;
+
+    @BeforeEach
+    void setUp() {
+        // Мокаем вложенный мапер: EmployeeMapper не должен тянуть за собой
+        // EmployeeProfileMapperImpl и его зависимости (GradeRepository и т.д.)
+        EmployeeProfileMapper employeeProfileMapper = Mockito.mock(EmployeeProfileMapper.class);
+
+        EmployeeMapperImpl impl = new EmployeeMapperImpl();
+        ReflectionTestUtils.setField(impl, "employeeProfileMapper", employeeProfileMapper);
+
+        mapper = impl;
+    }
 
     @Test
     void fromEntity_shouldMapAllFields() {
         // given
         LocationStateEntity state = new LocationStateEntity();
+        state.setId(7L);
         state.setName("Россия");
 
         LocationCityEntity city = new LocationCityEntity();
+        city.setId(68L);
         city.setName("Москва");
         city.setState(state);
 
         LocationLanguageEntity language = new LocationLanguageEntity();
+        language.setId(7L);
         language.setName("русский");
 
         EmployeeLanguageEntity languageEntity = new EmployeeLanguageEntity();
@@ -71,14 +83,14 @@ class EmployeeMapperTest {
         assertThat(dto.getBirthDate()).isEqualTo(LocalDate.of(1990, 1, 1));
         assertThat(dto.isMale()).isTrue();
         assertThat(dto.getGender()).isEqualTo("Мужской");
-        assertThat(dto.getCitizenship()).isEqualTo("Россия");
-        assertThat(dto.getCity()).isEqualTo("Москва");
-        assertThat(dto.getState()).isEqualTo("Россия");
+        assertThat(dto.getCitizenshipId()).isEqualTo(7L);
+        assertThat(dto.getCityId()).isEqualTo(68L);
+        assertThat(dto.getStateId()).isEqualTo(7L);
         assertThat(dto.getContacts()).hasSize(1);
         assertThat(dto.getContacts().get(0).getValue()).isEqualTo("+7 999 123-45-67");
         assertThat(dto.getContacts().get(0).getType()).isEqualTo(ContactType.PHONE);
         assertThat(dto.getLanguages()).hasSize(1);
-        assertThat(dto.getLanguages().get(0).getLanguage()).isEqualTo("русский");
+        assertThat(dto.getLanguages().get(0).getLanguageId()).isEqualTo(7L);
         assertThat(dto.getLanguages().get(0).getLevel()).isEqualTo("C2");
     }
 
@@ -103,9 +115,9 @@ class EmployeeMapperTest {
         assertThat(dto.getLastName()).isEqualTo("Петров");
         assertThat(dto.isMale()).isFalse();
         assertThat(dto.getGender()).isNull();
-        assertThat(dto.getCitizenship()).isNull();
-        assertThat(dto.getCity()).isNull();
-        assertThat(dto.getState()).isNull();
+        assertThat(dto.getCitizenshipId()).isNull();
+        assertThat(dto.getCityId()).isNull();
+        assertThat(dto.getStateId()).isNull();
         assertThat(dto.getContacts()).isEmpty();
         assertThat(dto.getLanguages()).isEmpty();
     }
@@ -139,8 +151,8 @@ class EmployeeMapperTest {
             .middleName("Иванович")
             .birthDate(LocalDate.of(1990, 1, 1))
             .isMale(true)
-            .citizenship("Россия")
-            .city("Москва")
+            .citizenshipId(7L)
+            .cityId(68L)
             .contacts(List.of(new EmployeeContactDto("+7 999 123-45-67", ContactType.PHONE)))
             .languages(List.of(createLanguage("русский", "C2")))
             .build();
@@ -189,9 +201,9 @@ class EmployeeMapperTest {
         assertThat(existing.getIsMale()).isTrue();
     }
 
-    private EmployeeLanguage createLanguage(String name, String level) {
-        EmployeeLanguage lang = new EmployeeLanguage();
-        lang.setLanguage(name);
+    private EmployeeLanguageDto createLanguage(String name, String level) {
+        EmployeeLanguageDto lang = new EmployeeLanguageDto();
+        lang.setLanguageId(7L);
         lang.setLevel(level);
         return lang;
     }

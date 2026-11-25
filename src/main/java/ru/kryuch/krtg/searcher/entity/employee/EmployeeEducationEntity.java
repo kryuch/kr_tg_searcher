@@ -36,7 +36,7 @@ public class EmployeeEducationEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialty_id", nullable = false)
-    private EducationSpecialtyEntity specialty;
+    private EducationSpecialtyEntity speciality;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "degree_id", nullable = false)

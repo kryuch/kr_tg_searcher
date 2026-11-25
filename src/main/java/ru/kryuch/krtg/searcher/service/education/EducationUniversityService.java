@@ -13,10 +13,17 @@ import ru.kryuch.krtg.searcher.repository.education.EducationUniversityRepositor
 import ru.kryuch.krtg.searcher.service.AbstractService;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class EducationUniversityService extends AbstractService <Long, EducationUniversityEntity, EducationUniversityDto, EducationUniversityMapper, EducationUniversityRepository> {
 
     public EducationUniversityService(final EducationUniversityRepository repository, final EducationUniversityMapper mapper) {
         super(repository, mapper, "University");
+    }
+
+    public void add(String code, String name) {
+        EducationUniversityEntity entity = new EducationUniversityEntity();
+        entity.setCode(code);
+        entity.setName(name);
+        repository.save(entity);
     }
 }

@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.kryuch.krtg.searcher.dto.EmployeeDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeContactDto;
-import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguage;
+import ru.kryuch.krtg.searcher.dto.employee.EmployeeLanguageDto;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeContactEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeLanguageEntity;
@@ -27,8 +27,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,8 +57,8 @@ class EmployeeHelperTest {
             .middleName("Иванович")
             .birthDate(LocalDate.of(1990, 1, 1))
             .isMale(true)
-            .citizenship("RU")
-            .city("Москва")
+            .citizenshipId(7L)
+            .cityId(68L)
             .contacts(List.of(new EmployeeContactDto("+7 999 123-45-67", ContactType.PHONE)))
             .languages(List.of(createLanguage("русский", "C2")))
             .build();
@@ -118,8 +116,8 @@ class EmployeeHelperTest {
             .middleName("Иванович")
             .birthDate(LocalDate.of(1990, 1, 1))
             .isMale(true)
-            .citizenship("XX")
-            .city("Москва")
+            .citizenshipId(7L)
+            .cityId(68L)
             .contacts(List.of())
             .languages(List.of())
             .build();
@@ -142,8 +140,8 @@ class EmployeeHelperTest {
             .middleName("Иванович")
             .birthDate(LocalDate.of(1990, 1, 1))
             .isMale(true)
-            .citizenship("RU")
-            .city("Москва")
+            .citizenshipId(7L)
+            .cityId(68L)
             .contacts(List.of())
             .languages(List.of(createLanguage("неизвестный", "A1")))
             .build();
@@ -164,9 +162,9 @@ class EmployeeHelperTest {
             .isInstanceOf(java.util.NoSuchElementException.class);
     }
 
-    private EmployeeLanguage createLanguage(String name, String level) {
-        EmployeeLanguage lang = new EmployeeLanguage();
-        lang.setLanguage(name);
+    private EmployeeLanguageDto createLanguage(String name, String level) {
+        EmployeeLanguageDto lang = new EmployeeLanguageDto();
+        lang.setLanguageId(7L);
         lang.setLevel(level);
         return lang;
     }
