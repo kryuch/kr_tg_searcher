@@ -16,10 +16,10 @@ public class EmployeeProfileDto {
 
     private String name;
 
-    private Long version;
+    private Long developmentSpecializationId;
 
-    private Set<String> skills;
-    private Set<String> grades;
+    private Set<Long> skillIds;
+    private Set<Long> gradeIds;
 
     private BigDecimal ratePerHour;
     private List<EmployeeProfileProjectDto> projects;

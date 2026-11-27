@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.development.DevelopmentSpecializationEntity;
 
 @Getter
 @Setter
@@ -31,5 +32,5 @@ public class ProfileDirectionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "direction_id", nullable = false)
-    private DevelopmentDirectionEntity direction;
+    private DevelopmentSpecializationEntity direction;
 }

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancyQuestionDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffEnrichRequestDto;
 import ru.kryuch.krtg.searcher.dto.vacancy.VacancySkillstaffRequestDto;
-import ru.kryuch.krtg.searcher.entity.GradeEntity;
+import ru.kryuch.krtg.searcher.entity.development.DevelopmentGradeEntity;
 import ru.kryuch.krtg.searcher.entity.VacancyEntity;
 import ru.kryuch.krtg.searcher.entity.vacancy.VacancyCategoryEntity;
 import ru.kryuch.krtg.searcher.entity.OrganisationEntity;
@@ -19,7 +19,7 @@ import ru.kryuch.krtg.searcher.entity.vacancy.VacancySourceEntity;
 import ru.kryuch.krtg.searcher.exception.BusinessException;
 import ru.kryuch.krtg.searcher.mapper.TMapper;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancyCategoryRepository;
-import ru.kryuch.krtg.searcher.repository.GradeRepository;
+import ru.kryuch.krtg.searcher.repository.development.DevelopmentGradeRepository;
 import ru.kryuch.krtg.searcher.repository.OrganisationRepository;
 import ru.kryuch.krtg.searcher.repository.vacancy.VacancySourceRepository;
 import ru.kryuch.krtg.searcher.type.vacancy.VacancySource;
@@ -43,7 +43,7 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
     @Autowired
     protected VacancyCategoryRepository categoryRepository;
     @Autowired
-    protected GradeRepository gradeRepository;
+    protected DevelopmentGradeRepository developmentGradeRepository;
     @Autowired
     protected OrganisationRepository ownerOrganisationRepository;
 
@@ -101,7 +101,7 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
     }
 
     @Named("toGrades")
-    protected Set<GradeEntity> toGrades(Set<String> codes) {
+    protected Set<DevelopmentGradeEntity> toGrades(Set<String> codes) {
         Map <String, String> codesMap = new HashMap<>();
         codesMap.put("JUNIOR+", "JUNIOR_PLUS");
         codesMap.put("MIDDLE+", "MIDDLE_PLUS");
@@ -114,12 +114,12 @@ public abstract class VacancySkillstafRequestMapper implements TMapper<VacancyQu
             })
             .collect(Collectors.toSet());
 
-        Map<String, GradeEntity> existing = gradeRepository.findByCodeIn(normalized).stream()
-            .collect(Collectors.toMap(GradeEntity::getCode, grade -> grade));
+        Map<String, DevelopmentGradeEntity> existing = developmentGradeRepository.findByCodeIn(normalized).stream()
+            .collect(Collectors.toMap(DevelopmentGradeEntity::getCode, grade -> grade));
 
-        Set<GradeEntity> result = new HashSet<>();
+        Set<DevelopmentGradeEntity> result = new HashSet<>();
         for (String code : normalized) {
-            GradeEntity grade = existing.get(code);
+            DevelopmentGradeEntity grade = existing.get(code);
             if (grade == null) {
                 throw new BusinessException(String.format("No grade {}", code));
             }

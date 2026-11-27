@@ -1,3 +1,125 @@
+// ===== Справочники с кнопкой «Добавить» =====
+(function ($) {
+    var dictionaries = {
+        university: {url: "/education/universities", select: ".university-select", title: "Новый университет"},
+        speciality: {url: "/education/speciality", select: ".speciality-select", title: "Новая специальность"},
+        specialization: {url: "/development/specializations", select: ".specialization-select", title: "Новое направление"},
+        skill: {url: "/development/skills", select: ".skills-select", title: "Новый навык", multi: true}
+    };
+    var optionsCache = {};   // key -> актуальный список после первого обновления
+    var currentDict = null;
+    var $dictTarget = null;
+
+    var skillsMultiselect = {
+        columns: 1,
+        search: true,
+        selectAll: true,
+        texts: {placeholder: 'Навыки', search: 'Навыки'}
+    };
+
+    // pick = {$el, id}: селект, в котором нужно выбрать только что созданную запись
+    function fillOptions($selects, items, multi, pick) {
+        $selects.each(function () {
+            var $s = $(this);
+            var current = $s.val();
+            if (multi) {
+                current = current || [];
+            }
+            if (pick && pick.id && pick.$el && pick.$el[0] === this) {
+                if (multi) {
+                    current = current.concat(String(pick.id));
+                } else {
+                    current = String(pick.id);
+                }
+            }
+            $s.empty();
+            if (!multi) {
+                $s.append($("<option>").val("").text("-- не выбрано --"));
+            }
+            $.each(items, function (_, it) {
+                $s.append($("<option>").val(it.id).text(it.name));
+            });
+            $s.val(current);
+            if (multi && $s.data("ms-ready")) {
+                $s.multiselect("reload"); // плагин перестраивает список по состоянию <select>
+            }
+        });
+    }
+
+    // новые строки/профили/проекты вызывают это, чтобы получить свежие списки
+    window.applyDictionaryCache = function ($scope) {
+        $.each(optionsCache, function (key, items) {
+            fillOptions($scope.find(dictionaries[key].select), items, dictionaries[key].multi);
+        });
+    };
+
+    // заполняет и инициализирует мультиселекты навыков в новой панели
+    window.initSkillSelects = function ($scope) {
+        $scope.find("select.skills-select").each(function () {
+            var $s = $(this);
+            if (optionsCache.skill) {
+                fillOptions($s, optionsCache.skill, true);
+            } else {
+                $s.html($("#skill-options-template").html());
+            }
+            $s.multiselect(skillsMultiselect);
+            $s.data("ms-ready", true);
+        });
+    };
+
+    function reloadDictionary(key, newId, newName) {
+        var cfg = dictionaries[key];
+        return $.ajax({url: cfg.url + "/values", dataType: "json", cache: false})
+            .done(function (items) {
+                optionsCache[key] = items;
+                var id = newId;
+                if (!id) {
+                    var found = items.filter(function (i) { return i.name === newName; })[0];
+                    id = found && found.id;
+                }
+                fillOptions($(cfg.select), items, cfg.multi, {$el: $dictTarget, id: id});
+            });
+    }
+
+    $(document).on("click", ".add-dictionary", function () {
+        currentDict = $(this).data("dict");
+        $dictTarget = $(this).closest(".with-button").find("select").first();
+        var $dlg = $("#dictionary-dialog");
+        $dlg.find(".dict-title").text(dictionaries[currentDict].title);
+        $dlg.find("input").val("");
+        Fancybox.show([{src: "#dictionary-dialog", type: "inline"}]);
+    });
+
+    $(document).on("click", ".dict-cancel", function () {
+        Fancybox.close();
+    });
+
+    $(document).on("click", ".dict-create", function () {
+        var $dlg = $(this).closest(".dictionary-dialog");
+        var code = $.trim($dlg.find(".dict-code").val());
+        var name = $.trim($dlg.find(".dict-name").val());
+        if (!code || !name) {
+            alert("Заполните код и название");
+            return;
+        }
+        var key = currentDict;
+        Fancybox.close();
+
+        $.ajax({
+            url: dictionaries[key].url + "/add",
+            method: "POST",
+            data: {code: code, name: name},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken); // объявлены в общем шаблоне
+            }
+        })
+            .done(function (newId) {
+                reloadDictionary(key, $.isNumeric(newId) ? newId : null, name);
+            })
+            .fail(function () { alert("Не удалось создать запись"); });
+    });
+})(jQuery);
+
 // ===== Профили и проекты =====
 jQuery(function ($) {
     var $profileTabs = $("#profile-tabs").tabs();
@@ -29,6 +151,8 @@ jQuery(function ($) {
         }
         $tabs.find("li").removeClass("ui-corner-top").addClass("ui-corner-left");
         $tabs.tabs("option", "active", $tabs.children("ul").children().length - 1);
+
+        initSkillSelects($("#" + id)); // после активации вкладки, чтобы панель была видима
     }
 
     function addProfile() {
@@ -56,6 +180,13 @@ jQuery(function ($) {
                 search: 'Грейды'
             }
         });
+
+        var $spec = $panel.find("select.specialization-select");
+        $spec.html($("#specialization-options-template").html());
+        applyDictionaryCache($panel); // если списки уже обновляли, берём свежие
+
+        // навыки профиля; область сужена до шапки, чтобы не задеть селекты проектов
+        initSkillSelects($panel.children(".profile-head"));
 
         addProject($panel); // по умолчанию один проект
     }
@@ -145,40 +276,19 @@ jQuery(function ($) {
         reindexLanguages(); // чтобы в списке не было дыр (null-элементов)
     });
 
-    addLanguage("RU", "NATIVE"); // по умолчанию: русский, родной
+    // по умолчанию: русский (id приходит с сервера), родной
+    addLanguage($("#tab-languages").data("defaultLanguageId"), "NATIVE");
 });
 
 // ===== Образование =====
 jQuery(function ($) {
     var educationTpl = $("#education-template").html();
 
-    var dictionaries = {
-        university: {url: "/education/universities", select: ".university-select", title: "Новый университет"},
-        speciality: {url: "/education/speciality", select: ".speciality-select", title: "Новая специальность"}
-    };
-    var optionsCache = {};   // key -> актуальный список после первого обновления
-    var currentDict = null;  // справочник, для которого открыт диалог
-    var $dictTarget = null;  // селект строки, из которой открыли диалог
-
-    function fillOptions($selects, items) {
-        $selects.each(function () {
-            var $s = $(this);
-            var current = $s.val();
-            $s.empty().append($("<option>").val("").text("-- не выбрано --"));
-            $.each(items, function (_, it) {
-                $s.append($("<option>").val(it.id).text(it.name));
-            });
-            $s.val(current);
-        });
-    }
-
     function addEducation() {
         var next = $("#education-table .education-item").length;
         var $item = $(educationTpl.replace(/__E__/g, next).trim());
         $("#education-table").append($item);
-        $.each(optionsCache, function (key, items) { // новая строка получает свежие списки
-            fillOptions($item.find(dictionaries[key].select), items);
-        });
+        applyDictionaryCache($item);
     }
 
     function reindexEducations() {
@@ -189,67 +299,10 @@ jQuery(function ($) {
         });
     }
 
-    function reloadDictionary(key, newId, newName) {
-        var cfg = dictionaries[key];
-        return $.ajax({url: cfg.url + "/values", dataType: "json", cache: false})
-            .done(function (items) {
-                optionsCache[key] = items;
-                fillOptions($(cfg.select), items);
-                if ($dictTarget) {
-                    var id = newId;
-                    if (!id) {
-                        var found = items.filter(function (i) { return i.name === newName; })[0];
-                        id = found && found.id;
-                    }
-                    if (id) {
-                        $dictTarget.val(id);
-                    }
-                }
-            });
-    }
-
     $("#add-education").on("click", addEducation);
 
     $(document).on("click", ".remove-education", function () {
         $(this).closest(".education-item").remove();
         reindexEducations();
-    });
-
-    $(document).on("click", ".add-dictionary", function () {
-        currentDict = $(this).data("dict");
-        $dictTarget = $(this).closest("td").find("select");
-        var $dlg = $("#dictionary-dialog");
-        $dlg.find(".dict-title").text(dictionaries[currentDict].title);
-        $dlg.find("input").val("");
-        Fancybox.show([{src: "#dictionary-dialog", type: "inline"}]);
-    });
-
-    $(document).on("click", ".dict-cancel", function () {
-        Fancybox.close();
-    });
-
-    $(document).on("click", ".dict-create", function () {
-        var $dlg = $(this).closest(".dictionary-dialog");
-        var code = $.trim($dlg.find(".dict-code").val());
-        var name = $.trim($dlg.find(".dict-name").val());
-        if (!code || !name) {
-            alert("Заполните код и название");
-            return;
-        }
-        var key = currentDict;
-        Fancybox.close();
-
-        $.ajax({
-            url: dictionaries[key].url + "/add",
-            method: "POST",
-            data: {code: code, name: name},
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader(csrfHeader, csrfToken); // объявлены в общем шаблоне
-            }
-        })
-            .done(function (newId) {
-                reloadDictionary(key, $.isNumeric(newId) ? newId : null, name);
-            })
-            .fail(function () { alert("Не удалось создать запись"); });
     });
 });

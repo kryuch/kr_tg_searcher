@@ -10,7 +10,6 @@ import ru.kryuch.krtg.searcher.entity.employee.EmployeeLanguageEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeProfileEntity;
 import ru.kryuch.krtg.searcher.entity.employee.EmployeeProfileProjectEntity;
 import ru.kryuch.krtg.searcher.mapper.EmployeeMapper;
-import ru.kryuch.krtg.searcher.repository.GradeRepository;
 import ru.kryuch.krtg.searcher.repository.location.LocationCityRepository;
 import ru.kryuch.krtg.searcher.repository.location.LocationLanguageRepository;
 import ru.kryuch.krtg.searcher.repository.location.LocationStateRepository;

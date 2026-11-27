@@ -12,9 +12,9 @@ public class EmployeeProfileProjectDto {
     private String name;
     private String description;
     private String progress;
-    private String organisation;
+    private Long organisationId;
     private String role;
     private LocalDate startAt;
     private LocalDate endAt;
-    private Set<String> skills;
+    private Set<Long> skillIds;
 }

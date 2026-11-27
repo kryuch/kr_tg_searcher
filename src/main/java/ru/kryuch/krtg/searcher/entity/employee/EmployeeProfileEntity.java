@@ -2,7 +2,6 @@ package ru.kryuch.krtg.searcher.entity.employee;
 
 import java.math.BigDecimal;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,13 +16,14 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.development.DevelopmentGradeEntity;
 import ru.kryuch.krtg.searcher.entity.EmployeeEntity;
-import ru.kryuch.krtg.searcher.entity.GradeEntity;
 import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
+import ru.kryuch.krtg.searcher.entity.development.DevelopmentSkillEntity;
+import ru.kryuch.krtg.searcher.entity.development.DevelopmentSpecializationEntity;
 
 @Getter
 @Setter
@@ -49,7 +49,7 @@ public class EmployeeProfileEntity extends TimestampedEntity {
         joinColumns = @JoinColumn(name = "profile_id", nullable = false),
         inverseJoinColumns = @JoinColumn(name = "grade_id", nullable = false)
     )
-    private Set<GradeEntity> grades;
+    private Set<DevelopmentGradeEntity> grades;
 
     @Column(name = "rate_per_hour", precision = 12, scale = 2)
     private BigDecimal ratePerHour;
@@ -57,87 +57,16 @@ public class EmployeeProfileEntity extends TimestampedEntity {
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EmployeeProfileProjectEntity> projects;
 
-    @Version
-    @Column(name = "version", nullable = false)
-    private Long version;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "development_specialization_id")
+    private DevelopmentSpecializationEntity developmentSpecialization;
 
-    @OneToMany(
-        mappedBy = "profile",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "krrg_employee_profile_skills",
+        joinColumns = @JoinColumn(name = "profile_id", nullable = false),
+        inverseJoinColumns = @JoinColumn(name = "skill_id", nullable = false)
     )
-    private Set<ProfileDirectionEntity> profileDirections;
+    private Set<DevelopmentSkillEntity> skills;
 
-    @OneToMany(
-        mappedBy = "profile",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
-    private Set<EmployeeProfileSkillEntity> profileSkills;
-
-    @OneToMany(
-        mappedBy = "profile",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
-    private Set<ProfileOrganizationEntity> profileOrganizations;
-
-    @OneToMany(
-        mappedBy = "profile",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
-    private Set<ProfileUniversityEntity> profileUniversities;
-
-    @OneToMany(
-        mappedBy = "profile",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
-    private Set<ProfileEducationTypeEntity> profileEducationTypes;
-
-    public String getEmployeeFio() {
-        return String.format("%s %s %s",
-            employee.getLastName(),
-            employee.getFirstName(),
-            employee.getMiddleName()
-        );
-    }
-
-    public String getEducationTypeNames() {
-        return profileEducationTypes.stream()
-            .map(pet -> pet.getEducationType().getName())
-            .collect(Collectors.joining(", "));
-    }
-
-    public String getUniversityNames() {
-        return profileUniversities.stream()
-            .map(pn -> pn.getUniversity().getName())
-            .collect(Collectors.joining(", "));
-    }
-
-    public String getOrganizationNames() {
-        return null; // TODO: реализовать, когда будет связь
-    }
-
-    public String getSkillNames() {
-        return profileSkills.stream()
-            .map(ps -> ps.getSkill().getName())
-            .collect(Collectors.joining(", "));
-    }
-
-    public String getDirectionNames() {
-        return profileDirections.stream()
-            .map(pd -> pd.getDirection().getName())
-            .collect(Collectors.joining(", "));
-    }
-
-    public String getGradeNames() {
-        if (grades == null || grades.isEmpty()) {
-            return "";
-        }
-        return grades.stream()
-            .map(GradeEntity::getName)
-            .collect(Collectors.joining(", "));
-    }
 }

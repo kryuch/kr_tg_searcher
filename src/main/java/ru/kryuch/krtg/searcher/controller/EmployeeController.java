@@ -16,15 +16,9 @@ import ru.kryuch.krtg.searcher.controller.base.TBaseController;
 import ru.kryuch.krtg.searcher.dto.EmployeeDto;
 import ru.kryuch.krtg.searcher.dto.OptionDto;
 import ru.kryuch.krtg.searcher.dto.employee.EmployeeProfileDto;
-import ru.kryuch.krtg.searcher.dto.location.LocationCityDto;
 import ru.kryuch.krtg.searcher.dto.location.LocationStateDto;
 import ru.kryuch.krtg.searcher.service.EmployeeService;
-import ru.kryuch.krtg.searcher.service.GradeService;
-import ru.kryuch.krtg.searcher.service.location.LocationCityService;
-import ru.kryuch.krtg.searcher.service.location.LocationLanguageService;
-import ru.kryuch.krtg.searcher.service.location.LocationStateService;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -32,24 +26,15 @@ import java.util.List;
 @RequestMapping("/employees")
 public class EmployeeController extends TBaseController<EmployeeService> {
 
-    private final LocationStateService locationStateService;
-    private final LocationCityService locationCityService;
-    private final LocationLanguageService locationLanguageService;
-    private final GradeService gradeService;
-
-    public EmployeeController(final EmployeeService service, final LocationStateService locationStateService, final LocationCityService locationCityService, final LocationLanguageService locationLanguageService, final GradeService gradeService) {
+    public EmployeeController(final EmployeeService service) {
         super(service, "employee");
-        this.locationStateService = locationStateService;
-        this.locationCityService = locationCityService;
-        this.locationLanguageService = locationLanguageService;
-        this.gradeService = gradeService;
     }
 
     private static final String DEFAULT_COUNTRY_CODE = "RU";
 
     @GetMapping("/add")
     public String showAddForm(Model model) {
-        List<LocationStateDto> states = locationStateService.getAll();
+        List<LocationStateDto> states = ((EmployeeService)service).getStates();
         Long defaultStateId = states.stream()
             .filter(s -> DEFAULT_COUNTRY_CODE.equals(s.getCode()))
             .map(LocationStateDto::getId)
@@ -62,16 +47,24 @@ public class EmployeeController extends TBaseController<EmployeeService> {
             .build());
         model.addAttribute("citizenships", states);
         model.addAttribute("states", states);
+        model.addAttribute("universities", ((EmployeeService)service).getUniversities());
+        model.addAttribute("specializations", ((EmployeeService)service).getSpecialities());
+        model.addAttribute("educationDegree", ((EmployeeService)service).getEducationDegree());
+        model.addAttribute("educationTypes", ((EmployeeService)service).getEducationTypes());
+        model.addAttribute("specializations", ((EmployeeService)service).getDevelopmentSpecializations());
+        model.addAttribute("skills", ((EmployeeService)service).getDevelopmentSkills());
+        model.addAttribute("grades", ((EmployeeService)service).getDevelopmentGrades());
+        model.addAttribute("languages", ((EmployeeService)service).getLanguages());
         return renderer(templateName + "/edit", model);
     }
 
     @GetMapping("/cities")
     @ResponseBody
     public List<OptionDto> cities(@RequestParam Long stateId) {
-        return locationCityService.getByStateId(stateId).stream()
+        return null;/*locationCityService.getByStateId(stateId).stream()
             .sorted(Comparator.comparing(LocationCityDto::getName, String.CASE_INSENSITIVE_ORDER))
             .map(c -> new OptionDto(c.getId(), c.getName()))
-            .toList();
+            .toList();*/
     }
 
     @PostMapping("/save")

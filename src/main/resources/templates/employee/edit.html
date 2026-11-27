@@ -164,6 +164,27 @@
             margin-top: 14px;
             text-align: right;
         }
+
+        .profile-head .with-button {
+            display: inline-flex;
+            vertical-align: middle;
+            margin-right: 16px;
+        }
+
+        .skills-box {
+            display: inline-block;
+            vertical-align: top;
+            min-width: 220px;
+        }
+
+        .project-panel .with-button {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .project-panel .skills-box {
+            flex: 1 1 auto;
+        }
     </style>
 
     <form action="#" th:action="@{/employees/save}" th:object="${employee}" method="post"
@@ -198,7 +219,8 @@
                     <option value="">-- не выбрано --</option>
                     <option th:each="c : ${citizenships}"
                             th:value="${c.id}"
-                            th:text="${c.name}">Гражданство</option>
+                            th:text="${c.name}">Гражданство
+                    </option>
                 </select>
 
                 <label>Государство</label>
@@ -206,7 +228,8 @@
                     <option value="">-- не выбрано --</option>
                     <option th:each="s : ${states}"
                             th:value="${s.id}"
-                            th:text="${s.name}">Государство</option>
+                            th:text="${s.name}">Государство
+                    </option>
                 </select>
 
                 <label>Город</label>
@@ -270,6 +293,12 @@
         <br/>
         <button class="save" type="submit">Сохранить</button>
 
+        <template id="skill-options-template">
+            <option th:each="s : ${skills}"
+                    th:value="${s.id}"
+                    th:text="${s.name}"></option>
+        </template>
+
         <template id="education-template">
             <tbody class="education-item">
             <tr>
@@ -280,7 +309,8 @@
                             <option value="">-- не выбрано --</option>
                             <option th:each="u : ${universities}"
                                     th:value="${u.id}"
-                                    th:text="${u.name}">Университет</option>
+                                    th:text="${u.name}">Университет
+                            </option>
                         </select>
                         <button type="button" class="add-dictionary" data-dict="university">Добавить</button>
                     </div>
@@ -292,7 +322,8 @@
                             <option value="">-- не выбрано --</option>
                             <option th:each="s : ${specialities}"
                                     th:value="${s.id}"
-                                    th:text="${s.name}">Специальность</option>
+                                    th:text="${s.name}">Специальность
+                            </option>
                         </select>
                         <button type="button" class="add-dictionary" data-dict="speciality">Добавить</button>
                     </div>
@@ -308,7 +339,8 @@
                         <option value="">-- не выбрано --</option>
                         <option th:each="t : ${educationTypes}"
                                 th:value="${t.id}"
-                                th:text="${t.name}">Тип</option>
+                                th:text="${t.name}">Тип
+                        </option>
                     </select>
                 </td>
                 <td class="edu-label">Степень</td>
@@ -317,7 +349,8 @@
                         <option value="">-- не выбрано --</option>
                         <option th:each="d : ${educationDegree}"
                                 th:value="${d.id}"
-                                th:text="${d.name}">Степень</option>
+                                th:text="${d.name}">Степень
+                        </option>
                     </select>
                 </td>
             </tr>
@@ -337,7 +370,8 @@
                         <option value="">-- не выбрано --</option>
                         <option th:each="l : ${languages}"
                                 th:value="${l.id}"
-                                th:text="${l.name}">Язык</option>
+                                th:text="${l.name}">Язык
+                        </option>
                     </select>
                 </td>
                 <td>
@@ -364,15 +398,27 @@
                 <label>Название</label>
                 <input type="text" data-tab-title="1" name="profiles[__P__].name"/>
 
+                <label>Направление</label>
+                <div class="with-button">
+                    <select class="specialization-select" name="profiles[__P__].developmentSpecializationId"></select>
+                    <button type="button" class="add-dictionary" data-dict="specialization">Добавить</button>
+                </div>
+
                 <label>Ставка в час</label>
                 <input type="number" step="0.01" name="profiles[__P__].ratePerHour"/>
                 <br/><br/>
-                <label>Навыки (через запятую)</label>
-                <input type="text" size="40" name="profiles[__P__].skills"/>
+                <label>Навыки</label>
+                <div class="with-button">
+                    <div class="skills-box">
+                        <select class="skills-select" id="skills-__P__" name="profiles[__P__].skillIds"
+                                multiple="multiple"></select>
+                    </div>
+                    <button type="button" class="add-dictionary" data-dict="skill">Добавить</button>
+                </div>
 
                 <label>Грейды</label>
                 <div class="grades-box">
-                    <select class="grades-select" id="grades-__P__" name="profiles[__P__].grades"
+                    <select class="grades-select" id="grades-__P__" name="profiles[__P__].gradeIds"
                             multiple="multiple"></select>
                 </div>
             </div>
@@ -386,9 +432,16 @@
             </div>
         </script>
 
+        <template id="specialization-options-template">
+            <option value="">-- не выбрано --</option>
+            <option th:each="s : ${specializations}"
+                    th:value="${s.id}"
+                    th:text="${s.name}"></option>
+        </template>
+
         <template id="grade-options-template">
             <option th:each="g : ${grades}"
-                    th:value="${g.code}"
+                    th:value="${g.id}"
                     th:text="${g.name}"></option>
         </template>
 
@@ -409,8 +462,14 @@
             <label>Окончание</label>
             <input type="date" name="profiles[__P__].projects[__R__].endAt"/>
 
-            <label>Навыки (через запятую)</label>
-            <input type="text" name="profiles[__P__].projects[__R__].skills"/>
+            <label>Навыки</label>
+            <div class="with-button">
+                <div class="skills-box">
+                    <select class="skills-select" id="skills-__P__-__R__" name="profiles[__P__].projects[__R__].skills"
+                            multiple="multiple"></select>
+                </div>
+                <button type="button" class="add-dictionary" data-dict="skill">Добавить</button>
+            </div>
 
             <label>Описание</label>
             <textarea rows="4" name="profiles[__P__].projects[__R__].description"></textarea>

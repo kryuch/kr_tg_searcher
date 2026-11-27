@@ -1,9 +1,9 @@
-package ru.kryuch.krtg.searcher.dto;
+package ru.kryuch.krtg.searcher.dto.developement;
 
 import lombok.Value;
 
 @Value
-public class GradeDto {
+public class DevelopmentGradeDto {
 
     private final String code;
     private final String name;

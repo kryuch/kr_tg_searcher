@@ -12,6 +12,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.development.DevelopmentSkillEntity;
 
 @Getter
 @Setter
@@ -38,5 +39,5 @@ public class EmployeeProfileSkillEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "skill_id", nullable = false)
-    private SkillEntity skill;
+    private DevelopmentSkillEntity skill;
 }

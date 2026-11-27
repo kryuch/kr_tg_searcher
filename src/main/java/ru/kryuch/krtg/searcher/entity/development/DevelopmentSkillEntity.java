@@ -1,4 +1,4 @@
-package ru.kryuch.krtg.searcher.entity;
+package ru.kryuch.krtg.searcher.entity.development;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -6,29 +6,29 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
 
 @Entity
-@Table(name = "krrg_grades")
+@Table(name="krrg_development_skills")
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-public class GradeEntity extends TimestampedEntity {
+public class DevelopmentSkillEntity extends TimestampedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false, length = 20, unique = true)
+    @Column(name = "code", nullable = false, unique = true, length = 16)
     private String code;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "name", nullable = false, unique = true, length = 32)
     private String name;
 
-    private Integer level;
-
-    @Column(name = "sort_order", nullable = false)
-    private Integer sortOrder = 0;
 }

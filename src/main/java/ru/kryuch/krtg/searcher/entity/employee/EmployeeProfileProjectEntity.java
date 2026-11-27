@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.kryuch.krtg.searcher.entity.OrganisationEntity;
 import ru.kryuch.krtg.searcher.entity.TimestampedEntity;
+import ru.kryuch.krtg.searcher.entity.development.DevelopmentSkillEntity;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -53,5 +54,5 @@ public class EmployeeProfileProjectEntity extends TimestampedEntity {
         joinColumns = @JoinColumn(name = "project_id", nullable = false),
         inverseJoinColumns = @JoinColumn(name = "skill_id", nullable = false)
     )
-    private Set<SkillEntity> skills;
+    private Set<DevelopmentSkillEntity> skills;
 }
